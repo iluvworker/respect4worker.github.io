@@ -7,16 +7,17 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<h1>Respect4Worker ログイン</h1>
+<h1>Respect4Worker 管理ポータル</h1>
 
 <form id="loginForm">
-  <label>ID：</label><input type="text" id="userId" required><br>
-  <label>パスワード：</label><input type="password" id="userPw" required><br>
+  <label>ID：</label>
+  <input type="text" id="loginId" required><br>
+  <label>パスワード：</label>
+  <input type="password" id="loginPw" required><br>
   <button type="submit">ログイン</button>
 </form>
 
-<p id="loginMessage"></p>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script src="assets/auth.js"></script>
 </body>
 </html>
