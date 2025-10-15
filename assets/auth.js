@@ -1,30 +1,45 @@
-async function login(userId, userPw) {
- const res = await fetch('../users.json');
-  const users = await res.json();
-  const hash = md5(userPw);
-  const user = users.find(u => u.id === userId && u.pw === hash);
+// === ログイン処理 ===
+async function login(event) {
+  event.preventDefault();
 
-  if (!user) {
-    document.getElementById('loginMessage').textContent = 'IDまたはパスワードが違います。';
+  const userId = document.getElementById("loginId").value.trim();
+  const userPw = document.getElementById("loginPw").value.trim();
+
+  if (!userId || !userPw) {
+    alert("IDとパスワードを入力してください。");
     return;
   }
 
-  localStorage.setItem('user', JSON.stringify(user));
-  if (user.role === 'admin') {
-    window.location.href = 'admin.html';
-  } else {
-    window.location.href = 'worker.html';
+  try {
+    // ✅ users.jsonの場所（assetsフォルダの1階層上）
+    const res = await fetch("../users.json");
+    const users = await res.json();
+
+    // ✅ 入力されたパスワードをMD5化して照合
+    const hash = CryptoJS.MD5(userPw).toString();
+    const user = users.find(u => u.id === userId && u.pw === hash);
+
+    if (user) {
+      localStorage.setItem("loginUser", JSON.stringify(user));
+      alert(`${user.name}さん、お稼ぎ〜っ💸`);
+
+      if (user.role === "admin") {
+        window.location.href = "admin.html";
+      } else {
+        window.location.href = "worker.html";
+      }
+    } else {
+      alert("IDまたはパスワードが違います。");
+    }
+
+  } catch (err) {
+    console.error("ログイン処理中にエラー:", err);
+    alert("ユーザー情報を読み込めません。");
   }
 }
 
-document.getElementById('loginForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const id = document.getElementById('userId').value.trim();
-  const pw = document.getElementById('userPw').value.trim();
-  login(id, pw);
+// === ログインフォームにイベントを紐付け ===
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
+  if (form) form.addEventListener("submit", login);
 });
-
-// MD5（軽量暗号化）
-function md5(str){
-  return CryptoJS.MD5(str).toString();
-}
