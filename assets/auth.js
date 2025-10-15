@@ -5,16 +5,16 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const pw = document.getElementById("loginPw").value.trim();
 
   try {
-    // JSONファイルを取得
-    const res = await fetch("../users.json");
+    // ✅ ここが重要。GitHub Pagesではルート相対パスにしないと404になる
+    const res = await fetch("users.json");
+
     if (!res.ok) throw new Error("ユーザー情報を読み込めません。");
     const users = await res.json();
 
-    // 入力されたIDとPWで一致するユーザーを探す
+    // 入力チェック
     const user = users.find(u => u.id === id && u.pw === pw);
 
     if (user) {
-      // ログイン成功
       localStorage.setItem("loginUser", JSON.stringify(user));
       alert(`${user.name}さん、ようこそ！`);
 
