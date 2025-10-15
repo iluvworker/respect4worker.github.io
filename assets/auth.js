@@ -1,27 +1,22 @@
-// === ログイン処理 ===
-async function login(event) {
-  event.preventDefault();
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  const userId = document.getElementById("loginId").value.trim();
-  const userPw = document.getElementById("loginPw").value.trim();
-
-  if (!userId || !userPw) {
-    alert("IDとパスワードを入力してください。");
-    return;
-  }
+  const id = document.getElementById("loginId").value.trim();
+  const pw = document.getElementById("loginPw").value.trim();
 
   try {
-    // ✅ users.jsonの場所（assetsフォルダの1階層上）
+    // JSONファイルを取得
     const res = await fetch("../users.json");
+    if (!res.ok) throw new Error("ユーザー情報を読み込めません。");
     const users = await res.json();
 
-    // ✅ 入力されたパスワードをMD5化して照合
-    const hash = CryptoJS.MD5(userPw).toString();
-    const user = users.find(u => u.id === userId && u.pw === hash);
+    // 入力されたIDとPWで一致するユーザーを探す
+    const user = users.find(u => u.id === id && u.pw === pw);
 
     if (user) {
+      // ログイン成功
       localStorage.setItem("loginUser", JSON.stringify(user));
-      alert(`${user.name}さん、お稼ぎ〜っ💸`);
+      alert(`${user.name}さん、ようこそ！`);
 
       if (user.role === "admin") {
         window.location.href = "admin.html";
@@ -32,14 +27,8 @@ async function login(event) {
       alert("IDまたはパスワードが違います。");
     }
 
-  } catch (err) {
-    console.error("ログイン処理中にエラー:", err);
+  } catch (error) {
+    console.error(error);
     alert("ユーザー情報を読み込めません。");
   }
-}
-
-// === ログインフォームにイベントを紐付け ===
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("loginForm");
-  if (form) form.addEventListener("submit", login);
 });
