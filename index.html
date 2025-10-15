@@ -7,11 +7,31 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<h1>投稿管理ポータル</h1>
-<p>↓作業ページへ移動してください。</p>
-<ul>
-  <li><a href="admin.html">管理者ページ（投稿）</a></li>
-  <li><a href="worker.html">ワーカーページ（編集）</a></li>
-</ul>
+<h1>Respect4Worker 管理ポータル</h1>
+<p>ログインしてください。</p>
+
+<form id="loginForm">
+  <label>アクセスキー：</label>
+  <input type="password" id="accessKey" required>
+  <button type="submit">ログイン</button>
+</form>
+
+<p id="loginMessage"></p>
+
+<script>
+  const ADMIN_KEY = "kyontan-2025"; // ← 管理者パスコードをここで設定（任意に変更OK）
+
+  document.getElementById('loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const key = document.getElementById('accessKey').value.trim();
+    if (key === ADMIN_KEY) {
+      localStorage.setItem('role', 'admin');
+      window.location.href = "admin.html";
+    } else {
+      localStorage.setItem('role', 'worker');
+      window.location.href = "worker.html";
+    }
+  });
+</script>
 </body>
 </html>
