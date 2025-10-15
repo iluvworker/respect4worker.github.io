@@ -1,7 +1,7 @@
 <head><script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script></head>
 
 async function login(userId, userPw) {
-  const res = await fetch('users.json');
+ const res = await fetch('../users.json');
   const users = await res.json();
   const hash = md5(userPw);
   const user = users.find(u => u.id === userId && u.pw === hash);
