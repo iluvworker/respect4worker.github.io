@@ -3,35 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>投稿管理ポータル</title>
+<title>ログイン | Respect4Worker</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<h1>Respect4Worker 管理ポータル</h1>
-<p>ログインしてください。</p>
+<h1>Respect4Worker ログイン</h1>
 
 <form id="loginForm">
-  <label>アクセスキー：</label>
-  <input type="password" id="accessKey" required>
+  <label>ID：</label><input type="text" id="userId" required><br>
+  <label>パスワード：</label><input type="password" id="userPw" required><br>
   <button type="submit">ログイン</button>
 </form>
 
 <p id="loginMessage"></p>
 
-<script>
-  const ADMIN_KEY = "kyontan-2025"; // ← 管理者パスコードをここで設定（任意に変更OK）
-
-  document.getElementById('loginForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const key = document.getElementById('accessKey').value.trim();
-    if (key === ADMIN_KEY) {
-      localStorage.setItem('role', 'admin');
-      window.location.href = "admin.html";
-    } else {
-      localStorage.setItem('role', 'worker');
-      window.location.href = "worker.html";
-    }
-  });
-</script>
+<script src="assets/auth.js"></script>
 </body>
 </html>
