@@ -75,3 +75,25 @@ toggleBtn.addEventListener("click", () => {
     }
   }
 });
+
+// ===== ページ読み込み時にモバイル位置を初期化 =====
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("toggleSidebar");
+
+  if (!sidebar || !toggleBtn) return;
+
+  const isHidden = sidebar.classList.contains("hidden");
+  const isMobile = window.innerWidth <= 768;
+
+  // モバイル時のみ位置を初期化
+  if (isMobile) {
+    if (isHidden) {
+      sidebar.style.transform = "translateX(-220px)";
+      toggleBtn.style.left = "10px"; // 🔹左端へ
+    } else {
+      sidebar.style.transform = "translateX(0)";
+      toggleBtn.style.left = "230px"; // 🔹サイドバー右端へ
+    }
+  }
+});
