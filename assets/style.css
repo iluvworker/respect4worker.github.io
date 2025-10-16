@@ -145,3 +145,13 @@ button {
   color: #47bcec;
   text-align: center;
 }
+
+main.main-content {
+  flex: 1;
+  margin-left: 230px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.hidden ~ main.main-content {
+  margin-left: 0;
+}
