@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="assets/style.css?v=3" />
   <script src="assets/sidebar.js" defer></script>
   <style>
-    /* 入力フォームを見やすく */
     #postForm {
       max-width: 700px;
       margin: 0 auto;
@@ -23,7 +22,6 @@
     #postForm label {
       font-weight: 600;
       color: #b0cfff;
-      margin-top: 5px;
     }
 
     #postForm input {
@@ -33,13 +31,6 @@
       padding: 10px;
       color: #fff;
       font-size: 15px;
-      transition: border-color 0.3s;
-    }
-
-    #postForm input:focus {
-      outline: none;
-      border-color: #47bcec;
-      box-shadow: 0 0 6px #47bcec88;
     }
 
     #postForm button {
@@ -52,15 +43,16 @@
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
-      transition: all 0.3s;
     }
 
-    #postForm button:hover {
-      background: #5fd0ff;
-      transform: scale(1.03);
+    #sitePreview {
+      color: #47bcec;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-align: right;
+      font-size: 14px;
     }
 
-    /* 投稿一覧テーブル */
     #postTable {
       width: 100%;
       border-collapse: collapse;
@@ -93,30 +85,27 @@
 </head>
 
 <body>
-  <!-- ===== メインコンテンツ ===== -->
   <main class="main-content">
     <h1 class="main-title">📝 新規投稿フォーム</h1>
 
     <section class="section" id="new-post">
-      <form id="postForm">
-        <label>販売サイト名（例：FANZA / MGS）</label>
-        <input type="text" id="site" required />
+      <div id="sitePreview">販売サイト：<span id="detectedSite">未判定</span></div>
 
+      <form id="postForm">
         <label>販売ページURL</label>
-        <input type="url" id="url" required />
+        <input type="url" id="url" placeholder="https://example.com" required />
 
         <label>サムネイル画像URL</label>
-        <input type="url" id="thumb" required />
+        <input type="url" id="thumb" placeholder="https://example.com/thumb.jpg" required />
 
         <label>動画URL</label>
-        <input type="url" id="video" required />
+        <input type="url" id="video" placeholder="https://example.com/video.mp4" required />
 
         <button type="submit">投稿する</button>
       </form>
     </section>
 
     <h1 class="main-title">📋 投稿一覧</h1>
-
     <section class="section" id="post-list">
       <table id="postTable">
         <thead>
@@ -137,6 +126,26 @@
   </main>
 
   <script>
+    // URL入力時に自動でサイト名を判定
+    const urlInput = document.getElementById("url");
+    const siteDisplay = document.getElementById("detectedSite");
+
+    urlInput.addEventListener("input", () => {
+      const url = urlInput.value.toLowerCase();
+      let site = "未判定";
+
+      if (url.includes("dmm") || url.includes("fanza")) {
+        site = "FANZA";
+      } else if (url.includes("mgstage") || url.includes("mgs")) {
+        site = "MGS";
+      } else if (url.includes("dlsite")) {
+        site = "DLsite";
+      }
+
+      siteDisplay.textContent = site;
+      siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
+    });
+
     // 投稿データを読み込んで一覧に表示
     async function loadPosts() {
       try {
@@ -145,7 +154,6 @@
         const tbody = document.querySelector("#postTable tbody");
         tbody.innerHTML = "";
 
-        // 新しい順に並び替え
         posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         posts.forEach((p) => {
@@ -167,10 +175,14 @@
       }
     }
 
-    // 投稿ボタン（仮処理）
     document.querySelector("#postForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      alert("🎉 投稿処理は今後GitHub Actions連携で自動反映予定！");
+      const site = siteDisplay.textContent;
+      if (site === "未判定") {
+        alert("⚠️ 販売サイトが判定できません。URLを確認してください。");
+        return;
+      }
+      alert(`🎉 投稿データ送信（${site} として登録予定）`);
     });
 
     loadPosts();
