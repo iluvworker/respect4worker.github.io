@@ -27,3 +27,132 @@ button {
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
+/* ===== サイドバー ===== */
+.sidebar {
+  width: 230px;
+  background-color: #111;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  overflow-y: auto;           /* ← スクロール可能 */
+  scrollbar-width: thin;
+  scrollbar-color: #47bcec #111;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #47bcec;
+  border-radius: 3px;
+}
+
+.sidebar-title {
+  text-align: center;
+  color: #47bcec;
+  font-size: 18px;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+
+.sidebar-nav li:hover {
+  background-color: #222;
+}
+
+.sidebar-nav span {
+  margin-left: 8px;
+  color: #b0cfff;
+}
+
+/* ===== メイン領域 ===== */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  margin-left: 230px; /* ← サイドバー分 */
+  overflow-y: auto;
+  transition: margin-left 0.3s ease; /* ← 開閉で右側を連動させる */
+}
+
+/* ===== サイドバー閉じた時 ===== */
+.sidebar.hidden {
+  transform: translateX(-240px);
+}
+
+/* サイドバー閉じたら右側を広げる */
+.sidebar.hidden ~ .main-content {
+  margin-left: 0 !important;
+}
+
+/* ===== 開閉ボタン ===== */
+.toggle-btn {
+  position: fixed;
+  top: 15px;
+  left: 230px;          /* ← サイドバー右端 */
+  transform: translateX(0);
+  background: #47bcec;
+  color: #111;
+  border: none;
+  font-size: 20px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: left 0.3s ease, transform 0.3s ease;
+  z-index: 1100;
+}
+
+/* サイドバー閉じた時のボタン位置 */
+.sidebar.hidden ~ .toggle-btn {
+  left: 0;
+  transform: translateX(10px); /* ← 少し内側（押しやすく） */
+}
+
+/* ===== モバイル対応 ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 210px;
+    transform: translateX(-220px);
+  }
+
+  /* 閉じた時だけ隠す！ */
+  .sidebar.hidden {
+    transform: translateX(-220px);
+  }
+
+  .toggle-btn {
+    top: 15px;
+    left: 230px; /
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
