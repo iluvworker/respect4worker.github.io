@@ -141,7 +141,7 @@ button {
 }
 
 /* サイドバーが閉じた時は左端にピタッ */
-.sidebar.hidden + .toggle-btn {
+.sidebar.hidden ~ .toggle-btn {
   left: 0;
   transform: translateX(10px); /* ← 少し内側（押しやすく） */
 }
