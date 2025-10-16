@@ -46,3 +46,20 @@ toggleBtn.addEventListener("click", () => {
     console.error("サイドバー読み込みエラー:", error);
   }
 });
+
+// ===== サイドバー連動で右側を動かす =====
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("toggleSidebar");
+  const mainContent = document.querySelector(".main-content");
+
+  if (toggleBtn && sidebar && mainContent) {
+    toggleBtn.addEventListener("click", () => {
+      if (sidebar.classList.contains("hidden")) {
+        mainContent.style.marginLeft = "0";
+      } else {
+        mainContent.style.marginLeft = "230px"; // ← サイドバー幅に合わせて調整
+      }
+    });
+  }
+});
