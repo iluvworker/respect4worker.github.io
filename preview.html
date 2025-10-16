@@ -1,0 +1,31 @@
+<script>
+  async function loadPosts() {
+    try {
+      const res = await fetch('./posts.json', { cache: "no-cache" });
+      if (!res.ok) throw new Error('JSONを取得できませんでした');
+      const posts = await res.json();
+
+      const tbody = document.querySelector("#postTable tbody");
+      posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      posts.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.site}</td>
+          <td><a href="${p.url}" target="_blank" style="color:#4b7bec;text-decoration:none;">${p.title}</a></td>
+          <td>${p.tags.join(", ")}</td>
+          <td>${p.status}</td>
+          <td>${p.editor}</td>
+          <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
+          <td><img src="${p.thumb}" alt="thumb" width="80"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      document.body.innerHTML += `<p style="color:red;text-align:center;">⚠️ ${e.message}</p>`;
+      console.error(e);
+    }
+  }
+  loadPosts();
+</script>

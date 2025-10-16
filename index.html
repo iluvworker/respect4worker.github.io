@@ -1,17 +1,110 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>投稿管理ポータル</title>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>平行線で</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* ===== 全体 ===== */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #121212, #1e1e1e);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ===== カードコンテナ ===== */
+    .login-card {
+      background: #222;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      width: 340px;
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+    }
+
+    /* ===== タイトル ===== */
+    .login-card h1 {
+      margin-bottom: 25px;
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: #f1f1f1;
+    }
+
+    /* ===== 入力欄 ===== */
+    .login-card input {
+      width: 90%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #333;
+      color: #fff;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .login-card input:focus {
+      background: #444;
+      outline: none;
+    }
+
+    /* ===== ボタン ===== */
+    .login-card button {
+      width: 95%;
+      padding: 10px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #4b7bec;
+      color: #fff;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .login-card button:hover {
+      background: #3867d6;
+      transform: translateY(-2px);
+    }
+
+    /* ===== メッセージ ===== */
+    #msg {
+      margin-top: 15px;
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    /* ===== アニメーション ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+  </style>
 </head>
 <body>
-<h1>投稿管理ポータル</h1>
-<p>↓作業ページへ移動してください。</p>
-<ul>
-  <li><a href="admin.html">管理者ページ（投稿）</a></li>
-  <li><a href="worker.html">ワーカーページ（編集）</a></li>
-</ul>
+
+  <div class="login-card">
+    <h1>報酬は入社後<br>管理ポータル</h1>
+
+    <form id="loginForm">
+      <input type="text" id="loginId" placeholder="ユーザーID" required><br>
+      <input type="password" id="loginPw" placeholder="パスワード" required><br>
+      <button type="submit">ログイン</button>
+    </form>
+
+    <p id="msg">おはようございます。ログインしてお稼ぎください。</p>
+  </div>
+
+  <script src="assets/auth.js"></script>
 </body>
 </html>
