@@ -46,6 +46,7 @@ button {
   scrollbar-width: thin;
   scrollbar-color: #47bcec #111;
   z-index: 1000;
+  transition: transform 0.3s ease;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -96,38 +97,24 @@ button {
   padding: 30px;
   margin-left: 230px; /* ← サイドバー分 */
   overflow-y: auto;
+  transition: margin-left 0.3s ease; /* ← 開閉で右側を連動させる */
 }
 
-/* ===== サイドバー開閉 ===== */
-.sidebar {
-  width: 230px;
-  background-color: #111;
-  color: #eee;
-  display: flex;
-  flex-direction: column;
-  padding: 20px 0;
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  height: 100vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #47bcec #111;
-  z-index: 1000;
-  transition: transform 0.3s ease;
-}
-
-/* サイドバーを閉じたときの位置 */
+/* ===== サイドバー閉じた時 ===== */
 .sidebar.hidden {
   transform: translateX(-240px);
 }
 
-/* 開閉ボタンをサイドバー右端に固定 */
+/* サイドバー閉じたら右側を広げる */
+.sidebar.hidden ~ .main-content {
+  margin-left: 0 !important;
+}
+
+/* ===== 開閉ボタン ===== */
 .toggle-btn {
   position: fixed;
   top: 15px;
-  left: 230px;          /* ← サイドバー幅と一致！ */
+  left: 230px;          /* ← サイドバー右端 */
   transform: translateX(0);
   background: #47bcec;
   color: #111;
@@ -140,10 +127,9 @@ button {
   z-index: 1100;
 }
 
-/* サイドバーが閉じた時は左端にピタッ */
-.sidebar.hidden ~ .main-content {
-  margin-left: 0 !important;
-}
+/* サイドバー閉じた時のボタン位置 */
+.sidebar.hidden ~ .toggle-btn {
+  left: 0;
   transform: translateX(10px); /* ← 少し内側（押しやすく） */
 }
 
@@ -151,9 +137,10 @@ button {
 @media (max-width: 768px) {
   .sidebar {
     width: 210px;
-    transform: translateX(-220px); /* ← 初期状態で隠す（モバイル用） */
+    transform: translateX(-220px);
   }
 
+  /* 閉じた時だけ隠す！ */
   .sidebar.hidden {
     transform: translateX(-220px);
   }
