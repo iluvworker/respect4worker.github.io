@@ -55,3 +55,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("サイドバー読み込みエラー:", error);
   }
 });
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("hidden");
+
+  // サイドバーの状態を記憶（true = 隠れてる）
+  localStorage.setItem("sidebarHidden", sidebar.classList.contains("hidden"));
+
+  // ▼ モバイルでも強制的にリフレッシュ（transformが効かない対策）
+  if (window.innerWidth <= 768) {
+    if (sidebar.classList.contains("hidden")) {
+      sidebar.style.transform = "translateX(-220px)";
+      // 🔽 ボタン位置もリセット
+      toggleBtn.style.left = "10px";
+    } else {
+      sidebar.style.transform = "translateX(0)";
+      // 🔽 サイドバーが出たらボタンを右端に寄せる
+      toggleBtn.style.left = "230px";
+    }
+  }
+});
