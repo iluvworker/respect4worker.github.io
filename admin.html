@@ -1,20 +1,119 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>管理者ページ</title>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Respect4Worker 管理画面</title>
+
+  <!-- ====== デザイン統一（黒＋青テーマ） ====== -->
+  <style>
+    body {
+      margin: 0;
+      font-family: "Noto Sans JP", sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ==== サイドバー ==== */
+    .sidebar {
+      width: 230px;
+      background-color: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+    }
+
+    .sidebar-title {
+      text-align: center;
+      color: #47bcec;
+      font-size: 18px;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-nav li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+    }
+
+    .sidebar-nav li:hover {
+      background-color: #222;
+    }
+
+    .sidebar-nav span {
+      margin-left: 8px;
+      color: #b0cfff;
+    }
+
+    /* ==== メインコンテンツ領域 ==== */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .main-title {
+      color: #47bcec;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .section {
+      margin-bottom: 40px;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    }
+  </style>
 </head>
+
 <body>
-<h1>管理者ページ</h1>
-<form id="postForm">
-  <label>販売サイトURL：<input type="url" id="siteUrl" required></label><br>
-  <label>サムネイルURL：<input type="url" id="thumbUrl" required></label><br>
-  <label>動画URL：<input type="url" id="videoUrl" required></label><br>
-  <button type="submit">投稿を追加</button>
-</form>
-<p id="result"></p>
-<script src="assets/main.js"></script>
+  <!-- ====== サイドバー（共通） ====== -->
+  <aside class="sidebar">
+    <h2 class="sidebar-title">Respect4Worker 管理</h2>
+    <nav class="sidebar-nav">
+      <ul>
+        <li>🏠 <span>ホーム</span> <!-- TODO: index.html にリンク予定 --></li>
+        <li>📝 <span>新規投稿</span> <!-- TODO: admin.html にリンク予定 --></li>
+        <li>📋 <span>投稿一覧</span> <!-- TODO: preview.html にリンク予定 --></li>
+        <li>📂 <span>編集履歴</span> <!-- TODO: history.html にリンク予定 --></li>
+        <li>📊 <span>ワーカー進捗</span> <!-- TODO: progress.html にリンク予定 --></li>
+        <li>🚪 <span>ログアウト</span> <!-- TODO: ログイン画面（index.html）へ遷移予定 --></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ====== メインコンテンツ（ここに実処理を追加） ====== -->
+  <main class="main-content">
+    <h1 class="main-title">📝 新規投稿フォーム</h1>
+
+    <section class="section" id="new-post">
+      <!-- TODO: 投稿フォームをここに実装 -->
+      <p>ここに新規投稿フォームを追加予定。</p>
+    </section>
+
+    <h1 class="main-title">📋 投稿一覧</h1>
+
+    <section class="section" id="post-list">
+      <!-- TODO: 投稿一覧テーブルをここに埋め込み（preview.htmlを流用） -->
+      <p>ここに投稿一覧を表示予定。</p>
+    </section>
+  </main>
 </body>
 </html>
