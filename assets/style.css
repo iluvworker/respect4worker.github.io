@@ -115,3 +115,33 @@ button {
 .sidebar a:hover {
   color: #47bcec;
 }
+
+/* サイドバー開閉ボタン */
+.toggle-btn {
+  position: fixed;
+  top: 15px;
+  left: 250px;
+  background: #47bcec;
+  color: #111;
+  border: none;
+  font-size: 20px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: 0.3s ease;
+  z-index: 1100;
+}
+
+.sidebar.hidden + .toggle-btn {
+  left: 15px;
+}
+
+/* ユーザー名表示 */
+.username {
+  margin-top: auto;
+  padding: 15px 10px;
+  font-size: 14px;
+  border-top: 1px solid #333;
+  color: #47bcec;
+  text-align: center;
+}
