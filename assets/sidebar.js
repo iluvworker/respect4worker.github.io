@@ -14,10 +14,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!sidebar || !toggleBtn) return;
 
-    // ▼ ローカルストレージで状態復元
-    const sidebarState = localStorage.getItem("sidebarHidden");
-    if (sidebarState === "true") sidebar.classList.add("hidden");
+  // ▼ ローカルストレージで状態復元
+const sidebarState = localStorage.getItem("sidebarHidden");
+if (sidebarState === "true") sidebar.classList.add("hidden");
 
+// ▼ モバイル時は初期状態で閉じる ←★ここを追加！
+const isMobile = window.matchMedia("(max-width: 768px)").matches;
+if (isMobile) {
+  sidebar.classList.add("hidden");
+  localStorage.setItem("sidebarHidden", "true");
+}
     // ▼ 初期位置を状態に合わせる
     if (mainContent) {
       mainContent.style.marginLeft = sidebar.classList.contains("hidden") ? "0" : "230px";
