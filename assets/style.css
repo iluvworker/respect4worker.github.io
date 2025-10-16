@@ -142,7 +142,7 @@ button {
 
   /* 閉じた時だけ隠す！ */
   .sidebar.hidden {
-    transform: translateX(-220px);
+    transform: translateX(230px);
   }
 
   .toggle-btn {
