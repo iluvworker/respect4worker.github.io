@@ -71,3 +71,47 @@ button {
   padding-left: 8px;
   color: #47bcec;
 }
+
+/* ===== サイドバー共通設定 ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 230px;
+  height: 100vh;
+  background-color: #111;
+  color: #eee;
+  padding: 20px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.hidden {
+  transform: translateX(-240px);
+}
+
+.toggle-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: #47bcec;
+  color: #111;
+  border: none;
+  font-size: 22px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  z-index: 1100;
+}
+
+.sidebar a {
+  display: block;
+  color: #eee;
+  text-decoration: none;
+  margin: 12px 0;
+}
+
+.sidebar a:hover {
+  color: #47bcec;
+}
