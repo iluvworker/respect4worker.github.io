@@ -4,12 +4,95 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📝 新規投稿フォーム</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/style.css?v=3" />
   <script src="assets/sidebar.js" defer></script>
+  <style>
+    /* 入力フォームを見やすく */
+    #postForm {
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: #1b1b1b;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+
+    #postForm label {
+      font-weight: 600;
+      color: #b0cfff;
+      margin-top: 5px;
+    }
+
+    #postForm input {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      color: #fff;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+
+    #postForm input:focus {
+      outline: none;
+      border-color: #47bcec;
+      box-shadow: 0 0 6px #47bcec88;
+    }
+
+    #postForm button {
+      align-self: flex-end;
+      background: #47bcec;
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    #postForm button:hover {
+      background: #5fd0ff;
+      transform: scale(1.03);
+    }
+
+    /* 投稿一覧テーブル */
+    #postTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #postTable th, #postTable td {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+
+    #postTable th {
+      background: #2a2a2a;
+      color: #47bcec;
+    }
+
+    #postTable tr:hover {
+      background: #252525;
+    }
+
+    #postTable img {
+      width: 80px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
-
   <!-- ===== メインコンテンツ ===== -->
   <main class="main-content">
     <h1 class="main-title">📝 新規投稿フォーム</h1>
@@ -31,6 +114,66 @@
         <button type="submit">投稿する</button>
       </form>
     </section>
+
+    <h1 class="main-title">📋 投稿一覧</h1>
+
+    <section class="section" id="post-list">
+      <table id="postTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>サイト</th>
+            <th>タイトル</th>
+            <th>タグ</th>
+            <th>状態</th>
+            <th>編集者</th>
+            <th>投稿日</th>
+            <th>サムネ</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
   </main>
+
+  <script>
+    // 投稿データを読み込んで一覧に表示
+    async function loadPosts() {
+      try {
+        const res = await fetch("posts.json", { cache: "no-cache" });
+        const posts = await res.json();
+        const tbody = document.querySelector("#postTable tbody");
+        tbody.innerHTML = "";
+
+        // 新しい順に並び替え
+        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        posts.forEach((p) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.site}</td>
+            <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
+            <td>${p.tags?.join(", ") || "-"}</td>
+            <td>${p.status}</td>
+            <td>${p.editor || "-"}</td>
+            <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
+            <td><img src="${p.thumb}" alt="thumb"></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("一覧取得エラー:", err);
+      }
+    }
+
+    // 投稿ボタン（仮処理）
+    document.querySelector("#postForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      alert("🎉 投稿処理は今後GitHub Actions連携で自動反映予定！");
+    });
+
+    loadPosts();
+  </script>
 </body>
 </html>
