@@ -14,53 +14,51 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!sidebar || !toggleBtn) return;
 
-  // ▼ ローカルストレージで状態復元
-const sidebarState = localStorage.getItem("sidebarHidden");
-if (sidebarState === "true") sidebar.classList.add("hidden");
+    // ▼ デバイス判定
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
-// ▼ モバイル時は初期状態で閉じる ←★ここを追加！
-const isMobile = window.matchMedia("(max-width: 768px)").matches;
-if (isMobile) {
-  sidebar.classList.add("hidden");
-  localStorage.setItem("sidebarHidden", "true");
-}
+    // ▼ ローカルストレージで状態復元
+    const sidebarState = localStorage.getItem("sidebarHidden");
+
+    // ▼ モバイル時は強制的に閉じる、それ以外は保存状態を反映
+    if (isMobile) {
+      sidebar.classList.add("hidden");
+      localStorage.setItem("sidebarHidden", "true");
+    } else if (sidebarState === "true") {
+      sidebar.classList.add("hidden");
+    }
+
     // ▼ 初期位置を状態に合わせる
     if (mainContent) {
       mainContent.style.marginLeft = sidebar.classList.contains("hidden") ? "0" : "230px";
     }
 
-    // ▼ ページ読み込み時のモバイル位置初期化
-    const isHidden = sidebar.classList.contains("hidden");
-    const isMobile = window.innerWidth <= 768;
+    // ▼ モバイル表示の初期transform調整
     if (isMobile) {
-      if (isHidden) {
+      if (sidebar.classList.contains("hidden")) {
         sidebar.style.transform = "translateX(-220px)";
-        toggleBtn.style.left = "10px"; // 左端
+        toggleBtn.style.left = "10px";
       } else {
         sidebar.style.transform = "translateX(0)";
-        toggleBtn.style.left = "230px"; // サイドバー右端
+        toggleBtn.style.left = "230px";
       }
     }
 
-    // ▼ 開閉ボタン挙動（唯一のイベント）
+    // ▼ 開閉ボタン挙動
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("hidden");
-      localStorage.setItem("sidebarHidden", sidebar.classList.contains("hidden"));
+      const isHidden = sidebar.classList.contains("hidden");
+      localStorage.setItem("sidebarHidden", isHidden);
 
-      // サイドバー開閉に合わせて右側連動
+      // メイン領域の連動
       if (mainContent) {
-        mainContent.style.marginLeft = sidebar.classList.contains("hidden") ? "0" : "230px";
+        mainContent.style.marginLeft = isHidden ? "0" : "230px";
       }
 
-      // モバイル用のtransform＆位置修正
+      // モバイル用transform＆位置修正
       if (window.innerWidth <= 768) {
-        if (sidebar.classList.contains("hidden")) {
-          sidebar.style.transform = "translateX(-220px)";
-          toggleBtn.style.left = "10px";
-        } else {
-          sidebar.style.transform = "translateX(0)";
-          toggleBtn.style.left = "230px";
-        }
+        sidebar.style.transform = isHidden ? "translateX(-220px)" : "translateX(0)";
+        toggleBtn.style.left = isHidden ? "10px" : "230px";
       }
     });
 
