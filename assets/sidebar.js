@@ -63,3 +63,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+// ===== メインコンテンツの margin をサイドバーと連動 =====
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const mainContent = document.querySelector(".main-content");
+
+  if (!sidebar || !mainContent) return;
+
+  // 初期状態を同期
+  if (sidebar.classList.contains("hidden")) {
+    mainContent.style.marginLeft = "0";
+  } else {
+    mainContent.style.marginLeft = "230px";
+  }
+
+  // 開閉ボタンの挙動に合わせて追従
+  const toggleBtn = document.getElementById("toggleSidebar");
+  toggleBtn.addEventListener("click", () => {
+    if (sidebar.classList.contains("hidden")) {
+      mainContent.style.marginLeft = "0";
+    } else {
+      mainContent.style.marginLeft = "230px";
+    }
+  });
+});
