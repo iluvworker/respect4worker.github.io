@@ -147,12 +147,24 @@ button {
 
   .toggle-btn {
     top: 15px;
-    left: 230px; /* ← モバイルは常に左上に固定 */
+    left: 230px; /
     transform: translateX(0);
   }
 
   .main-content {
     margin-left: 0;
     padding: 20px;
+  }
+}
+// ▼ モバイルでも強制的にリフレッシュ（transformが効かない対策）
+if (window.innerWidth <= 768) {
+  if (sidebar.classList.contains("hidden")) {
+    sidebar.style.transform = "translateX(-220px)";
+    // 🔽 ボタン位置もリセット
+    toggleBtn.style.left = "10px";
+  } else {
+    sidebar.style.transform = "translateX(0)";
+    // 🔽 サイドバーが出たらボタンを右端に寄せる
+    toggleBtn.style.left = "230px";
   }
 }
