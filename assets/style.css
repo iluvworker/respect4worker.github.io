@@ -99,15 +99,31 @@ button {
 }
 
 /* ===== サイドバー開閉 ===== */
-.sidebar.hidden {
-  transform: translateX(-240px);
+.sidebar {
+  width: 230px;
+  background-color: #111;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #47bcec #111;
+  z-index: 1000;
   transition: transform 0.3s ease;
 }
 
+/* 開閉ボタンをサイドバー右端に固定 */
 .toggle-btn {
   position: fixed;
   top: 15px;
-  left: 250px;
+  left: 230px;          /* ← サイドバー幅と一致！ */
+  transform: translateX(0);
   background: #47bcec;
   color: #111;
   border: none;
@@ -115,29 +131,35 @@ button {
   padding: 6px 10px;
   cursor: pointer;
   border-radius: 4px;
-  transition: 0.3s ease;
+  transition: left 0.3s ease, transform 0.3s ease;
   z-index: 1100;
 }
 
+/* サイドバーが閉じた時は左端にピタッ */
 .sidebar.hidden + .toggle-btn {
-  left: 15px;
+  left: 0;
+  transform: translateX(10px); /* ← 少し内側（押しやすく） */
 }
 
 /* ===== モバイル対応 ===== */
 @media (max-width: 768px) {
   .sidebar {
-    position: fixed;
-    height: 100vh;
     width: 210px;
-    z-index: 2000;
+    transform: translateX(-220px); /* ← 初期状態で隠す（モバイル用） */
+  }
+
+  .sidebar.hidden {
+    transform: translateX(-220px);
+  }
+
+  .toggle-btn {
+    top: 15px;
+    left: 15px; /* ← モバイルは常に左上に固定 */
+    transform: none;
   }
 
   .main-content {
     margin-left: 0;
     padding: 20px;
-  }
-
-  .toggle-btn {
-    left: 15px;
   }
 }
