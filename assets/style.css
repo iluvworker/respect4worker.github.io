@@ -148,7 +148,7 @@ button {
   .toggle-btn {
     top: 15px;
     left: 230px; /* ← モバイルは常に左上に固定 */
-    transform: none;
+    transform: translateX(0);
   }
 
   .main-content {
