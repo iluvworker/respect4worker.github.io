@@ -1,230 +1,26 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>シャンパン祭り 管理画面</title>
-  <link rel="stylesheet" href="assets/style.css" />
-
-  <style>
-    body {
-      margin: 0;
-      font-family: "Noto Sans JP", sans-serif;
-      background-color: #121212;
-      color: #fff;
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* ===== サイドバー ===== */
-    .sidebar {
-      width: 230px;
-      background-color: #111;
-      color: #eee;
-      display: flex;
-      flex-direction: column;
-      padding: 20px 0;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
-    }
-
-    .sidebar-title {
-      text-align: center;
-      color: #47bcec;
-      font-size: 18px;
-      margin-bottom: 20px;
-      letter-spacing: 1px;
-    }
-
-    .sidebar-nav ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .sidebar-nav li {
-      padding: 12px 20px;
-      cursor: pointer;
-      transition: background 0.2s;
-      display: flex;
-      align-items: center;
-      font-size: 15px;
-    }
-
-    .sidebar-nav li:hover {
-      background-color: #222;
-    }
-
-    .sidebar-nav span {
-      margin-left: 8px;
-      color: #b0cfff;
-    }
-
-    /* ===== メイン領域 ===== */
-    .main-content {
-      flex: 1;
-      padding: 30px;
-      overflow-y: auto;
-    }
-
-    .main-title {
-      color: #47bcec;
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
-
-    .section {
-      margin-bottom: 40px;
-      background: #1e1e1e;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-    }
-
-    /* ===== 投稿フォーム ===== */
-    form label {
-      display: block;
-      margin-top: 10px;
-      color: #b0cfff;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      margin-top: 6px;
-      background: #222;
-      color: #fff;
-      font-size: 14px;
-    }
-
-    button {
-      background: #47bcec;
-      border: none;
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      margin-top: 15px;
-    }
-
-    button:hover {
-      background: #5fd0ff;
-    }
-
-    /* ===== 一覧表 ===== */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: #1e1e1e;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      border-bottom: 1px solid #333;
-      padding: 12px;
-      text-align: left;
-    }
-
-    th {
-      background: #2a2a2a;
-      color: #4b7bec;
-    }
-
-    tr:hover {
-      background: #2c2c2c;
-    }
-
-    img {
-      width: 80px;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-
 <body>
+  <!-- ===== サイドバー ===== -->
+  <aside class="sidebar">
+    <h2 class="sidebar-title">カレー炒飯バーグ</h2>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="admin.html">🏠 <span>ホーム</span></a></li>
+        <li><a href="new-post.html">📝 <span>新規投稿</span></a></li>
+        <li><a href="post-list.html">📋 <span>投稿一覧</span></a></li>
+        <li><a href="history.html">📂 <span>編集履歴</span></a></li>
+        <li><a href="progress.html">📊 <span>ワーカー進捗</span></a></li>
+        <li><a href="index.html">🚪 <span>ログアウト</span></a></li>
+      </ul>
+    </nav>
+  </aside>
 
   <!-- ===== メインコンテンツ ===== -->
   <main class="main-content">
-    <h1 class="main-title">📝 新規投稿フォーム</h1>
-
-    <section class="section" id="new-post">
-      <form id="postForm">
-        <label>販売サイト名（例：FANZA / MGS）</label>
-        <input type="text" id="site" required />
-
-        <label>販売ページURL</label>
-        <input type="url" id="url" required />
-
-        <label>サムネイル画像URL</label>
-        <input type="url" id="thumb" required />
-
-        <label>動画URL</label>
-        <input type="url" id="video" required />
-
-        <button type="submit">投稿する</button>
-      </form>
-    </section>
-
-    <h1 class="main-title">📋 投稿一覧</h1>
-
-    <section class="section" id="post-list">
-      <table id="postTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>サイト</th>
-            <th>タイトル</th>
-            <th>タグ</th>
-            <th>状態</th>
-            <th>編集者</th>
-            <th>投稿日</th>
-            <th>サムネ</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <h1 class="main-title">🏠 ホーム画面</h1>
+    <section class="section">
+      <p style="color:#999;">ここにダッシュボードやお知らせなどを表示予定です。</p>
     </section>
   </main>
 
-  <!-- ===== JS処理 ===== -->
-  <script>
-    async function loadPosts() {
-      const res = await fetch("posts.json", { cache: "no-cache" });
-      const posts = await res.json();
-      const tbody = document.querySelector("#postTable tbody");
-      tbody.innerHTML = "";
-
-      posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-      posts.forEach((p) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${p.id}</td>
-          <td>${p.site}</td>
-          <td><a href="${p.url}" target="_blank" style="color:#4b7bec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
-          <td>${p.tags?.join(", ") || "-"}</td>
-          <td>${p.status}</td>
-          <td>${p.editor || "-"}</td>
-          <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
-          <td><img src="${p.thumb}" alt="thumb"></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    document.querySelector("#postForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      alert("🎉 投稿処理はここに追加予定！（GitHub Actions 連携で JSON 書き込み）");
-    });
-
-    loadPosts();
-  </script>
   <script src="assets/sidebar.js"></script>
-<link rel="stylesheet" href="assets/style.css?v=2">
 </body>
-</html>
