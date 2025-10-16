@@ -142,12 +142,12 @@ button {
 
   /* 閉じた時だけ隠す！ */
   .sidebar.hidden {
-    transform: translateX(230px);
+    transform: translateX(-220px);
   }
 
   .toggle-btn {
     top: 15px;
-    left: 15px; /* ← モバイルは常に左上に固定 */
+    left: 230px; /* ← モバイルは常に左上に固定 */
     transform: none;
   }
 
