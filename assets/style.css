@@ -27,3 +27,47 @@ button {
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
+/* ===== サイドバー共通デザイン ===== */
+.sidebar {
+  width: 230px;
+  background-color: #111;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
+  height: 100vh;
+}
+
+.sidebar-title {
+  text-align: center;
+  color: #47bcec;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 15px;
+}
+
+.sidebar-nav a {
+  text-decoration: none;
+  color: #eee;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar-nav a:hover {
+  background-color: #1e1e1e;
+  border-left: 4px solid #47bcec;
+  padding-left: 8px;
+  color: #47bcec;
+}
