@@ -16,7 +16,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
     if (user) {
       localStorage.setItem("loginUser", JSON.stringify(user));
-      alert(`${user.name}さん、ようこそ！`);
+      alert(`${user.name}さん、お稼ぎィ〜💸🎶！`);
 
       if (user.role === "admin") {
         window.location.href = "admin.html";
