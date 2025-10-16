@@ -17,11 +17,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       sidebar.classList.add("hidden");
     }
 
-    // ▼ 開閉ボタン挙動
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("hidden");
-      localStorage.setItem("sidebarHidden", sidebar.classList.contains("hidden"));
-    });
+  // ▼ 開閉ボタン挙動
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("hidden");
+
+  // サイドバーの状態を記憶（true = 隠れてる）
+  localStorage.setItem("sidebarHidden", sidebar.classList.contains("hidden"));
+  
+  // モバイルでも強制的にリフレッシュ（transformが効かない対策）
+  if (window.innerWidth <= 768) {
+    if (sidebar.classList.contains("hidden")) {
+      sidebar.style.transform = "translateX(-220px)";
+    } else {
+      sidebar.style.transform = "translateX(0)";
+    }
+  }
+});
 
     // ▼ ユーザー名を保持して表示
     const username = localStorage.getItem("userName");
