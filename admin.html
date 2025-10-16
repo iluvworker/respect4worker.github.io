@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Respect4Worker 管理画面</title>
+  <link rel="stylesheet" href="assets/style.css" />
 
-  <!-- ====== デザイン統一（黒＋青テーマ） ====== -->
   <style>
     body {
       margin: 0;
@@ -17,7 +17,7 @@
       overflow: hidden;
     }
 
-    /* ==== サイドバー ==== */
+    /* ===== サイドバー ===== */
     .sidebar {
       width: 230px;
       background-color: #111;
@@ -25,7 +25,7 @@
       display: flex;
       flex-direction: column;
       padding: 20px 0;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
     }
 
     .sidebar-title {
@@ -60,7 +60,7 @@
       color: #b0cfff;
     }
 
-    /* ==== メインコンテンツ領域 ==== */
+    /* ===== メイン領域 ===== */
     .main-content {
       flex: 1;
       padding: 30px;
@@ -78,42 +78,165 @@
       background: #1e1e1e;
       border-radius: 10px;
       padding: 20px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== 投稿フォーム ===== */
+    form label {
+      display: block;
+      margin-top: 10px;
+      color: #b0cfff;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin-top: 6px;
+      background: #222;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    button {
+      background: #47bcec;
+      border: none;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background: #5fd0ff;
+    }
+
+    /* ===== 一覧表 ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border-bottom: 1px solid #333;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #2a2a2a;
+      color: #4b7bec;
+    }
+
+    tr:hover {
+      background: #2c2c2c;
+    }
+
+    img {
+      width: 80px;
+      border-radius: 4px;
     }
   </style>
 </head>
 
 <body>
-  <!-- ====== サイドバー（共通） ====== -->
+  <!-- ===== サイドバー（共通） ===== -->
   <aside class="sidebar">
     <h2 class="sidebar-title">Respect4Worker 管理</h2>
     <nav class="sidebar-nav">
       <ul>
-        <li>🏠 <span>ホーム</span> <!-- TODO: index.html にリンク予定 --></li>
-        <li>📝 <span>新規投稿</span> <!-- TODO: admin.html にリンク予定 --></li>
-        <li>📋 <span>投稿一覧</span> <!-- TODO: preview.html にリンク予定 --></li>
-        <li>📂 <span>編集履歴</span> <!-- TODO: history.html にリンク予定 --></li>
-        <li>📊 <span>ワーカー進捗</span> <!-- TODO: progress.html にリンク予定 --></li>
-        <li>🚪 <span>ログアウト</span> <!-- TODO: ログイン画面（index.html）へ遷移予定 --></li>
+        <li>🏠 <span>ホーム</span> <!-- TODO: index.html（ログイン）へリンク予定 --></li>
+        <li>📝 <span>新規投稿</span> <!-- TODO: admin.html（投稿フォーム）へリンク予定 --></li>
+        <li>📋 <span>投稿一覧</span> <!-- TODO: post-list.html（一覧ページ）へリンク予定 --></li>
+        <li>📂 <span>編集履歴</span> <!-- TODO: history.html（履歴ページ）へリンク予定 --></li>
+        <li>📊 <span>ワーカー進捗</span> <!-- TODO: progress.html（進捗ページ）へリンク予定 --></li>
+        <li>🚪 <span>ログアウト</span> <!-- TODO: index.html（ログイン画面）へ戻る --></li>
       </ul>
     </nav>
   </aside>
 
-  <!-- ====== メインコンテンツ（ここに実処理を追加） ====== -->
+  <!-- ===== メインコンテンツ ===== -->
   <main class="main-content">
     <h1 class="main-title">📝 新規投稿フォーム</h1>
 
     <section class="section" id="new-post">
-      <!-- TODO: 投稿フォームをここに実装 -->
-      <p>ここに新規投稿フォームを追加予定。</p>
+      <form id="postForm">
+        <label>販売サイト名（例：FANZA / MGS）</label>
+        <input type="text" id="site" required />
+
+        <label>販売ページURL</label>
+        <input type="url" id="url" required />
+
+        <label>サムネイル画像URL</label>
+        <input type="url" id="thumb" required />
+
+        <label>動画URL</label>
+        <input type="url" id="video" required />
+
+        <button type="submit">投稿する</button>
+      </form>
     </section>
 
     <h1 class="main-title">📋 投稿一覧</h1>
 
     <section class="section" id="post-list">
-      <!-- TODO: 投稿一覧テーブルをここに埋め込み（preview.htmlを流用） -->
-      <p>ここに投稿一覧を表示予定。</p>
+      <table id="postTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>サイト</th>
+            <th>タイトル</th>
+            <th>タグ</th>
+            <th>状態</th>
+            <th>編集者</th>
+            <th>投稿日</th>
+            <th>サムネ</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
   </main>
+
+  <!-- ===== JS処理 ===== -->
+  <script>
+    async function loadPosts() {
+      const res = await fetch("posts.json", { cache: "no-cache" });
+      const posts = await res.json();
+      const tbody = document.querySelector("#postTable tbody");
+      tbody.innerHTML = "";
+
+      posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      posts.forEach((p) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.site}</td>
+          <td><a href="${p.url}" target="_blank" style="color:#4b7bec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
+          <td>${p.tags?.join(", ") || "-"}</td>
+          <td>${p.status}</td>
+          <td>${p.editor || "-"}</td>
+          <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
+          <td><img src="${p.thumb}" alt="thumb"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.querySelector("#postForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      alert("🎉 投稿処理はここに追加予定！（GitHub Actions 連携で JSON 書き込み）");
+    });
+
+    loadPosts();
+  </script>
 </body>
 </html>
