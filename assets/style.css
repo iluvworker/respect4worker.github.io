@@ -118,6 +118,11 @@ button {
   transition: transform 0.3s ease;
 }
 
+/* サイドバーを閉じたときの位置 */
+.sidebar.hidden {
+  transform: translateX(-240px);
+}
+
 /* 開閉ボタンをサイドバー右端に固定 */
 .toggle-btn {
   position: fixed;
