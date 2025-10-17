@@ -124,10 +124,10 @@
 
     <form id="editForm">
       <!-- 🔹 作品タイトル -->
-      <label>タイトル</label>
+      <label>商品タイトル</label>
       <input type="text" id="originalTitle" placeholder="スター投稿時のタイトル" />
-　　　 <label>作品ページ</label>
-      <input type="text" id="video" placeholder="動画や商品ページのURL" />
+　　　 <label>商品ページ</label>
+      <input type="text" id="url" placeholder="動画や商品ページのURL" />
       <!-- 🔹 編集用タイトル -->
       <label>タイトル（50〜60文字）</label>
       <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
@@ -144,7 +144,7 @@
       <input type="url" id="thumbPick2" placeholder="同上">
 
       <label>動画</label>
-      <input type="url" id="video" readonly>
+      <input type="video" id="video" readonly>
       <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
 
       <label>タグ（カンマ区切り）</label>
@@ -231,12 +231,13 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   const editedPost = {
     id: postId,
     title_original: document.getElementById("originalTitle").value,
+    url: document.getElementById("url").value,
     title_final: document.getElementById("editableTitle").value,
     thumb_original: document.getElementById("thumbOriginal").value,
     thumb_pick1: document.getElementById("thumbPick1").value,
     thumb_pick2: document.getElementById("thumbPick2").value,
     video: document.getElementById("video").value,
-    tags: document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean),
+    tags: document.getElementById("tags").value.split(" ").map(t => t.trim()).filter(Boolean),
     notes: document.getElementById("notes").value,
     editor,
     updated_at: new Date().toISOString(),
