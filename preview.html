@@ -83,13 +83,16 @@
       <div id="sitePreview">販売サイト：<span id="detectedSite">未判定</span></div>
 
       <form id="postForm">
-        <label>販売ページURL</label>
+        <label>タイトル</label>
+        <input type="text" id="title" placeholder="タイトル" required />
+
+        <label>作品URL</label>
         <input type="url" id="url" placeholder="https://example.com" required />
 
-        <label>サムネイル画像URL</label>
+        <label>サムネ</label>
         <input type="url" id="thumb" placeholder="https://example.com/thumb.jpg" required />
 
-        <label>動画URL</label>
+        <label>動画</label>
         <input type="url" id="video" placeholder="https://example.com/video.mp4" required />
 
         <button type="submit">投稿する</button>
