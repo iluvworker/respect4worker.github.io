@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📝 新規投稿フォーム</title>
-  <link rel="stylesheet" href="assets/style.css?v=4">
+<link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
   <style>
-    /* === きょんたん仕様維持 === */
     #postForm {
       max-width: 700px;
       margin: 0 auto;
@@ -19,23 +18,69 @@
       padding: 25px;
       box-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
-    #postForm label { font-weight: 600; color: #b0cfff; }
+
+    #postForm label {
+      font-weight: 600;
+      color: #b0cfff;
+    }
+
     #postForm input {
-      background: #222; border: 1px solid #333; border-radius: 6px;
-      padding: 10px; color: #fff; font-size: 15px;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      color: #fff;
+      font-size: 15px;
     }
+
     #postForm button {
-      align-self: flex-end; background: #47bcec; color: #111;
-      border: none; border-radius: 6px; padding: 10px 20px;
-      cursor: pointer; font-size: 15px; font-weight: 600;
+      align-self: flex-end;
+      background: #47bcec;
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
     }
-    #sitePreview { color: #47bcec; font-weight: bold; margin-bottom: 5px; text-align: right; font-size: 14px; }
-    #statusMsg { text-align:center; margin-top:15px; font-size:14px; color:#aaa; }
-    #postTable { width: 100%; border-collapse: collapse; margin-top: 25px; background: #1e1e1e; border-radius: 8px; overflow: hidden; }
-    #postTable th, #postTable td { padding: 12px; border-bottom: 1px solid #333; text-align: left; }
-    #postTable th { background: #2a2a2a; color: #47bcec; }
-    #postTable tr:hover { background: #252525; }
-    #postTable img { width: 80px; border-radius: 4px; }
+
+    #sitePreview {
+      color: #47bcec;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-align: right;
+      font-size: 14px;
+    }
+
+    #postTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #postTable th, #postTable td {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+
+    #postTable th {
+      background: #2a2a2a;
+      color: #47bcec;
+    }
+
+    #postTable tr:hover {
+      background: #252525;
+    }
+
+    #postTable img {
+      width: 80px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 
@@ -53,16 +98,11 @@
         <label>サムネイル画像URL</label>
         <input type="url" id="thumb" placeholder="https://example.com/thumb.jpg" required />
 
-        <label>作品タイトル</label>
-        <input type="text" id="title" placeholder="作品タイトル" required />
-
-        <label>動画URL（任意）</label>
-        <input type="url" id="video" placeholder="https://example.com/video.mp4" />
+        <label>動画URL</label>
+        <input type="url" id="video" placeholder="https://example.com/video.mp4" required />
 
         <button type="submit">投稿する</button>
       </form>
-
-      <p id="statusMsg"></p>
     </section>
 
     <h1 class="main-title">📋 投稿一覧</h1>
@@ -85,110 +125,152 @@
     </section>
   </main>
 
-  <script>
-    const REPO_OWNER = "iluvworker";
-    const REPO_NAME = "respect4worker.github.io";
-    const FILE_PATH = "posts.json";
-    const GITHUB_TOKEN = " GH_TOKEN"; // ⚠️ 絶対にpublicにpushしないこと！
-
-    // URL入力時に自動でサイト名を判定
-    const urlInput = document.getElementById("url");
-    const siteDisplay = document.getElementById("detectedSite");
-
-    urlInput.addEventListener("input", () => {
-      const url = urlInput.value.toLowerCase();
-      let site = "未判定";
-      if (url.includes("dmm") || url.includes("fanza")) site = "FANZA";
-      else if (url.includes("mgstage") || url.includes("mgs")) site = "MGS";
-      else if (url.includes("dlsite")) site = "DLsite";
-      siteDisplay.textContent = site;
-      siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
-    });
-
-    // 投稿データ送信 → GitHub反映
-    document.querySelector("#postForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById("statusMsg");
-      msg.textContent = "送信中...";
-
-      const newPost = {
-        id: Date.now(),
-        site: siteDisplay.textContent,
-        url: url.value,
-        thumb: thumb.value,
-        title: title.value,
-        video: video.value || "",
-        tags: [],
-        status: "draft",
-        editor: localStorage.getItem("loginUser") || "未ログイン",
-        created_at: new Date().toISOString()
-      };
-
-      try {
-        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-          headers: { Authorization: `token ${GITHUB_TOKEN}` }
-        });
-        const data = await res.json();
-        const posts = JSON.parse(atob(data.content));
-        posts.unshift(newPost); // 新しい順
-
-        const updated = btoa(JSON.stringify(posts, null, 2));
-        const updateRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-          method: "PUT",
-          headers: {
-            Authorization: `token ${GITHUB_TOKEN}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            message: `Add new post: ${newPost.title}`,
-            content: updated,
-            sha: data.sha
-          })
-        });
-
-        if (updateRes.ok) {
-          msg.style.color = "#47bcec";
-          msg.textContent = "✅ 投稿が完了しました！";
-          loadPosts(); // 反映後に再読込
-          e.target.reset();
-        } else {
-          throw new Error("GitHub更新失敗");
-        }
-      } catch (err) {
-        console.error(err);
-        msg.style.color = "red";
-        msg.textContent = "⚠️ 投稿エラーが発生しました";
-      }
-    });
-
-    // 投稿一覧のロード
-    async function loadPosts() {
-      try {
-        const res = await fetch("posts.json?ts=" + Date.now());
-        const posts = await res.json();
-        const tbody = document.querySelector("#postTable tbody");
-        tbody.innerHTML = "";
-        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        posts.forEach(p => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${p.id}</td>
-            <td>${p.site}</td>
-            <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(無題)"}</a></td>
-            <td>${p.tags?.join(", ") || "-"}</td>
-            <td>${p.status}</td>
-            <td>${p.editor}</td>
-            <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
-            <td><img src="${p.thumb}" alt="thumb"></td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("一覧読み込み失敗:", err);
-      }
+<script>
+  // ===== ログイン状態チェック =====
+  document.addEventListener("DOMContentLoaded", async () => {
+    const userData = localStorage.getItem("loginUser");
+    if (!userData) {
+      alert("⚠️ ログインが必要です。");
+      window.location.href = "index.html";
+      return;
     }
 
+    const user = JSON.parse(userData);
+    window.loggedInUser = user; // 投稿時に参照する用
+
+    // ヘッダーにログイン中ユーザーを表示
+    const info = document.createElement("div");
+    info.style.position = "fixed";
+    info.style.top = "10px";
+    info.style.right = "20px";
+    info.style.color = "#47bcec";
+    info.style.fontSize = "14px";
+    info.textContent = `👤 ${user.name}（${user.role}）`;
+    document.body.appendChild(info);
+
     loadPosts();
-  </script>
+  });
+
+  // ===== URL入力時に販売サイトを自動判定 =====
+  const urlInput = document.getElementById("url");
+  const siteDisplay = document.getElementById("detectedSite");
+
+  urlInput.addEventListener("input", () => {
+    const url = urlInput.value.toLowerCase();
+    let site = "未判定";
+
+    if (url.includes("dmm") || url.includes("fanza")) {
+      site = "FANZA";
+    } else if (url.includes("mgstage") || url.includes("mgs")) {
+      site = "MGS";
+    } else if (url.includes("dlsite")) {
+      site = "DLsite";
+    }
+
+    siteDisplay.textContent = site;
+    siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
+  });
+
+  // ===== 投稿一覧を読み込む =====
+  async function loadPosts() {
+    try {
+      const res = await fetch("posts.json", { cache: "no-cache" });
+      const posts = await res.json();
+      const tbody = document.querySelector("#postTable tbody");
+      tbody.innerHTML = "";
+
+      posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      posts.forEach((p) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.site}</td>
+          <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
+          <td>${p.tags?.join(", ") || "-"}</td>
+          <td>${p.status}</td>
+          <td>${p.editor || "-"}</td>
+          <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
+          <td><img src="${p.thumb}" alt="thumb"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error("一覧取得エラー:", err);
+    }
+  }
+
+  // ===== 投稿フォーム処理 =====
+  document.querySelector("#postForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const site = siteDisplay.textContent;
+    if (site === "未判定") {
+      alert("⚠️ 販売サイトが判定できません。URLを確認してください。");
+      return;
+    }
+
+    const user = window.loggedInUser;
+    if (!user) {
+      alert("⚠️ ログイン情報が見つかりません。再ログインしてください。");
+      window.location.href = "index.html";
+      return;
+    }
+
+    const newPost = {
+      id: Date.now(),
+      site,
+      url: url.value,
+      thumb: thumb.value,
+      title: "(タイトル未設定)",
+      video: video.value,
+      tags: [],
+      status: "draft",
+      editor: user.name,
+      editorId: user.id,
+      created_at: new Date().toISOString(),
+    };
+
+    try {
+      // posts.json を取得
+      const res = await fetch("https://api.github.com/repos/iluvworker/respect4worker.github.io/contents/posts.json", {
+        headers: { Authorization: `token ${import.meta.env.GH_TOKEN}` }
+      });
+      const data = await res.json();
+      const content = atob(data.content);
+      const posts = JSON.parse(content);
+
+      // 新しい投稿を先頭に追加
+      posts.unshift(newPost);
+      const updatedContent = btoa(JSON.stringify(posts, null, 2));
+
+      // GitHubへ反映
+      const updateRes = await fetch("https://api.github.com/repos/iluvworker/respect4worker.github.io/contents/posts.json", {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${import.meta.env.GH_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `Add new post by ${user.name}`,
+          content: updatedContent,
+          sha: data.sha
+        })
+      });
+
+      if (updateRes.ok) {
+        alert(`🎉 ${user.name} さんの投稿が完了しました！`);
+        loadPosts(); // リスト更新
+        document.getElementById("postForm").reset();
+      } else {
+        throw new Error("更新失敗");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ 投稿エラー。GitHub APIを確認してください。");
+    }
+  });
+</script>
 </body>
 </html>
