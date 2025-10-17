@@ -1,5 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📜 編集履歴一覧</title>
+
+  <link rel="stylesheet" href="assets/style.css?v=4">
+  <script src="assets/sidebar.js" defer></script>
+
+  <style>
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      margin-left: 230px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .main-title {
+      font-size: 20px;
+      color: #47bcec;
+      border-left: 5px solid #47bcec;
+      padding-left: 10px;
+      margin-bottom: 20px;
+    }
+
+    #historyTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    #historyTable tbody {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #historyTable tr {
+      display: flex;
+      align-items: center;
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 10px;
+      gap: 15px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    }
+    #historyTable td {
+      border: none;
+      padding: 0;
+    }
+    #historyTable img {
+      width: 85px;
+      height: auto;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .post-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+    }
+    .post-info a {
+      color: #47bcec;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .post-meta {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 3px;
+    }
+
+    .btns {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-edit, .btn-delete {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-edit {
+      background: #47bcec;
+      color: #111;
+    }
+    .btn-delete {
+      background: #ff4d4d;
+      color: #fff;
+    }
+  </style>
+</head>
+
 <body>
-  
-<script src="assets/sidebar.js"></script>
-<link rel="stylesheet" href="assets/style.css?v=4">
+  <aside id="sidebar"></aside>
+  <button id="toggleSidebar" class="toggle-btn">☰</button>
+
+  <main class="main-content">
+    <h1 class="main-title">📜 編集履歴一覧</h1>
+    <table id="historyTable">
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script>
+    function encodeToBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch("history.json", { cache: "no-cache" });
+        const history = await res.json();
+        const tbody = document.querySelector("#historyTable tbody");
+        tbody.innerHTML = "";
+
+        history.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+        history.forEach((p) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><img src="${p.thumb_pick1 || p.thumb_original || 'no-thumb.jpg'}" alt="thumb"></td>
+            <td class="post-info">
+              <a href="${p.video}" target="_blank">${p.title_final || "(タイトル未設定)"}</a>
+              <div class="post-meta">${p.editor || "船長"} ｜ ${new Date(p.updated_at).toLocaleString("ja-JP")}</div>
+            </td>
+            <td class="btns">
+              <button class="btn-edit" onclick="editPost('${p.id}')">✏ 編集</button>
+              <button class="btn-delete" onclick="deletePost('${p.id}')">🗑 削除</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("履歴取得エラー:", err);
+      }
+    }
+
+    function editPost(id) {
+      window.location.href = `edit-post.html?id=${id}`;
+    }
+
+    async function deletePost(id) {
+      if (!confirm("この履歴を削除しますか？")) return;
+
+      try {
+        const res = await fetch("history.json", { cache: "no-cache" });
+        const data = await res.json();
+        const updated = data.filter(p => String(p.id) !== String(id));
+
+        const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "Delete post from history",
+            target: "history.json",
+            content: encodeToBase64(JSON.stringify(updated, null, 2))
+          })
+        });
+
+        if (saveRes.ok) {
+          alert("🗑 履歴を削除しました。");
+          loadHistory();
+        } else {
+          alert("⚠️ 削除失敗: " + saveRes.status);
+        }
+      } catch (err) {
+        console.error("削除エラー:", err);
+        alert("⚠️ 削除中にエラーが発生しました。");
+      }
+    }
+
+    loadHistory();
+  </script>
 </body>
+</html>
