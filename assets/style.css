@@ -189,3 +189,28 @@ button {
   width: 80px;
   border-radius: 4px;
 }
+
+/* ✅ サイドバー連動修正 */
+#sidebar.collapsed {
+  width: 60px;
+  transition: width 0.3s ease;
+}
+
+.main-content.expanded {
+  margin-left: 80px !important;
+  transition: margin-left 0.3s ease;
+}
+
+.toggle-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: #47bcec;
+  color: #111;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 999;
+}
