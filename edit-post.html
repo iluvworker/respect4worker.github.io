@@ -1,55 +1,56 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✏️ 編集ページ</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>✏️ 編集ページ（神）</title>
   <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
+
   <style>
+    /* ===== メインレイアウト ===== */
     body {
-      display: flex;
-      background: #111;
-      color: #eee;
       margin: 0;
       font-family: "Helvetica Neue", Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      display: flex;
     }
 
-    aside {
-      width: 220px;
-      background: #141414;
-      border-right: 1px solid #222;
-      min-height: 100vh;
-    }
-
-    main {
+    /* ===== メインコンテンツ ===== */
+    .main-content {
       flex: 1;
-      max-width: 800px;
-      margin: 20px auto;
+      margin-left: 230px;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .main-title {
+      font-size: 20px;
+      color: #47bcec;
+      border-left: 5px solid #47bcec;
+      padding-left: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* ===== 編集フォーム ===== */
+    #editForm {
+      max-width: 750px;
       background: #1b1b1b;
       border-radius: 12px;
       padding: 25px;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
-    h1 {
-      color: #47bcec;
-      text-align: left;
-      margin-bottom: 15px;
-      font-size: 20px;
-      border-left: 5px solid #47bcec;
-      padding-left: 10px;
-    }
-
-    label {
+    #editForm label {
       display: block;
-      margin-top: 12px;
+      margin-top: 14px;
       color: #b0cfff;
       font-weight: 600;
       font-size: 14px;
     }
 
-    input, textarea {
+    #editForm input, #editForm textarea {
       width: 100%;
       background: #222;
       border: 1px solid #333;
@@ -60,21 +61,22 @@
       margin-top: 5px;
     }
 
-    textarea {
+    #editForm textarea {
       min-height: 120px;
       resize: vertical;
     }
 
-    button {
+    #editForm button {
       background: #47bcec;
       color: #111;
       border: none;
       border-radius: 6px;
-      padding: 10px 20px;
+      padding: 10px 22px;
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
       margin-top: 20px;
+      float: right;
     }
 
     .thumb-preview {
@@ -97,19 +99,20 @@
     }
   </style>
 </head>
+
 <body>
   <!-- 🔹 サイドバー -->
   <aside id="sidebar"></aside>
 
-  <!-- 🔹 メイン編集エリア -->
-  <main>
-    <h1>✏️ 編集</h1>
+  <!-- 🔹 メイン領域 -->
+  <main class="main-content">
+    <h1 class="main-title">✏️ 編集（神専用）</h1>
 
     <form id="editForm">
       <label>タイトル</label>
       <input type="text" id="title" required>
 
-      <label>オリジナルサムネURL（動画サイトのもの）</label>
+      <label>オリジナルサムネURL（動画サイト）</label>
       <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
       <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
 
@@ -129,17 +132,19 @@
       <label>内容メモ／補足（任意）</label>
       <textarea id="notes" placeholder="補足や備考を入力..."></textarea>
 
-      <button type="submit">💾 編集を保存する</button>
+      <button type="submit">💾 保存する</button>
     </form>
   </main>
 
+  <button class="toggle-btn" id="toggleSidebar">☰</button>
+
   <script>
-    // 🔹 Base64エンコード関数
+    // Base64変換
     function encodeToBase64(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
 
-    // 🔹 クエリから投稿ID取得
+    // 投稿ID取得
     const params = new URLSearchParams(window.location.search);
     const postId = params.get("id");
 
@@ -165,12 +170,12 @@
       }
     }
 
-    // 🔹 編集内容保存（edit.json に送信）
+    // 保存処理
     document.getElementById("editForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const user = JSON.parse(localStorage.getItem("loginUser"));
-      const editor = user ? user.name : "unknown";
+      const editor = user ? user.name : "神";
 
       const editedPost = {
         id: postId,
@@ -192,7 +197,7 @@
           mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: "Add edited post via Cloudflare Worker",
+            message: "Add edited post via Cloudflare Worker (神)",
             target: "edit.json",
             content: encodeToBase64(JSON.stringify(editedPost, null, 2))
           })
