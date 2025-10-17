@@ -17,10 +17,14 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
+    /* 🔹 タイトルを小さく */
     h1 {
       color: #47bcec;
-      text-align: center;
-      margin-bottom: 20px;
+      text-align: left;
+      margin-bottom: 15px;
+      font-size: 20px;
+      border-left: 5px solid #47bcec;
+      padding-left: 10px;
     }
 
     label {
@@ -77,12 +81,11 @@
     .video-link:hover {
       text-decoration: underline;
     }
-
   </style>
 </head>
 <body>
   <main>
-    <h1>✏️ 編集ページ</h1>
+    <h1>✏️ 編集</h1>
 
     <form id="editForm">
       <label>タイトル</label>
@@ -92,8 +95,12 @@
       <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
       <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
 
-      <label>Canvaで作成したサムネURL</label>
-      <input type="url" id="thumbEdited" placeholder="https://example.com/canva-thumb.jpg">
+      <!-- 🔹 ピックアップサムネ -->
+      <label>ピックアップサムネ①</label>
+      <input type="url" id="thumbPick1" placeholder="https://example.com/pickup1.jpg">
+
+      <label>ピックアップサムネ②</label>
+      <input type="url" id="thumbPick2" placeholder="https://example.com/pickup2.jpg">
 
       <label>動画URL</label>
       <input type="url" id="video" readonly>
@@ -152,7 +159,8 @@
         id: postId,
         title: document.getElementById("title").value,
         thumb_original: document.getElementById("thumbOriginal").value,
-        thumb_edited: document.getElementById("thumbEdited").value,
+        thumb_pick1: document.getElementById("thumbPick1").value,
+        thumb_pick2: document.getElementById("thumbPick2").value,
         video: document.getElementById("video").value,
         tags: document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean),
         notes: document.getElementById("notes").value,
