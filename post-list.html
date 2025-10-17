@@ -23,6 +23,7 @@
       transition: transform 0.2s ease;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
     }
 
     .post-card:hover {
@@ -40,6 +41,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      flex: 1;
     }
 
     .post-site {
@@ -58,20 +60,38 @@
       color: #5fd0ff;
     }
 
+    /* ===== ボタンエリア ===== */
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .edit-btn, .delete-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
     .edit-btn {
-      margin-top: 8px;
       background: #47bcec;
       color: #111;
-      border: none;
-      padding: 8px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      align-self: flex-start;
     }
 
     .edit-btn:hover {
       background: #5fd0ff;
+    }
+
+    .delete-btn {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .delete-btn:hover {
+      background: #ff6b6b;
     }
 
     /* ===== フィルタエリア ===== */
@@ -227,13 +247,61 @@
           <div class="post-info">
             <div class="post-site">${site}</div>
             <a href="${p.url}" class="post-title" target="_blank">${p.title || "(タイトル未設定)"}</a>
-            <button class="edit-btn" onclick="alert('✏️ 編集ページへ移動予定')">編集</button>
+            <div class="btn-group">
+              <button class="edit-btn" onclick="editPost('${p.id}')">✏ 編集</button>
+              <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
+            </div>
           </div>
         `;
         grid.appendChild(card);
       });
 
       renderPagination(totalPages);
+    }
+
+    async function deletePost(id) {
+  if (!confirm("🗑 この投稿を削除しますか？")) return;
+
+  try {
+    // まずサーバー保存用の最新一覧を取得
+    const res = await fetch(`posts.json?ts=${Date.now()}`, { cache: "no-store" });
+    const data = await res.json();
+
+    // サーバーへ送る内容
+    const updated = data.filter(p => String(p.id) !== String(id));
+
+    const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Delete post from posts.json",
+        target: "posts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+      })
+    });
+
+    if (!saveRes.ok) {
+      alert("⚠️ 削除失敗: " + saveRes.status);
+      return;
+    }
+
+    // ✅ 楽観的更新：フロントの配列も即時反映
+    postsData = postsData.filter(p => String(p.id) !== String(id));
+    renderPosts();
+
+    alert("✅ 投稿を削除しました。");
+
+    // 念のため最新を取り直し（CDN回避）
+    await loadPosts();
+
+  } catch (err) {
+    console.error("削除エラー:", err);
+    alert("⚠️ 削除中にエラーが発生しました。");
+  }
+}
+    function editPost(id) {
+      window.location.href = `edit-post.html?id=${id}`;
     }
 
     function renderPagination(totalPages) {
@@ -254,11 +322,9 @@
         return btn;
       };
 
-      // ⏮ 前へ
       container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
 
-      // ページ番号生成
-      const visibleRange = 2; // 現在ページの前後2件表示
+      const visibleRange = 2;
       const startPage = Math.max(1, currentPage - visibleRange);
       const endPage = Math.min(totalPages, currentPage + visibleRange);
 
@@ -276,11 +342,9 @@
         container.appendChild(createBtn(totalPages, totalPages));
       }
 
-      // ⏭ 次へ
       container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
     }
 
-    // 検索・チェックボックス・並び替えイベント
     document.addEventListener("input", (e) => {
       if (["searchInput", "uneditOnly"].includes(e.target.id)) {
         currentPage = 1;
