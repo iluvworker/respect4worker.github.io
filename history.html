@@ -182,153 +182,179 @@
     </section>
   </main>
 
-  <script>
-    let historyData = [];
-    let sortDesc = true;
-    let currentPage = 1;
-    const perPage = 30;
+ <script>
+  let historyData = [];
+  let sortDesc = true;
+  let currentPage = 1;
+  const perPage = 30;
 
-    const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
+  const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
 
-    async function loadHistory() {
-      const res = await fetch("./history.json", { cache: "no-cache" });
-      historyData = await res.json();
-      renderHistory();
-    }
+  // ✅ 全角・半角・大文字・小文字を統一して検索精度UP
+  function normalizeText(text) {
+    return (text || "")
+      .toString()
+      .toLowerCase()
+      .normalize("NFKC")
+      .replace(/\s+/g, "");
+  }
 
-    function renderHistory() {
-      const grid = document.getElementById("postGrid");
-      const keyword = document.getElementById("searchInput").value.toLowerCase();
+  async function loadHistory() {
+    const res = await fetch("./history.json", { cache: "no-cache" });
+    historyData = await res.json();
+    renderHistory();
+  }
 
-      let filtered = historyData.filter(p => {
-        const matchKeyword =
-          (p.title_final && p.title_final.toLowerCase().includes(keyword)) ||
-          (p.editor && p.editor.toLowerCase().includes(keyword)) ||
-          (p.tags && p.tags.join(",").toLowerCase().includes(keyword));
-        return matchKeyword;
-      });
+  function renderHistory() {
+    const grid = document.getElementById("postGrid");
+    const keywordRaw = document.getElementById("searchInput").value.trim();
 
-      filtered.sort((a, b) => sortDesc
-        ? new Date(b.updated_at) - new Date(a.updated_at)
-        : new Date(a.updated_at) - new Date(b.updated_at)
+    // ✅ 「船長 10月」などの複数キーワードを空白区切りで分割
+    const keywords = keywordRaw
+      .split(/\s+/)
+      .map(k => normalizeText(k))
+      .filter(k => k.length > 0);
+
+    let filtered = historyData.filter(p => {
+      const title = normalizeText(p.title_final || p.title_original || "");
+      const editor = normalizeText(p.editor || "");
+      const tags = normalizeText((p.tags || []).join(","));
+      const month = normalizeText(p.month || "");
+      const date = normalizeText(p.date || "");
+
+      // ✅ すべてのキーワードがどこかに含まれているかチェック（AND検索）
+      return keywords.every(k =>
+        title.includes(k) ||
+        editor.includes(k) ||
+        tags.includes(k) ||
+        month.includes(k) ||
+        date.includes(k)
       );
+    });
 
-      const totalPages = Math.ceil(filtered.length / perPage);
-      if (currentPage > totalPages) currentPage = totalPages || 1;
+    filtered.sort((a, b) => sortDesc
+      ? new Date(b.updated_at) - new Date(a.updated_at)
+      : new Date(a.updated_at) - new Date(b.updated_at)
+    );
 
-      const start = (currentPage - 1) * perPage;
-      const pageData = filtered.slice(start, start + perPage);
+    const totalPages = Math.ceil(filtered.length / perPage);
+    if (currentPage > totalPages) currentPage = totalPages || 1;
 
-      grid.innerHTML = "";
-      pageData.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "post-card";
-        card.innerHTML = `
-          <img src="${p.thumb_pick1 || p.thumb_original || 'no-thumb.jpg'}" class="post-thumb" alt="thumb">
-          <div class="post-info">
-            <div class="post-site">${p.editor || "船長"}</div>
-            <a href="${p.video}" class="post-title" target="_blank">${p.title_final || "(タイトル未設定)"}</a>
-            <div class="btn-area">
-              <button class="edit-btn" onclick="editPost('${p.id}')">✏ 編集</button>
-              <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
-            </div>
+    const start = (currentPage - 1) * perPage;
+    const pageData = filtered.slice(start, start + perPage);
+
+    grid.innerHTML = "";
+    pageData.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "post-card";
+      card.innerHTML = `
+        <img src="${p.thumb_pick1 || p.thumb_original || 'no-thumb.jpg'}" class="post-thumb" alt="thumb">
+        <div class="post-info">
+          <div class="post-site">${p.editor || "船長"}</div>
+          <div class="post-title">${p.title_final || "(タイトル未設定)"}</div>
+          <div class="post-site">${p.month || ""} ／ ${p.date || ""}</div>
+          <div class="btn-area">
+            <button class="edit-btn" onclick="editPost('${p.id}')">✏ 編集</button>
+            <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
           </div>
-        `;
-        grid.appendChild(card);
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const container = document.getElementById("pagination");
+    container.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const createBtn = (label, page, disabled = false, active = false) => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      if (disabled) btn.disabled = true;
+      if (active) btn.classList.add("active");
+      btn.addEventListener("click", () => {
+        currentPage = page;
+        renderHistory();
+      });
+      return btn;
+    };
+
+    container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+
+    const visibleRange = 2;
+    const startPage = Math.max(1, currentPage - visibleRange);
+    const endPage = Math.min(totalPages, currentPage + visibleRange);
+
+    if (startPage > 1) {
+      container.appendChild(createBtn("1", 1));
+      if (startPage > 2)
+        container.appendChild(document.createElement("span")).textContent = "…";
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      container.appendChild(createBtn(i, i, false, i === currentPage));
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1)
+        container.appendChild(document.createElement("span")).textContent = "…";
+      container.appendChild(createBtn(totalPages, totalPages));
+    }
+
+    container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+  }
+
+  // 編集ページ遷移
+  function editPost(id) {
+    window.location.href = `edit-post.html?id=${id}`;
+  }
+
+  // 削除処理（既存のままでOK）
+  async function deletePost(id) {
+    if (!confirm("この履歴を削除しますか？")) return;
+    try {
+      const res = await fetch("history.json", { cache: "no-cache" });
+      const data = await res.json();
+      const updated = data.filter(p => String(p.id) !== String(id));
+
+      const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Delete post from history",
+          target: "history.json",
+          content: encodeToBase64(JSON.stringify(updated, null, 2))
+        })
       });
 
-      renderPagination(totalPages);
-    }
-
-    function renderPagination(totalPages) {
-      const container = document.getElementById("pagination");
-      container.innerHTML = "";
-
-      if (totalPages <= 1) return;
-
-      const createBtn = (label, page, disabled = false, active = false) => {
-        const btn = document.createElement("button");
-        btn.textContent = label;
-        if (disabled) btn.disabled = true;
-        if (active) btn.classList.add("active");
-        btn.addEventListener("click", () => {
-          currentPage = page;
-          renderHistory();
-        });
-        return btn;
-      };
-
-      container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
-
-      const visibleRange = 2;
-      const startPage = Math.max(1, currentPage - visibleRange);
-      const endPage = Math.min(totalPages, currentPage + visibleRange);
-
-      if (startPage > 1) {
-        container.appendChild(createBtn("1", 1));
-        if (startPage > 2) container.appendChild(document.createElement("span")).textContent = "…";
+      if (saveRes.ok) {
+        alert("🗑 履歴を削除しました。");
+        loadHistory();
+      } else {
+        alert("⚠️ 削除失敗: " + saveRes.status);
       }
-
-      for (let i = startPage; i <= endPage; i++) {
-        container.appendChild(createBtn(i, i, false, i === currentPage));
-      }
-
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) container.appendChild(document.createElement("span")).textContent = "…";
-        container.appendChild(createBtn(totalPages, totalPages));
-      }
-
-      container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+    } catch (err) {
+      console.error("削除エラー:", err);
+      alert("⚠️ 削除中にエラーが発生しました。");
     }
+  }
 
-    // 編集ページ遷移
-    function editPost(id) {
-      window.location.href = `edit-post.html?id=${id}`;
-    }
+  document.getElementById("searchInput").addEventListener("input", () => {
+    currentPage = 1;
+    renderHistory();
+  });
 
-    // 削除処理
-    async function deletePost(id) {
-      if (!confirm("この履歴を削除しますか？")) return;
-      try {
-        const res = await fetch("history.json", { cache: "no-cache" });
-        const data = await res.json();
-        const updated = data.filter(p => String(p.id) !== String(id));
+  document.getElementById("sortBtn").addEventListener("click", () => {
+    sortDesc = !sortDesc;
+    document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
+    renderHistory();
+  });
 
-        const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: "Delete post from history",
-            target: "history.json",
-            content: encodeToBase64(JSON.stringify(updated, null, 2))
-          })
-        });
-
-        if (saveRes.ok) {
-          alert("🗑 履歴を削除しました。");
-          loadHistory();
-        } else {
-          alert("⚠️ 削除失敗: " + saveRes.status);
-        }
-      } catch (err) {
-        console.error("削除エラー:", err);
-        alert("⚠️ 削除中にエラーが発生しました。");
-      }
-    }
-
-    document.getElementById("searchInput").addEventListener("input", () => {
-      currentPage = 1;
-      renderHistory();
-    });
-
-    document.getElementById("sortBtn").addEventListener("click", () => {
-      sortDesc = !sortDesc;
-      document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
-      renderHistory();
-    });
-
-    loadHistory();
-  </script>
+  loadHistory();
+</script>
 </body>
 </html>
