@@ -102,11 +102,9 @@
 </head>
 
 <body>
-  <!-- ✅ 本物のサイドバー -->
-  <aside id="sidebar"></aside>
+  <!-- ✅ sidebar.js がここに sidebar.html を動的読み込み -->
   <button id="toggleSidebar" class="toggle-btn">☰</button>
 
-  <!-- ✅ メイン領域 -->
   <main class="main-content">
     <h1 class="main-title">✏️ 編集（神専用）</h1>
 
@@ -144,7 +142,12 @@
     </form>
   </main>
 
+  <!-- ✅ sidebar.js は body の一番最後！ -->
+  <script src="assets/sidebar.js" defer></script>
+
   <script>
+    // ===== 編集ページの動作スクリプト =====
+
     function encodeToBase64(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
@@ -198,7 +201,7 @@
       e.preventDefault();
 
       const user = JSON.parse(localStorage.getItem("loginUser"));
-      const editor = user ? user.name : "神";
+      const editor = user ? user.name : "船長";
 
       const editedPost = {
         id: postId,
@@ -221,7 +224,7 @@
           mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: "Add edited post via Cloudflare Worker (神)",
+            message: "Add edited post via Cloudflare Worker (船長)",
             target: "edit.json",
             content: encodeToBase64(JSON.stringify(editedPost, null, 2))
           })
@@ -240,35 +243,6 @@
     });
 
     loadPost();
-    /* ✅ サイドバー開閉連動 */
-#sidebar.collapsed {
-  width: 60px;
-  transition: width 0.3s ease;
-}
-
-.main-content.expanded {
-  margin-left: 80px !important;
-  transition: margin-left 0.3s ease;
-}
-
-.toggle-btn {
-  position: fixed;
-  top: 15px;
-  left: 230px;
-  background: #47bcec;
-  color: #111;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 18px;
-  z-index: 1100;
-  transition: left 0.3s ease;
-}
-
-#sidebar.collapsed ~ .toggle-btn {
-  left: 60px;
-}
   </script>
 </body>
 </html>
