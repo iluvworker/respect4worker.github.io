@@ -91,13 +91,29 @@
     }
 
     /* 🔹 文字数カウンター */
-    .counter {
-      font-size: 12px;
-      margin-top: 3px;
-    }
+ .counter {
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 600;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8);
+  display: inline-block;
+}
 
-    .counter.ok { color: #5ef7ff; }
-    .counter.warn { color: #8080; }
+.counter.ok {
+  color: #00ffd0; /* ✅ 蛍光シアン */
+  background: rgba(0, 255, 200, 0.2);
+  border: 1px solid rgba(0, 255, 200, 0.4);
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
+.counter.warn {
+  color: #ff4d4d; /* ⚠️ 蛍光レッド */
+  background: rgba(255, 70, 70, 0.15);
+  border: 1px solid rgba(255, 80, 80, 0.4);
+  padding: 4px 8px;
+  border-radius: 5px;
+}
   </style>
 </head>
 
