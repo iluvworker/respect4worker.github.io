@@ -204,7 +204,25 @@
         console.error("一覧取得エラー:", err);
       }
     }
-
+// === 重複判定（posts.json と history.json）===
+async function isDupPostEverywhere(newPost) {
+  const checkTarget = async (file) => {
+    try {
+      const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) return false;
+      const list = await res.json();
+      return list.some(p =>
+        (p.url   || "") === (newPost.url   || "") &&
+        (p.title || "") === (newPost.title || "") &&
+        (p.video || "") === (newPost.video || "")
+      );
+    } catch (e) {
+      console.error(`重複チェック失敗 (${file}):`, e);
+      return false;
+    }
+  };
+  return (await checkTarget("posts.json")) || (await checkTarget("history.json"));
+}
     document.querySelector("#postForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const site = siteDisplay.textContent;
@@ -212,7 +230,15 @@
         alert("⚠️ 販売サイトが判定できません。URLを確認してください。");
         return;
       }
-
+// 🔒 重複チェック（posts.json & history.json）
+if (await isDupPostEverywhere({
+  url: document.getElementById("url").value,
+  title: document.getElementById("title").value,
+  video: document.getElementById("video").value
+})) {
+  alert("⚠️ この商品はすでに投稿または編集済みです（URL＋タイトル＋動画一致）");
+  return;
+}
       const user = JSON.parse(localStorage.getItem("loginUser"));
       const editor = user ? user.name : "unknown";
 
@@ -241,7 +267,7 @@
         });
 
         if (res.ok) {
-          alert("✅ 投稿を一時保存しました（神）");
+          alert("✅ 投稿を一時保存しました（船長）");
           loadPosts();
           e.target.reset();
         } else {
