@@ -194,7 +194,11 @@ async function isDupInHistory(editedPost) {
 }
   async function loadPost() {
     try {
-      const res = await fetch("posts.json", { cache: "no-cache" });
+      const params = new URLSearchParams(window.location.search);
+const type = params.get("type");
+const sourceFile = type === "history" ? "history.json" : "posts.json";
+
+const res = await fetch(sourceFile + "?t=" + Date.now(), { cache: "no-cache" });
       const posts = await res.json();
       const post = posts.find(p => String(p.id) === postId);
       if (!post) {
