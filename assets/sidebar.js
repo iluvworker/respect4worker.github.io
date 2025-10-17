@@ -1,75 +1,44 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("toggleSidebar");
-  const mainContent = document.querySelector(".main-content");
-
-  if (!sidebar || !toggleBtn) return;
-
   try {
-    // ✅ 偽コンテナ作らず、既存asideに中身を流し込むだけ
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const mainContent = document.querySelector(".main-content");
+
+    if (!sidebar || !toggleBtn || !mainContent) {
+      console.warn("sidebar.js: 要素が見つかりません");
+      return;
+    }
+
+    // ✅ sidebar.html 読み込み（キャッシュ無効）
     const res = await fetch("assets/sidebar.html", { cache: "no-cache" });
-    const html = await res.text();
-    sidebar.innerHTML = html;
+    sidebar.innerHTML = await res.text();
 
-    // ▼ デバイス判定
+    // ▼ 状態初期化
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const savedState = localStorage.getItem("sidebarHidden");
+    const shouldHide = isMobile || savedState === "true";
 
-    // ▼ ローカルストレージで状態復元
-    const sidebarState = localStorage.getItem("sidebarHidden");
+    sidebar.classList.toggle("hidden", shouldHide);
+    mainContent.style.marginLeft = shouldHide ? "0" : "230px";
+    toggleBtn.style.left = shouldHide ? "10px" : "230px";
 
-    // ▼ モバイル時は強制的に閉じる、それ以外は保存状態を反映
-    if (isMobile) {
-      sidebar.classList.add("hidden");
-      localStorage.setItem("sidebarHidden", "true");
-    } else if (sidebarState === "true") {
-      sidebar.classList.add("hidden");
-    }
-
-    // ▼ 初期位置を状態に合わせる
-    if (mainContent) {
-      mainContent.style.marginLeft = sidebar.classList.contains("hidden") ? "0" : "230px";
-    }
-
-    // ▼ モバイル表示の初期transform調整
-    if (isMobile) {
-      if (sidebar.classList.contains("hidden")) {
-        sidebar.style.transform = "translateX(-220px)";
-        toggleBtn.style.left = "10px";
-      } else {
-        sidebar.style.transform = "translateX(0)";
-        toggleBtn.style.left = "230px";
-      }
-    }
-
-    // ▼ 開閉ボタン挙動
+    // ▼ ボタンクリック挙動
     toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("hidden");
-      const isHidden = sidebar.classList.contains("hidden");
-      localStorage.setItem("sidebarHidden", isHidden);
-
-      // メイン領域の連動
-      if (mainContent) {
-        mainContent.style.marginLeft = isHidden ? "0" : "230px";
-      }
-
-      // モバイル用transform＆位置修正
-      if (window.innerWidth <= 768) {
-        sidebar.style.transform = isHidden ? "translateX(-220px)" : "translateX(0)";
-        toggleBtn.style.left = isHidden ? "10px" : "230px";
-      } else {
-        toggleBtn.style.left = isHidden ? "10px" : "230px";
-      }
+      const hidden = sidebar.classList.toggle("hidden");
+      localStorage.setItem("sidebarHidden", hidden);
+      mainContent.style.marginLeft = hidden ? "0" : "230px";
+      toggleBtn.style.left = hidden ? "10px" : "230px";
     });
 
-    // ▼ ユーザー名表示
+    // ▼ ユーザー名表示（sidebar.htmlの下部に挿入）
     const username = localStorage.getItem("userName");
-    if (username) {
+    if (username && !sidebar.querySelector(".username")) {
       const nameBox = document.createElement("div");
       nameBox.className = "username";
       nameBox.textContent = `👤 ${username}`;
       sidebar.appendChild(nameBox);
     }
-  } catch (error) {
-    console.error("サイドバー読み込みエラー:", error);
+  } catch (err) {
+    console.error("サイドバー読み込みエラー:", err);
   }
 });
