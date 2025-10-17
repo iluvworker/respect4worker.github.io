@@ -162,103 +162,105 @@
   <script src="assets/sidebar.js" defer></script>
 
   <script>
-    // ===== 編集ページの動作スクリプト =====
+  // ===== 編集ページの動作スクリプト =====
 
-    function encodeToBase64(str) {
-      return btoa(unescape(encodeURIComponent(str)));
-    }
+  function encodeToBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
 
-    const params = new URLSearchParams(window.location.search);
-    const postId = params.get("id");
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get("id");
 
-    async function loadPost() {
-      try {
-        const res = await fetch("posts.json", { cache: "no-cache" });
-        const posts = await res.json();
-        const post = posts.find(p => String(p.id) === postId);
-        if (!post) {
-          alert("該当する投稿が見つかりません。");
-          return;
-        }
-
-        document.getElementById("originalTitle").value = post.title || "";
-        document.getElementById("editableTitle").value = post.editableTitle || post.title || "";
-        document.getElementById("thumbOriginal").value = post.thumb || "";
-        document.getElementById("video").value = post.video || "";
-        document.getElementById("videoLink").href = post.video;
-        document.getElementById("thumbPreview").src = post.thumb || "";
-
-        updateCounter();
-      } catch (err) {
-        console.error("ロードエラー:", err);
-        alert("投稿の読み込みに失敗しました。");
+  async function loadPost() {
+    try {
+      const res = await fetch("posts.json", { cache: "no-cache" });
+      const posts = await res.json();
+      const post = posts.find(p => String(p.id) === postId);
+      if (!post) {
+        alert("該当する投稿が見つかりません。");
+        return;
       }
+
+      document.getElementById("originalTitle").value = post.title || "";
+      document.getElementById("editableTitle").value = post.editableTitle || post.title || "";
+      document.getElementById("thumbOriginal").value = post.thumb || "";
+      document.getElementById("video").value = post.video || "";
+      document.getElementById("videoLink").href = post.video;
+      document.getElementById("thumbPreview").src = post.thumb || "";
+
+      updateCounter();
+    } catch (err) {
+      console.error("ロードエラー:", err);
+      alert("投稿の読み込みに失敗しました。");
     }
+  }
 
-    // 🔹 文字数カウント
-    const titleInput = document.getElementById("editableTitle");
-    const counter = document.getElementById("titleCounter");
+  // 🔹 文字数カウント
+  const titleInput = document.getElementById("editableTitle");
+  const counter = document.getElementById("titleCounter");
 
-    function updateCounter() {
-      const length = titleInput.value.length;
-      let status = "";
-      if (length >= 50 && length <= 60) {
-        status = `<span class="ok">✅ ${length}文字（良好）</span>`;
+  function updateCounter() {
+    const length = titleInput.value.length;
+    counter.classList.remove("ok", "warn"); // ← 状態リセット
+
+    if (length >= 50 && length <= 60) {
+      counter.classList.add("ok");
+      counter.innerHTML = `✅ ${length}文字（良好）`;
+    } else {
+      counter.classList.add("warn");
+      counter.innerHTML = `⚠️ ${length}文字（50〜60文字推奨）`;
+    }
+  }
+
+  titleInput.addEventListener("input", updateCounter);
+
+  // 🔹 保存処理
+  document.getElementById("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const user = JSON.parse(localStorage.getItem("loginUser"));
+    const editor = user ? user.name : "船長";
+
+    const editedPost = {
+      id: postId,
+      title_original: document.getElementById("originalTitle").value,
+      title_final: document.getElementById("editableTitle").value,
+      thumb_original: document.getElementById("thumbOriginal").value,
+      thumb_pick1: document.getElementById("thumbPick1").value,
+      thumb_pick2: document.getElementById("thumbPick2").value,
+      video: document.getElementById("video").value,
+      tags: document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean),
+      notes: document.getElementById("notes").value,
+      editor,
+      updated_at: new Date().toISOString(),
+      status: "edited"
+    };
+
+    try {
+      const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Add edited post via Cloudflare Worker (船長)",
+          target: "edit.json",
+          content: encodeToBase64(JSON.stringify(editedPost, null, 2))
+        })
+      });
+
+      if (res.ok) {
+        alert("✅ 編集内容を保存しました（edit.json）");
+        window.location.href = "edit.html";
       } else {
-        status = `<span class="warn">⚠️ ${length}文字（50〜60文字推奨）</span>`;
+        alert("⚠️ 保存失敗: " + res.status);
       }
-      counter.innerHTML = status;
+    } catch (err) {
+      console.error("送信エラー:", err);
+      alert("⚠️ 保存中にエラーが発生しました。");
     }
+  });
 
-    titleInput.addEventListener("input", updateCounter);
-
-    // 🔹 保存処理
-    document.getElementById("editForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const user = JSON.parse(localStorage.getItem("loginUser"));
-      const editor = user ? user.name : "船長";
-
-      const editedPost = {
-        id: postId,
-        title_original: document.getElementById("originalTitle").value,
-        title_final: document.getElementById("editableTitle").value,
-        thumb_original: document.getElementById("thumbOriginal").value,
-        thumb_pick1: document.getElementById("thumbPick1").value,
-        thumb_pick2: document.getElementById("thumbPick2").value,
-        video: document.getElementById("video").value,
-        tags: document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean),
-        notes: document.getElementById("notes").value,
-        editor,
-        updated_at: new Date().toISOString(),
-        status: "edited"
-      };
-
-      try {
-        const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: "Add edited post via Cloudflare Worker (船長)",
-            target: "edit.json",
-            content: encodeToBase64(JSON.stringify(editedPost, null, 2))
-          })
-        });
-
-        if (res.ok) {
-          alert("✅ 編集内容を保存しました（edit.json）");
-          window.location.href = "edit.html";
-        } else {
-          alert("⚠️ 保存失敗: " + res.status);
-        }
-      } catch (err) {
-        console.error("送信エラー:", err);
-        alert("⚠️ 保存中にエラーが発生しました。");
-      }
-    });
-
-    loadPost();
-  </script>
+  loadPost();
+</script>
 </body>
 </html>
