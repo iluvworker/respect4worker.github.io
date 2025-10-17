@@ -1,1 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✏️ 編集ページ</title>
+  <link rel="stylesheet" href="assets/style.css?v=4">
+  <script src="assets/sidebar.js" defer></script>
+  <style>
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1b1b1b;
+      border-radius: 12px;
+      padding: 25px;
+      color: #eee;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
 
+    h1 {
+      color: #47bcec;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      color: #b0cfff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      background: #47bcec;
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+
+    .thumb-preview {
+      width: 180px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: block;
+    }
+
+    .video-link {
+      display: inline-block;
+      margin-top: 5px;
+      color: #47bcec;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .video-link:hover {
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+<body>
+  <main>
+    <h1>✏️ 編集ページ</h1>
+
+    <form id="editForm">
+      <label>タイトル</label>
+      <input type="text" id="title" required>
+
+      <label>オリジナルサムネURL（動画サイトのもの）</label>
+      <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
+      <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
+
+      <label>Canvaで作成したサムネURL</label>
+      <input type="url" id="thumbEdited" placeholder="https://example.com/canva-thumb.jpg">
+
+      <label>動画URL</label>
+      <input type="url" id="video" readonly>
+      <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
+
+      <label>タグ（カンマ区切り）</label>
+      <input type="text" id="tags" placeholder="女優, シチュエーション, プレイ内容 など">
+
+      <label>内容メモ／補足（任意）</label>
+      <textarea id="notes" placeholder="補足や備考を入力..."></textarea>
+
+      <button type="submit">💾 編集を保存する</button>
+    </form>
+  </main>
+
+  <script>
+    // 🔹 Base64エンコード関数
+    function encodeToBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    // 🔹 クエリから投稿ID取得
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
+
+    async function loadPost() {
+      try {
+        const res = await fetch("posts.json", { cache: "no-cache" });
+        const posts = await res.json();
+        const post = posts.find(p => String(p.id) === postId);
+        if (!post) {
+          alert("該当する投稿が見つかりません。");
+          return;
+        }
+
+        document.getElementById("title").value = post.title || "";
+        document.getElementById("thumbOriginal").value = post.thumb || "";
+        document.getElementById("video").value = post.video || "";
+        document.getElementById("videoLink").href = post.video;
+        document.getElementById("thumbPreview").src = post.thumb || "";
+
+      } catch (err) {
+        console.error("ロードエラー:", err);
+        alert("投稿の読み込みに失敗しました。");
+      }
+    }
+
+    // 🔹 編集内容保存（edit.json に送信）
+    document.getElementById("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = JSON.parse(localStorage.getItem("loginUser"));
+      const editor = user ? user.name : "unknown";
+
+      const editedPost = {
+        id: postId,
+        title: document.getElementById("title").value,
+        thumb_original: document.getElementById("thumbOriginal").value,
+        thumb_edited: document.getElementById("thumbEdited").value,
+        video: document.getElementById("video").value,
+        tags: document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean),
+        notes: document.getElementById("notes").value,
+        editor,
+        updated_at: new Date().toISOString(),
+        status: "edited"
+      };
+
+      try {
+        const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "Add edited post via Cloudflare Worker",
+            target: "edit.json",
+            content: encodeToBase64(JSON.stringify(editedPost, null, 2))
+          })
+        });
+
+        if (res.ok) {
+          alert("✅ 編集内容を保存しました（edit.json）");
+          window.location.href = "edit.html";
+        } else {
+          alert("⚠️ 保存失敗: " + res.status);
+        }
+      } catch (err) {
+        console.error("送信エラー:", err);
+        alert("⚠️ 保存中にエラーが発生しました。");
+      }
+    });
+
+    loadPost();
+  </script>
+</body>
+</html>
