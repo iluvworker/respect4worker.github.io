@@ -179,10 +179,11 @@
         return;
       }
 
-      document.getElementById("originalTitle").value = post.title || "";
-      document.getElementById("editableTitle").value = post.editableTitle || post.title || "";
-      document.getElementById("thumbOriginal").value = post.thumb || "";
-      document.getElementById("video").value = post.video || "";
+     document.getElementById("originalTitle").value = post.title || "";
+document.getElementById("url").value = post.url || ""; // ←★ これを追加！
+document.getElementById("editableTitle").value = post.editableTitle || post.title || "";
+document.getElementById("thumbOriginal").value = post.thumb || "";
+document.getElementById("video").value = post.video || "";
       document.getElementById("videoLink").href = post.video;
       document.getElementById("thumbPreview").src = post.thumb || "";
 
