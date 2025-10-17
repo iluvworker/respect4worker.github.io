@@ -6,8 +6,12 @@
   <title>📝 新規投稿フォーム</title>
   <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
- <style>
- /* 投稿フォームを少しコンパクトに */
+<style>
+:root {
+  --accent: #47bcec; /* ← 作品タイトルと同色で統一 */
+}
+
+/* 投稿フォームを少しコンパクトに */
 #postForm {
   max-width: 520px;
   margin: 0 auto;
@@ -21,7 +25,7 @@
 }
 #postForm label {
   font-weight: 600;
-  color: #b0cfff;
+  color: var(--accent); /* ← 同色 */
   font-size: 14px;
 }
 #postForm input {
@@ -34,7 +38,7 @@
 }
 #postForm button {
   align-self: flex-end;
-  background: #47bcec;
+  background: var(--accent);
   color: #111;
   border: none;
   border-radius: 5px;
@@ -44,7 +48,7 @@
   font-weight: 600;
 }
 #sitePreview {
-  color: #47bcec;
+  color: var(--accent);
   font-weight: bold;
   margin-bottom: 6px;
   text-align: right;
@@ -54,7 +58,7 @@
 /* 見出し */
 .main-title {
   font-size: 18px;
-  color: #b0cfff;
+  color: var(--accent); /* ← 同色 */
   margin: 10px 0 14px 0;
   line-height: 1.2;
 }
@@ -96,7 +100,7 @@
   justify-content: center;
 }
 .post-info a {
-  color: #47bcec;
+  color: var(--accent); /* ← 統一 */
   font-weight: 600;
   text-decoration: none;
   font-size: 14px;
