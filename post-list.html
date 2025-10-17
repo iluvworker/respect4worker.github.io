@@ -217,14 +217,18 @@
       const keyword = document.getElementById("searchInput").value.toLowerCase();
       const uneditOnly = document.getElementById("uneditOnly").checked;
 
-      let filtered = postsData.filter(p => {
-        const matchKeyword =
-          (p.title && p.title.toLowerCase().includes(keyword)) ||
-          (p.site && p.site.toLowerCase().includes(keyword)) ||
-          (p.tags && p.tags.join(",").toLowerCase().includes(keyword));
-        const matchEdit = !uneditOnly || (p.status && p.status === "未編集");
-        return matchKeyword && matchEdit;
-      });
+let filtered = postsData.filter(p => {
+  const matchKeyword =
+    (p.title && p.title.toLowerCase().includes(keyword)) ||
+    (p.site && p.site.toLowerCase().includes(keyword)) ||
+    (p.tags && p.tags.join(",").toLowerCase().includes(keyword));
+  const matchEdit = !uneditOnly || (p.status && p.status === "未編集");
+
+  // 🟢 追加：edited状態の投稿を非表示にする
+  const notEdited = !p.status || p.status !== "edited";
+
+  return matchKeyword && matchEdit && notEdited;
+});
 
       filtered.sort((a, b) => sortDesc
         ? new Date(b.created_at) - new Date(a.created_at)
