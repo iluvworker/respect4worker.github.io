@@ -96,8 +96,8 @@
       margin-top: 3px;
     }
 
-    .counter.ok { color: #47bcec; }
-    .counter.warn { color: #ff5c5c; }
+    .counter.ok { color: #5ef7ff; }
+    .counter.warn { color: #8080; }
   </style>
 </head>
 
@@ -109,31 +109,31 @@
     <h1 class="main-title">✏️ 編集（神専用）</h1>
 
     <form id="editForm">
-      <!-- 🔹 作品タイトル（神も編集可） -->
-      <label>作品タイトル（元投稿修正版）</label>
+      <!-- 🔹 作品タイトル -->
+      <label>タイトル</label>
       <input type="text" id="originalTitle" placeholder="スター投稿時のタイトル" />
 
       <!-- 🔹 編集用タイトル -->
-      <label>タイトル（ブログ掲載用・50〜60文字推奨）</label>
-      <input type="text" id="editableTitle" placeholder="ここに最終タイトルを入力" maxlength="100" />
+      <label>タイトル（50〜60文字）</label>
+      <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
       <div id="titleCounter" class="counter"></div>
 
-      <label>オリジナルサムネURL（動画サイト）</label>
+      <label>パッケージ</label>
       <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
       <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
 
-      <label>ピックアップサムネ①</label>
+      <label>サムネ①</label>
       <input type="url" id="thumbPick1" placeholder="https://example.com/pickup1.jpg">
 
-      <label>ピックアップサムネ②</label>
+      <label>サムネ②</label>
       <input type="url" id="thumbPick2" placeholder="https://example.com/pickup2.jpg">
 
-      <label>動画URL</label>
+      <label>動画</label>
       <input type="url" id="video" readonly>
       <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
 
       <label>タグ（カンマ区切り）</label>
-      <input type="text" id="tags" placeholder="女優, シチュエーション, プレイ内容 など">
+      <input type="text" id="tags" placeholder="女優, シチュエーション, プレイ内容 8個">
 
       <label>内容メモ／補足（任意）</label>
       <textarea id="notes" placeholder="補足や備考を入力..."></textarea>
