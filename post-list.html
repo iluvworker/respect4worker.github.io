@@ -2,95 +2,202 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📋 投稿一覧プレビュー</title>
-  <link rel="stylesheet" href="assets/style.css?v=6">
+  <link rel="stylesheet" href="assets/style.css?v=7">
   <script src="assets/sidebar.js" defer></script>
+  <style>
+    /* ===== カードレイアウト ===== */
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .post-card {
+      background: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .post-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .post-thumb {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .post-info {
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .post-site {
+      color: #47bcec;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .post-title {
+      font-size: 16px;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .post-title:hover {
+      color: #5fd0ff;
+    }
+
+    .edit-btn {
+      margin-top: 8px;
+      background: #47bcec;
+      color: #111;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      align-self: flex-start;
+    }
+
+    .edit-btn:hover {
+      background: #5fd0ff;
+    }
+
+    /* ===== 検索＆フィルタエリア ===== */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #searchInput {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background: #1e1e1e;
+      color: #eee;
+      font-size: 15px;
+    }
+
+    label {
+      color: #b0cfff;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #sortBtn {
+      background: #333;
+      border: 1px solid #47bcec;
+      color: #47bcec;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #sortBtn:hover {
+      background: #47bcec;
+      color: #111;
+    }
+  </style>
 </head>
 
 <body>
   <main class="main-content">
     <h1 class="main-title">📋 投稿一覧プレビュー</h1>
 
-    <!-- 🔍 検索フォーム -->
-    <section class="section">
-      <input 
-        type="text" 
-        id="searchInput" 
-        placeholder="🔍 タイトル・サイト名・タグで検索" 
-        style="width:100%;padding:10px;border-radius:6px;border:none;background:#1e1e1e;color:#eee;font-size:15px;"
-      />
+    <!-- 🔍 検索・フィルタ・並び替え -->
+    <section class="section filter-bar">
+      <input type="text" id="searchInput" placeholder="🔍 タイトル・サイト名・タグで検索" />
+      <label><input type="checkbox" id="uneditOnly"> 未編集のみ</label>
+      <button id="sortBtn">⬇️ 降順</button>
     </section>
 
-    <!-- 🗂 投稿一覧テーブル -->
+    <!-- 🧱 カード一覧 -->
     <section class="section">
-      <table id="postTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>サイト</th>
-            <th>タイトル</th>
-            <th>タグ</th>
-            <th>状態</th>
-            <th>編集者</th>
-            <th>投稿日</th>
-            <th>サムネ</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div id="postGrid" class="post-grid"></div>
     </section>
   </main>
 
   <script>
     let postsData = [];
+    let sortDesc = true; // 初期状態は降順
 
     async function loadPosts() {
-      try {
-        const res = await fetch('./posts.json', { cache: "no-cache" });
-        if (!res.ok) throw new Error('JSONを取得できませんでした');
-        postsData = await res.json();
-
-        renderPosts(postsData);
-      } catch (e) {
-        document.body.innerHTML += `<p style="color:red;text-align:center;">⚠️ ${e.message}</p>`;
-        console.error(e);
-      }
+      const res = await fetch("./posts.json", { cache: "no-cache" });
+      postsData = await res.json();
+      renderPosts();
     }
 
-    function renderPosts(posts) {
-      const tbody = document.querySelector("#postTable tbody");
-      tbody.innerHTML = "";
-
-      posts
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        .forEach(p => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${p.id}</td>
-            <td>${p.site}</td>
-            <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title}</a></td>
-            <td>${p.tags.join(", ")}</td>
-            <td>${p.status}</td>
-            <td>${p.editor}</td>
-            <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
-            <td><img src="${p.thumb}" alt="thumb" style="width:80px;border-radius:4px;"></td>
-          `;
-          tbody.appendChild(tr);
-        });
+    function getSiteName(url) {
+      if (!url) return "-";
+      if (url.includes("dmm.co.jp")) return "FANZA";
+      if (url.includes("mgstage.com")) return "MGS";
+      return "不明";
     }
 
-    // 🔍 検索処理
+    function renderPosts() {
+      const grid = document.getElementById("postGrid");
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+      const uneditOnly = document.getElementById("uneditOnly").checked;
+
+      let filtered = postsData.filter(p => {
+        const matchKeyword =
+          (p.title && p.title.toLowerCase().includes(keyword)) ||
+          (p.site && p.site.toLowerCase().includes(keyword)) ||
+          (p.tags && p.tags.join(",").toLowerCase().includes(keyword));
+
+        const matchEdit = !uneditOnly || (p.status && p.status === "未編集");
+        return matchKeyword && matchEdit;
+      });
+
+      filtered.sort((a, b) => {
+        return sortDesc
+          ? new Date(b.created_at) - new Date(a.created_at)
+          : new Date(a.created_at) - new Date(b.created_at);
+      });
+
+      grid.innerHTML = "";
+      filtered.forEach(p => {
+        const site = getSiteName(p.url);
+        const card = document.createElement("div");
+        card.className = "post-card";
+        card.innerHTML = `
+          <img src="${p.thumb}" class="post-thumb" alt="thumb">
+          <div class="post-info">
+            <div class="post-site">${site}</div>
+            <a href="${p.url}" class="post-title" target="_blank">${p.title || "(タイトル未設定)"}</a>
+            <button class="edit-btn" onclick="alert('✏️ 編集ページへ移動予定')">編集</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 検索・チェックボックス・並び替えイベント
     document.addEventListener("input", (e) => {
-      if (e.target.id === "searchInput") {
-        const keyword = e.target.value.toLowerCase();
-        const filtered = postsData.filter(p =>
-          p.title.toLowerCase().includes(keyword) ||
-          p.site.toLowerCase().includes(keyword) ||
-          p.tags.join(", ").toLowerCase().includes(keyword)
-        );
-        renderPosts(filtered);
-      }
+      if (e.target.id === "searchInput" || e.target.id === "uneditOnly") renderPosts();
+    });
+
+    document.getElementById("sortBtn").addEventListener("click", () => {
+      sortDesc = !sortDesc;
+      document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
+      renderPosts();
     });
 
     loadPosts();
