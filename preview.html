@@ -94,7 +94,8 @@
       <form id="postForm">
         <label>販売ページURL</label>
         <input type="url" id="url" placeholder="https://example.com" required />
-
+<label>作品タイトル</label>
+<input type="text" id="title" placeholder="作品タイトルを入力" required />
         <label>サムネイル画像URL</label>
         <input type="url" id="thumb" placeholder="https://example.com/thumb.jpg" required />
 
@@ -126,7 +127,7 @@
   </main>
 
 <script>
-  // ===== ログイン状態チェック =====
+  // ===== ログイン確認 =====
   document.addEventListener("DOMContentLoaded", async () => {
     const userData = localStorage.getItem("loginUser");
     if (!userData) {
@@ -136,22 +137,20 @@
     }
 
     const user = JSON.parse(userData);
-    window.loggedInUser = user; // 投稿時に参照する用
+    window.loggedInUser = user;
 
-    // ヘッダーにログイン中ユーザーを表示
     const info = document.createElement("div");
     info.style.position = "fixed";
     info.style.top = "10px";
     info.style.right = "20px";
     info.style.color = "#47bcec";
-    info.style.fontSize = "14px";
     info.textContent = `👤 ${user.name}（${user.role}）`;
     document.body.appendChild(info);
 
     loadPosts();
   });
 
-  // ===== URL入力時に販売サイトを自動判定 =====
+  // ===== サイト自動判定 =====
   const urlInput = document.getElementById("url");
   const siteDisplay = document.getElementById("detectedSite");
 
@@ -159,13 +158,9 @@
     const url = urlInput.value.toLowerCase();
     let site = "未判定";
 
-    if (url.includes("dmm") || url.includes("fanza")) {
-      site = "FANZA";
-    } else if (url.includes("mgstage") || url.includes("mgs")) {
-      site = "MGS";
-    } else if (url.includes("dlsite")) {
-      site = "DLsite";
-    }
+    if (url.includes("dmm") || url.includes("fanza")) site = "FANZA";
+    else if (url.includes("mgstage") || url.includes("mgs")) site = "MGS";
+    else if (url.includes("dlsite")) site = "DLsite";
 
     siteDisplay.textContent = site;
     siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
@@ -186,7 +181,7 @@
         tr.innerHTML = `
           <td>${p.id}</td>
           <td>${p.site}</td>
-          <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
+          <td><a href="${p.url}" target="_blank" style="color:#47bcec;">${p.title || "(タイトル未設定)"}</a></td>
           <td>${p.tags?.join(", ") || "-"}</td>
           <td>${p.status}</td>
           <td>${p.editor || "-"}</td>
@@ -200,7 +195,7 @@
     }
   }
 
-  // ===== 投稿フォーム処理 =====
+  // ===== 投稿処理 =====
   document.querySelector("#postForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -212,8 +207,7 @@
 
     const user = window.loggedInUser;
     if (!user) {
-      alert("⚠️ ログイン情報が見つかりません。再ログインしてください。");
-      window.location.href = "index.html";
+      alert("⚠️ ログイン情報がありません。");
       return;
     }
 
@@ -222,53 +216,31 @@
       site,
       url: url.value,
       thumb: thumb.value,
-      title: "(タイトル未設定)",
       video: video.value,
+      title: title.value || "(タイトル未設定)",
       tags: [],
       status: "draft",
       editor: user.name,
-      editorId: user.id,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
     };
 
     try {
-      // posts.json を取得
-      const res = await fetch("https://api.github.com/repos/iluvworker/respect4worker.github.io/contents/posts.json", {
-        headers: { Authorization: `token ${import.meta.env.GH_TOKEN}` }
-      });
-      const data = await res.json();
-      const content = atob(data.content);
-      const posts = JSON.parse(content);
+      // 現在のposts.json取得
+      const res = await fetch("posts.json?cache-bust=" + Date.now());
+      const posts = await res.json();
 
       // 新しい投稿を先頭に追加
       posts.unshift(newPost);
-      const updatedContent = btoa(JSON.stringify(posts, null, 2));
 
-      // GitHubへ反映
-      const updateRes = await fetch("https://api.github.com/repos/iluvworker/respect4worker.github.io/contents/posts.json", {
-        method: "PUT",
-        headers: {
-          Authorization: `token ${import.meta.env.GH_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: `Add new post by ${user.name}`,
-          content: updatedContent,
-          sha: data.sha
-        })
-      });
+      // 保存（GitHub Pagesでは手動コミット想定なのでlocalStorage代用）
+      localStorage.setItem("tempPosts", JSON.stringify(posts));
+      alert(`✅ 投稿を一時保存しました（${user.name}）`);
 
-      if (updateRes.ok) {
-        alert(`🎉 ${user.name} さんの投稿が完了しました！`);
-        loadPosts(); // リスト更新
-        document.getElementById("postForm").reset();
-      } else {
-        throw new Error("更新失敗");
-      }
-
+      // 即時表示
+      loadPosts();
     } catch (err) {
-      console.error(err);
-      alert("⚠️ 投稿エラー。GitHub APIを確認してください。");
+      console.error("投稿エラー:", err);
+      alert("⚠️ 投稿処理でエラーが発生しました。");
     }
   });
 </script>
