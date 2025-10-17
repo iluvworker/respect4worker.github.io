@@ -120,6 +120,11 @@
   </main>
 
   <script>
+    // 🔹 日本語文字をBase64に変換する関数
+    function encodeToBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
     // URL入力時に販売サイトを自動判定
     const urlInput = document.getElementById("url");
     const siteDisplay = document.getElementById("detectedSite");
@@ -180,7 +185,7 @@
         url: document.getElementById("url").value,
         thumb: document.getElementById("thumb").value,
         video: document.getElementById("video").value,
-        title: "(タイトル未設定)",
+        title: document.getElementById("title").value || "(タイトル未設定)",
         tags: [],
         status: "draft",
         editor,
@@ -190,11 +195,11 @@
       try {
         const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
           method: "POST",
-          mode: "cors",  // ←これ追加！
+          mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: "Add new post via Cloudflare Worker",
-            content: btoa(JSON.stringify(newPost, null, 2))
+            content: encodeToBase64(JSON.stringify(newPost, null, 2))
           })
         });
 
