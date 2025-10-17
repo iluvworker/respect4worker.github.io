@@ -190,6 +190,7 @@
       try {
         const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
           method: "POST",
+          mode: "cors",  // ←これ追加！
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: "Add new post via Cloudflare Worker",
