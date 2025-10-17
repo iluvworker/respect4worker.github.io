@@ -126,7 +126,8 @@
       <!-- 🔹 作品タイトル -->
       <label>タイトル</label>
       <input type="text" id="originalTitle" placeholder="スター投稿時のタイトル" />
-
+　　　 <label>作品ページ</label>
+      <input type="text" id="video" placeholder="動画や商品ページのURL" />
       <!-- 🔹 編集用タイトル -->
       <label>タイトル（50〜60文字）</label>
       <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
@@ -148,6 +149,7 @@
 
       <label>タグ（カンマ区切り）</label>
       <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ内容 8個">
+      <div id="tagCount" style="color:#aaa;font-size:13px;margin-top:4px;">0個</div>
 
       <label>内容メモ／補足（任意）</label>
       <textarea id="notes" placeholder="補足や備考を入力...
@@ -156,9 +158,6 @@
       <button type="submit">💾 保存する</button>
     </form>
   </main>
-
-  <!-- ✅ sidebar.js は body の一番最後！ -->
-  <script src="assets/sidebar.js" defer></script>
 
   <script>
   // ===== 編集ページの動作スクリプト =====
@@ -212,6 +211,15 @@
   }
 
   titleInput.addEventListener("input", updateCounter);
+
+    // タグ入力カウント
+const tagInput = document.getElementById("tags");
+const tagCountDisplay = document.getElementById("tagCount");
+
+tagInput.addEventListener("input", () => {
+  const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
+  tagCountDisplay.textContent = `タグ数：${tags.length}個`;
+});
 
 // 🔹 保存処理（履歴JSONに追記 → 投稿一覧へ戻る）
 document.getElementById("editForm").addEventListener("submit", async (e) => {
