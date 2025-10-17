@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📝 新規投稿フォーム</title>
-<link rel="stylesheet" href="assets/style.css?v=4">
+  <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
   <style>
     #postForm {
@@ -18,12 +18,10 @@
       padding: 25px;
       box-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
-
     #postForm label {
       font-weight: 600;
       color: #b0cfff;
     }
-
     #postForm input {
       background: #222;
       border: 1px solid #333;
@@ -32,7 +30,6 @@
       color: #fff;
       font-size: 15px;
     }
-
     #postForm button {
       align-self: flex-end;
       background: #47bcec;
@@ -44,7 +41,6 @@
       font-size: 15px;
       font-weight: 600;
     }
-
     #sitePreview {
       color: #47bcec;
       font-weight: bold;
@@ -52,7 +48,6 @@
       text-align: right;
       font-size: 14px;
     }
-
     #postTable {
       width: 100%;
       border-collapse: collapse;
@@ -61,22 +56,18 @@
       border-radius: 8px;
       overflow: hidden;
     }
-
     #postTable th, #postTable td {
       padding: 12px;
       border-bottom: 1px solid #333;
       text-align: left;
     }
-
     #postTable th {
       background: #2a2a2a;
       color: #47bcec;
     }
-
     #postTable tr:hover {
       background: #252525;
     }
-
     #postTable img {
       width: 80px;
       border-radius: 4px;
@@ -93,7 +84,7 @@
 
       <form id="postForm">
         <label>タイトル</label>
-        <input type="text" id="title" placeholder="作品タイトル" required />
+        <input type="text" id="title" placeholder="タイトル" required />
 
         <label>作品URL</label>
         <input type="url" id="url" placeholder="https://example.com" required />
@@ -129,27 +120,26 @@
   </main>
 
   <script>
-    // URL入力時に自動でサイト名を判定
+    // 🔹 日本語文字をBase64に変換する関数
+    function encodeToBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    // URL入力時に販売サイトを自動判定
     const urlInput = document.getElementById("url");
     const siteDisplay = document.getElementById("detectedSite");
 
     urlInput.addEventListener("input", () => {
       const url = urlInput.value.toLowerCase();
       let site = "未判定";
-
-      if (url.includes("dmm") || url.includes("fanza")) {
-        site = "FANZA";
-      } else if (url.includes("mgstage") || url.includes("mgs")) {
-        site = "MGS";
-      } else if (url.includes("dlsite")) {
-        site = "DLsite";
-      }
-
+      if (url.includes("dmm") || url.includes("fanza")) site = "FANZA";
+      else if (url.includes("mgstage") || url.includes("mgs")) site = "MGS";
+      else if (url.includes("dlsite")) site = "DLsite";
       siteDisplay.textContent = site;
       siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
     });
 
-    // 投稿データを読み込んで一覧に表示
+    // 投稿データの読み込み
     async function loadPosts() {
       try {
         const res = await fetch("posts.json", { cache: "no-cache" });
@@ -158,7 +148,6 @@
         tbody.innerHTML = "";
 
         posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
         posts.forEach((p) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -178,14 +167,53 @@
       }
     }
 
-    document.querySelector("#postForm").addEventListener("submit", (e) => {
+    // 投稿処理（Cloudflare Worker経由）
+    document.querySelector("#postForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const site = siteDisplay.textContent;
       if (site === "未判定") {
         alert("⚠️ 販売サイトが判定できません。URLを確認してください。");
         return;
       }
-      alert(`🎉 投稿データ送信（${site} として登録予定）`);
+
+      const user = JSON.parse(localStorage.getItem("loginUser"));
+      const editor = user ? user.name : "unknown";
+
+      const newPost = {
+        id: Date.now(),
+        site,
+        url: document.getElementById("url").value,
+        thumb: document.getElementById("thumb").value,
+        video: document.getElementById("video").value,
+        title: document.getElementById("title").value || "(タイトル未設定)",
+        tags: [],
+        status: "draft",
+        editor,
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "Add new post via Cloudflare Worker",
+            content: encodeToBase64(JSON.stringify(newPost, null, 2))
+          })
+        });
+
+        if (res.ok) {
+          alert("✅ 投稿を一時保存しました（神）");
+          loadPosts();
+          e.target.reset();
+        } else {
+          alert("⚠️ 投稿失敗: " + res.status);
+        }
+      } catch (err) {
+        console.error("送信エラー:", err);
+        alert("⚠️ 送信中にエラーが発生しました。");
+      }
     });
 
     loadPosts();
