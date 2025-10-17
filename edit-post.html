@@ -240,6 +240,35 @@
     });
 
     loadPost();
+    /* ✅ サイドバー開閉連動 */
+#sidebar.collapsed {
+  width: 60px;
+  transition: width 0.3s ease;
+}
+
+.main-content.expanded {
+  margin-left: 80px !important;
+  transition: margin-left 0.3s ease;
+}
+
+.toggle-btn {
+  position: fixed;
+  top: 15px;
+  left: 230px;
+  background: #47bcec;
+  color: #111;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 1100;
+  transition: left 0.3s ease;
+}
+
+#sidebar.collapsed ~ .toggle-btn {
+  left: 60px;
+}
   </script>
 </body>
 </html>
