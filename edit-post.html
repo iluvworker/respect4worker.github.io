@@ -6,22 +6,11 @@
   <title>✏️ 編集ページ（神）</title>
   <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
-
   <style>
-    /* ===== メインレイアウト ===== */
-    body {
-      margin: 0;
-      font-family: "Helvetica Neue", Arial, sans-serif;
-      background: #111;
-      color: #eee;
-      display: flex;
-    }
-
-    /* ===== メインコンテンツ ===== */
     .main-content {
       flex: 1;
-      margin-left: 230px;
       padding: 30px;
+      margin-left: 230px;
       transition: margin-left 0.3s ease;
     }
 
@@ -33,9 +22,9 @@
       margin-bottom: 20px;
     }
 
-    /* ===== 編集フォーム ===== */
     #editForm {
-      max-width: 750px;
+      max-width: 720px;
+      margin: 0 auto;
       background: #1b1b1b;
       border-radius: 12px;
       padding: 25px;
@@ -44,7 +33,7 @@
 
     #editForm label {
       display: block;
-      margin-top: 14px;
+      margin-top: 12px;
       color: #b0cfff;
       font-weight: 600;
       font-size: 14px;
@@ -101,10 +90,25 @@
 </head>
 
 <body>
-  <!-- 🔹 サイドバー -->
-  <aside id="sidebar"></aside>
+  <!-- ✅ サイドバー -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">👑 管理メニュー</div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li onclick="location.href='admin.html'"><span>🏠 ダッシュボード</span></li>
+        <li onclick="location.href='new-post.html'"><span>📝 新規投稿</span></li>
+        <li onclick="location.href='edit.html'"><span>📋 投稿一覧</span></li>
+        <li onclick="location.href='edit-post.html'" style="background:#222;"><span>✏️ 編集ページ</span></li>
+        <li onclick="location.href='tag-manager.html'"><span>🏷️ タグ管理</span></li>
+        <li onclick="location.href='history.html'"><span>🕓 編集履歴</span></li>
+      </ul>
+    </nav>
+  </aside>
 
-  <!-- 🔹 メイン領域 -->
+  <!-- ✅ サイドバー開閉ボタン -->
+  <button class="toggle-btn" id="toggleSidebar">☰</button>
+
+  <!-- ✅ メイン領域 -->
   <main class="main-content">
     <h1 class="main-title">✏️ 編集（神専用）</h1>
 
@@ -135,8 +139,6 @@
       <button type="submit">💾 保存する</button>
     </form>
   </main>
-
-  <button class="toggle-btn" id="toggleSidebar">☰</button>
 
   <script>
     // Base64変換
