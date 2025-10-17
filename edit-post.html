@@ -114,6 +114,7 @@
   padding: 2px 6px;
   border-radius: 4px;
 }
+    a#thumbLink[href="#"] { pointer-events: none; opacity: 0.7; }
   </style>
 </head>
 
@@ -126,11 +127,11 @@
       <!-- 🔹 作品タイトル -->
       <label>商品タイトル</label>
       <input type="text" id="originalTitle" placeholder="スター投稿時のタイトル" />
-      <label>パッケージ</label>
-      <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
-   <a id="thumbLink" href="#" target="_blank" rel="noopener">
+      <label><a id="thumbLink" href="#" target="_blank" rel="noopener">
   <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
-</a>
+</a></label>
+      <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
+   
 　　　 <label>商品ページ</label>
       <input type="text" id="url" placeholder="動画や商品ページのURL" />
       <!-- 🔹 編集用タイトル -->
@@ -271,6 +272,13 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 });
 
   loadPost();
+    document.getElementById("url").addEventListener("input", (e) => {
+  document.getElementById("thumbLink").href = e.target.value.trim() || "#";
+});
+
+document.getElementById("thumbOriginal").addEventListener("input", (e) => {
+  document.getElementById("thumbPreview").src = e.target.value.trim() || "";
+});
 </script>
 </body>
 </html>
