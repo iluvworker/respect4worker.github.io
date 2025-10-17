@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📋 投稿一覧プレビュー</title>
-  <link rel="stylesheet" href="assets/style.css?v=7">
+  <link rel="stylesheet" href="assets/style.css?v=8">
   <script src="assets/sidebar.js" defer></script>
+
   <style>
     /* ===== カードレイアウト ===== */
     .post-grid {
@@ -73,7 +74,7 @@
       background: #5fd0ff;
     }
 
-    /* ===== 検索＆フィルタエリア ===== */
+    /* ===== フィルタエリア ===== */
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -114,6 +115,43 @@
       background: #47bcec;
       color: #111;
     }
+
+    /* ===== ページネーション ===== */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pagination button {
+      background: #1e1e1e;
+      border: 1px solid #47bcec;
+      color: #47bcec;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      min-width: 32px;
+      transition: all 0.2s ease;
+    }
+
+    .pagination button:hover {
+      background: #47bcec;
+      color: #111;
+    }
+
+    .pagination button.active {
+      background: #47bcec;
+      color: #111;
+      font-weight: bold;
+    }
+
+    .pagination span {
+      color: #666;
+      user-select: none;
+    }
   </style>
 </head>
 
@@ -131,12 +169,15 @@
     <!-- 🧱 カード一覧 -->
     <section class="section">
       <div id="postGrid" class="post-grid"></div>
+      <div id="pagination" class="pagination"></div>
     </section>
   </main>
 
   <script>
     let postsData = [];
-    let sortDesc = true; // 初期状態は降順
+    let sortDesc = true;
+    let currentPage = 1;
+    const perPage = 30;
 
     async function loadPosts() {
       const res = await fetch("./posts.json", { cache: "no-cache" });
@@ -161,19 +202,23 @@
           (p.title && p.title.toLowerCase().includes(keyword)) ||
           (p.site && p.site.toLowerCase().includes(keyword)) ||
           (p.tags && p.tags.join(",").toLowerCase().includes(keyword));
-
         const matchEdit = !uneditOnly || (p.status && p.status === "未編集");
         return matchKeyword && matchEdit;
       });
 
-      filtered.sort((a, b) => {
-        return sortDesc
-          ? new Date(b.created_at) - new Date(a.created_at)
-          : new Date(a.created_at) - new Date(b.created_at);
-      });
+      filtered.sort((a, b) => sortDesc
+        ? new Date(b.created_at) - new Date(a.created_at)
+        : new Date(a.created_at) - new Date(b.created_at)
+      );
+
+      const totalPages = Math.ceil(filtered.length / perPage);
+      if (currentPage > totalPages) currentPage = totalPages || 1;
+
+      const start = (currentPage - 1) * perPage;
+      const pageData = filtered.slice(start, start + perPage);
 
       grid.innerHTML = "";
-      filtered.forEach(p => {
+      pageData.forEach(p => {
         const site = getSiteName(p.url);
         const card = document.createElement("div");
         card.className = "post-card";
@@ -187,11 +232,60 @@
         `;
         grid.appendChild(card);
       });
+
+      renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+      const container = document.getElementById("pagination");
+      container.innerHTML = "";
+
+      if (totalPages <= 1) return;
+
+      const createBtn = (label, page, disabled = false, active = false) => {
+        const btn = document.createElement("button");
+        btn.textContent = label;
+        if (disabled) btn.disabled = true;
+        if (active) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          currentPage = page;
+          renderPosts();
+        });
+        return btn;
+      };
+
+      // ⏮ 前へ
+      container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+
+      // ページ番号生成
+      const visibleRange = 2; // 現在ページの前後2件表示
+      const startPage = Math.max(1, currentPage - visibleRange);
+      const endPage = Math.min(totalPages, currentPage + visibleRange);
+
+      if (startPage > 1) {
+        container.appendChild(createBtn("1", 1));
+        if (startPage > 2) container.appendChild(document.createElement("span")).textContent = "…";
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        container.appendChild(createBtn(i, i, false, i === currentPage));
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) container.appendChild(document.createElement("span")).textContent = "…";
+        container.appendChild(createBtn(totalPages, totalPages));
+      }
+
+      // ⏭ 次へ
+      container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
     }
 
     // 検索・チェックボックス・並び替えイベント
     document.addEventListener("input", (e) => {
-      if (e.target.id === "searchInput" || e.target.id === "uneditOnly") renderPosts();
+      if (["searchInput", "uneditOnly"].includes(e.target.id)) {
+        currentPage = 1;
+        renderPosts();
+      }
     });
 
     document.getElementById("sortBtn").addEventListener("click", () => {
