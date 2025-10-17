@@ -4,16 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📋 投稿一覧プレビュー</title>
-  <link rel="stylesheet" href="assets/style.css?v=5">
+  <link rel="stylesheet" href="assets/style.css?v=6">
   <script src="assets/sidebar.js" defer></script>
 </head>
 
 <body>
-  <!-- ===== メインコンテンツ ===== -->
   <main class="main-content">
     <h1 class="main-title">📋 投稿一覧プレビュー</h1>
 
-    <!-- 投稿一覧テーブル -->
+    <!-- 🔍 検索フォーム -->
+    <section class="section">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="🔍 タイトル・サイト名・タグで検索" 
+        style="width:100%;padding:10px;border-radius:6px;border:none;background:#1e1e1e;color:#eee;font-size:15px;"
+      />
+    </section>
+
+    <!-- 🗂 投稿一覧テーブル -->
     <section class="section">
       <table id="postTable">
         <thead>
@@ -34,19 +43,28 @@
   </main>
 
   <script>
+    let postsData = [];
+
     async function loadPosts() {
       try {
         const res = await fetch('./posts.json', { cache: "no-cache" });
         if (!res.ok) throw new Error('JSONを取得できませんでした');
-        const posts = await res.json();
+        postsData = await res.json();
 
-        const tbody = document.querySelector("#postTable tbody");
-        tbody.innerHTML = "";
+        renderPosts(postsData);
+      } catch (e) {
+        document.body.innerHTML += `<p style="color:red;text-align:center;">⚠️ ${e.message}</p>`;
+        console.error(e);
+      }
+    }
 
-        // 日付の新しい順にソート
-        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    function renderPosts(posts) {
+      const tbody = document.querySelector("#postTable tbody");
+      tbody.innerHTML = "";
 
-        posts.forEach(p => {
+      posts
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .forEach(p => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${p.id}</td>
@@ -60,11 +78,21 @@
           `;
           tbody.appendChild(tr);
         });
-      } catch (e) {
-        document.body.innerHTML += `<p style="color:red;text-align:center;">⚠️ ${e.message}</p>`;
-        console.error(e);
-      }
     }
+
+    // 🔍 検索処理
+    document.addEventListener("input", (e) => {
+      if (e.target.id === "searchInput") {
+        const keyword = e.target.value.toLowerCase();
+        const filtered = postsData.filter(p =>
+          p.title.toLowerCase().includes(keyword) ||
+          p.site.toLowerCase().includes(keyword) ||
+          p.tags.join(", ").toLowerCase().includes(keyword)
+        );
+        renderPosts(filtered);
+      }
+    });
+
     loadPosts();
   </script>
 </body>
