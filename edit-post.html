@@ -100,7 +100,7 @@
 }
 
 .counter.ok {
-  color: #00e0b5; /* 柔らかいシアン */
+  color: #00e0b5;
   background: rgba(0, 255, 200, 0.12);
   border: 1px solid rgba(0, 255, 200, 0.25);
   padding: 2px 6px;
@@ -108,13 +108,17 @@
 }
 
 .counter.warn {
-  color: #ff6a6a; /* 少し落ち着いた赤 */
+  color: #ff6a6a;
   background: rgba(255, 80, 80, 0.1);
   border: 1px solid rgba(255, 80, 80, 0.25);
   padding: 2px 6px;
   border-radius: 4px;
 }
-    a#thumbLink[href="#"] { pointer-events: none; opacity: 0.7; }
+
+a#thumbLink[href="#"] {
+  pointer-events: none;
+  opacity: 0.7;
+}
   </style>
 </head>
 
@@ -124,22 +128,22 @@
     <h1 class="main-title">✏️ 編集（神専用）</h1>
 
     <form id="editForm">
-      <!-- 🔹 作品タイトル -->
       <label>商品タイトル</label>
       <input type="text" id="originalTitle" placeholder="船長投稿時のタイトル" />
-     <label>パッケージ</label>
-<input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
-<a id="thumbLink" href="#" target="_blank">
-  <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
-</a>
-   
-　　　 <label>商品ページ</label>
+
+      <label>パッケージ</label>
+      <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
+      <a id="thumbLink" href="#" target="_blank">
+        <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
+      </a>
+
+      <label>商品ページ</label>
       <input type="text" id="url" placeholder="動画や商品ページのURL" />
-      <!-- 🔹 編集用タイトル -->
+
       <label>タイトル（50〜60文字）</label>
       <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
       <div id="titleCounter" class="counter"></div>
-      
+
       <label>サムネ①</label>
       <input type="url" id="thumbPick1" placeholder="右クリック→画像のアドレスをコピーしてここにペースト">
 
@@ -163,8 +167,6 @@
   </main>
 
   <script>
-  // ===== 編集ページの動作スクリプト =====
-
   function encodeToBase64(str) {
     return btoa(unescape(encodeURIComponent(str)));
   }
@@ -182,13 +184,16 @@
         return;
       }
 
-     document.getElementById("originalTitle").value = post.title || "";
-document.getElementById("url").value = post.url || ""; // ←★ これを追加！
-document.getElementById("editableTitle").value = post.editableTitle || post.title || "";
-document.getElementById("thumbOriginal").value = post.thumb || "";
-document.getElementById("video").value = post.video || "";
+      document.getElementById("originalTitle").value = post.title || "";
+      document.getElementById("url").value = post.url || "";
+      document.getElementById("editableTitle").value = post.editableTitle || post.title || "";
+      document.getElementById("thumbOriginal").value = post.thumb || "";
+      document.getElementById("video").value = post.video || "";
       document.getElementById("videoLink").href = post.video;
       document.getElementById("thumbPreview").src = post.thumb || "";
+
+      // ✅ サムネとリンクを初期反映
+      document.getElementById("thumbLink").href = post.url || "#";
 
       updateCounter();
     } catch (err) {
@@ -197,14 +202,12 @@ document.getElementById("video").value = post.video || "";
     }
   }
 
-  // 🔹 文字数カウント
   const titleInput = document.getElementById("editableTitle");
   const counter = document.getElementById("titleCounter");
 
   function updateCounter() {
     const length = titleInput.value.length;
-    counter.classList.remove("ok", "warn"); // ← 状態リセット
-
+    counter.classList.remove("ok", "warn");
     if (length >= 50 && length <= 60) {
       counter.classList.add("ok");
       counter.innerHTML = `✅ ${length}文字（合格っ🫶）`;
@@ -216,70 +219,69 @@ document.getElementById("video").value = post.video || "";
 
   titleInput.addEventListener("input", updateCounter);
 
-    // タグ入力カウント
-const tagInput = document.getElementById("tags");
-const tagCountDisplay = document.getElementById("tagCount");
+  const tagInput = document.getElementById("tags");
+  const tagCountDisplay = document.getElementById("tagCount");
 
-tagInput.addEventListener("input", () => {
-  const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
-  tagCountDisplay.textContent = `タグ数：${tags.length}個`;
-});
+  tagInput.addEventListener("input", () => {
+    const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
+    tagCountDisplay.textContent = `タグ数：${tags.length}個`;
+  });
 
-// 🔹 保存処理（履歴JSONに追記 → 投稿一覧へ戻る）
-document.getElementById("editForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  document.getElementById("url").addEventListener("input", (e) => {
+    document.getElementById("thumbLink").href = e.target.value.trim() || "#";
+  });
 
-  const user = JSON.parse(localStorage.getItem("loginUser"));
-  const editor = user ? user.name : "船長";
+  document.getElementById("thumbOriginal").addEventListener("input", (e) => {
+    document.getElementById("thumbPreview").src = e.target.value.trim() || "";
+  });
 
-  const editedPost = {
-    id: postId,
-    title_original: document.getElementById("originalTitle").value,
-    url: document.getElementById("url").value,
-    title_final: document.getElementById("editableTitle").value,
-    thumb_original: document.getElementById("thumbOriginal").value,
-    thumb_pick1: document.getElementById("thumbPick1").value,
-    thumb_pick2: document.getElementById("thumbPick2").value,
-    video: document.getElementById("video").value,
-    tags: document.getElementById("tags").value.split(" ").map(t => t.trim()).filter(Boolean),
-    notes: document.getElementById("notes").value,
-    editor,
-    updated_at: new Date().toISOString(),
-    status: "edited"
-  };
+  document.getElementById("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: "Add edited post to history (船長)",
-        target: "history.json", // ✅ 履歴ファイル
-        content: encodeToBase64(JSON.stringify(editedPost, null, 2))
-      })
-    });
+    const user = JSON.parse(localStorage.getItem("loginUser"));
+    const editor = user ? user.name : "船長";
 
-    if (res.ok) {
-      alert("✅ 編集履歴を保存しました（history.json）");
-      window.location.href = "post-list.html"; // ✅ 投稿一覧へリダイレクト
-    } else {
-      alert("⚠️ 保存失敗: " + res.status);
+    const editedPost = {
+      id: postId,
+      title_original: document.getElementById("originalTitle").value,
+      url: document.getElementById("url").value,
+      title_final: document.getElementById("editableTitle").value,
+      thumb_original: document.getElementById("thumbOriginal").value,
+      thumb_pick1: document.getElementById("thumbPick1").value,
+      thumb_pick2: document.getElementById("thumbPick2").value,
+      video: document.getElementById("video").value,
+      tags: document.getElementById("tags").value.split(" ").map(t => t.trim()).filter(Boolean),
+      notes: document.getElementById("notes").value,
+      editor,
+      updated_at: new Date().toISOString(),
+      status: "edited"
+    };
+
+    try {
+      const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Add edited post to history (船長)",
+          target: "history.json",
+          content: encodeToBase64(JSON.stringify(editedPost, null, 2))
+        })
+      });
+
+      if (res.ok) {
+        alert("✅ 編集履歴を保存しました（history.json）");
+        window.location.href = "post-list.html";
+      } else {
+        alert("⚠️ 保存失敗: " + res.status);
+      }
+    } catch (err) {
+      console.error("送信エラー:", err);
+      alert("⚠️ 保存中にエラーが発生しました。");
     }
-  } catch (err) {
-    console.error("送信エラー:", err);
-    alert("⚠️ 保存中にエラーが発生しました。");
-  }
-});
+  });
 
   loadPost();
-    document.getElementById("url").addEventListener("input", (e) => {
-  document.getElementById("thumbLink").href = e.target.value.trim() || "#";
-});
-
-document.getElementById("thumbOriginal").addEventListener("input", (e) => {
-  document.getElementById("thumbPreview").src = e.target.value.trim() || "";
-});
-</script>
+  </script>
 </body>
 </html>
