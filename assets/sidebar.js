@@ -1,18 +1,15 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // === サイドバーHTMLを読み込み ===
-  const container = document.createElement("div");
-  document.body.prepend(container);
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("toggleSidebar");
+  const mainContent = document.querySelector(".main-content");
+
+  if (!sidebar || !toggleBtn) return;
 
   try {
-    const res = await fetch("assets/sidebar.html");
+    // ✅ 偽コンテナ作らず、既存asideに中身を流し込むだけ
+    const res = await fetch("assets/sidebar.html", { cache: "no-cache" });
     const html = await res.text();
-    container.innerHTML = html;
-
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleSidebar");
-    const mainContent = document.querySelector(".main-content");
-
-    if (!sidebar || !toggleBtn) return;
+    sidebar.innerHTML = html;
 
     // ▼ デバイス判定
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -58,6 +55,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       // モバイル用transform＆位置修正
       if (window.innerWidth <= 768) {
         sidebar.style.transform = isHidden ? "translateX(-220px)" : "translateX(0)";
+        toggleBtn.style.left = isHidden ? "10px" : "230px";
+      } else {
         toggleBtn.style.left = isHidden ? "10px" : "230px";
       }
     });
