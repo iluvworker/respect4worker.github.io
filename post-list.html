@@ -3,64 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>投稿一覧プレビュー</title>
-  <style>
-    body {
-      background: #121212;
-      color: #fff;
-      font-family: "Noto Sans JP", sans-serif;
-      margin: 0;
-      padding: 30px;
-    }
-    h1 {
-      text-align: center;
-      color: #4b7bec;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: #1e1e1e;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th, td {
-      border-bottom: 1px solid #333;
-      padding: 12px;
-      text-align: left;
-    }
-    th {
-      background: #2a2a2a;
-      color: #4b7bec;
-    }
-    tr:hover {
-      background: #2c2c2c;
-    }
-    img {
-      width: 80px;
-      border-radius: 4px;
-    }
-  </style>
+  <title>📋 投稿一覧プレビュー</title>
+  <link rel="stylesheet" href="assets/style.css?v=5">
+  <script src="assets/sidebar.js" defer></script>
 </head>
-<body>
-  <h1>投稿一覧プレビュー</h1>
 
-  <!-- 👇このテーブルがないと appendChild でエラーになる -->
-  <table id="postTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>サイト</th>
-        <th>タイトル</th>
-        <th>タグ</th>
-        <th>状態</th>
-        <th>編集者</th>
-        <th>投稿日</th>
-        <th>サムネ</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<body>
+  <!-- ===== メインコンテンツ ===== -->
+  <main class="main-content">
+    <h1 class="main-title">📋 投稿一覧プレビュー</h1>
+
+    <!-- 投稿一覧テーブル -->
+    <section class="section">
+      <table id="postTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>サイト</th>
+            <th>タイトル</th>
+            <th>タグ</th>
+            <th>状態</th>
+            <th>編集者</th>
+            <th>投稿日</th>
+            <th>サムネ</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
 
   <script>
     async function loadPosts() {
@@ -70,6 +41,9 @@
         const posts = await res.json();
 
         const tbody = document.querySelector("#postTable tbody");
+        tbody.innerHTML = "";
+
+        // 日付の新しい順にソート
         posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         posts.forEach(p => {
@@ -77,12 +51,12 @@
           tr.innerHTML = `
             <td>${p.id}</td>
             <td>${p.site}</td>
-            <td><a href="${p.url}" target="_blank" style="color:#4b7bec;text-decoration:none;">${p.title}</a></td>
+            <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title}</a></td>
             <td>${p.tags.join(", ")}</td>
             <td>${p.status}</td>
             <td>${p.editor}</td>
             <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
-            <td><img src="${p.thumb}" alt="thumb" width="80"></td>
+            <td><img src="${p.thumb}" alt="thumb" style="width:80px;border-radius:4px;"></td>
           `;
           tbody.appendChild(tr);
         });
@@ -93,7 +67,5 @@
     }
     loadPosts();
   </script>
-  <script src="assets/sidebar.js"></script>
-<link rel="stylesheet" href="assets/style.css?v=4">
 </body>
 </html>
