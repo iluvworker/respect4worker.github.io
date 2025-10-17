@@ -309,9 +309,8 @@
 
   // 編集ページ遷移
   function editPost(id) {
-    window.location.href = `edit-post.html?id=${id}`;
-  }
-
+  window.location.href = `edit-post.html?id=${id}&type=history`;
+}
   // 削除処理（既存のままでOK）
   async function deletePost(id) {
     if (!confirm("この履歴を削除しますか？")) return;
