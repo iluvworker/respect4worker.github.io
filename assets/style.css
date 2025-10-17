@@ -156,3 +156,36 @@ button {
     padding: 20px;
   }
 }
+
+
+/* ===== 投稿一覧テーブル ===== */
+#postTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  color: #eee;
+  font-size: 15px;
+}
+
+#postTable th, #postTable td {
+  border-bottom: 1px solid #333;
+  padding: 12px;
+  text-align: left;
+}
+
+#postTable th {
+  background: #2a2a2a;
+  color: #47bcec;
+}
+
+#postTable tr:hover {
+  background: #2c2c2c;
+}
+
+#postTable img {
+  width: 80px;
+  border-radius: 4px;
+}
