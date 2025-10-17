@@ -190,7 +190,7 @@ button {
   border-radius: 4px;
 }
 
-/* ✅ サイドバー連動修正 */
+/* ✅ サイドバー連動（最終安定版） */
 #sidebar.collapsed {
   width: 60px;
   transition: width 0.3s ease;
@@ -201,10 +201,11 @@ button {
   transition: margin-left 0.3s ease;
 }
 
+/* トグルボタン */
 .toggle-btn {
   position: fixed;
   top: 15px;
-  left: 15px;
+  left: 230px; /* ← サイドバー右端に配置 */
   background: #47bcec;
   color: #111;
   border: none;
@@ -212,5 +213,11 @@ button {
   padding: 6px 10px;
   cursor: pointer;
   font-size: 18px;
-  z-index: 999;
+  z-index: 2000; /* ← サイドバーより上に */
+  transition: left 0.3s ease;
+}
+
+/* サイドバー閉じた時の位置 */
+.sidebar.hidden ~ .toggle-btn {
+  left: 60px;
 }
