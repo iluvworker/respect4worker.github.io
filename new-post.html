@@ -139,33 +139,33 @@
       siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
     });
 
-   // 投稿データの読み込み
-async function loadPosts() {
-  try {
-    const res = await fetch("https://respect4worker.github.io/posts.json", { cache: "no-cache" });
-    const posts = await res.json();
-    const tbody = document.querySelector("#postTable tbody");
-    tbody.innerHTML = "";
+    // 投稿データの読み込み
+    async function loadPosts() {
+      try {
+        const res = await fetch("posts.json", { cache: "no-cache" });
+        const posts = await res.json();
+        const tbody = document.querySelector("#postTable tbody");
+        tbody.innerHTML = "";
 
-    posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    posts.forEach((p) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${p.id}</td>
-        <td>${p.site}</td>
-        <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
-        <td>${p.tags?.join(", ") || "-"}</td>
-        <td>${p.status}</td>
-        <td>${p.editor || "-"}</td>
-        <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
-        <td><img src="${p.thumb}" alt="thumb"></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("一覧取得エラー:", err);
-  }
-}
+        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        posts.forEach((p) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.site}</td>
+            <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
+            <td>${p.tags?.join(", ") || "-"}</td>
+            <td>${p.status}</td>
+            <td>${p.editor || "-"}</td>
+            <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
+            <td><img src="${p.thumb}" alt="thumb"></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("一覧取得エラー:", err);
+      }
+    }
 
     // 投稿処理（Cloudflare Worker経由）
     document.querySelector("#postForm").addEventListener("submit", async (e) => {
