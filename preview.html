@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新規投稿</title>
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: "Noto Sans JP", sans-serif;
+      margin: 0;
+      padding: 40px;
+    }
+    h1 {
+      color: #4b7bec;
+      text-align: center;
+    }
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input, textarea, button {
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input, textarea {
+      background: #1e1e1e;
+      color: #fff;
+    }
+    button {
+      background: #4b7bec;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #3867d6;
+    }
+  </style>
+</head>
+<body>
+  <h1>新規投稿フォーム</h1>
 
+  <form id="postForm">
+    <input type="text" id="url" placeholder="作品URL (例: https://www.dmm.co.jp/...)" required />
+    <input type="text" id="thumb" placeholder="サムネURL" required />
+    <input type="text" id="title" placeholder="作品タイトル" required />
+    <input type="text" id="video" placeholder="動画URL (任意)" />
+    <button type="submit">投稿する</button>
+  </form>
+
+  <p id="statusMsg" style="text-align:center;margin-top:20px;color:#aaa;"></p>
+
+  <script>
+    const GITHUB_TOKEN = import.meta.env.GH_TOKEN;
+    const REPO_OWNER = "iluvworker";
+    const REPO_NAME = "respect4worker.github.io";
+    const FILE_PATH = "posts.json";
+
+    document.getElementById("postForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const msg = document.getElementById("statusMsg");
+      msg.textContent = "送信中...";
+
+      const newPost = {
+        id: Date.now(),
+        url: url.value,
+        thumb: thumb.value,
+        title: title.value,
+        video: video.value || "",
+        site: url.value.includes("dmm") ? "FANZA" :
+              url.value.includes("mgstage") ? "MGS" : "その他",
+        tags: [],
+        status: "draft",
+        editor: "きょんたん",
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        // 現在のposts.jsonを取得
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+          headers: { Authorization: `token ${GITHUB_TOKEN}` }
+        });
+        const data = await res.json();
+        const content = atob(data.content);
+        const posts = JSON.parse(content);
+
+        // 新しい投稿を先頭に追加
+        posts.unshift(newPost);
+
+        const updatedContent = btoa(JSON.stringify(posts, null, 2));
+
+        // GitHubへ更新リクエスト
+        const updateRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `token ${GITHUB_TOKEN}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: `Add new post: ${newPost.title}`,
+            content: updatedContent,
+            sha: data.sha
+          })
+        });
+
+        if (updateRes.ok) {
+          msg.style.color = "#4b7bec";
+          msg.textContent = "✅ 投稿が完了しました！";
+          document.getElementById("postForm").reset();
+        } else {
+          throw new Error("更新失敗");
+        }
+      } catch (err) {
+        console.error(err);
+        msg.style.color = "red";
+        msg.textContent = "⚠️ エラーが発生しました";
+      }
+    });
+  </script>
+</body>
+</html>
