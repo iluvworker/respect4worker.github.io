@@ -260,36 +260,46 @@
     }
 
     async function deletePost(id) {
-      if (!confirm("🗑 この投稿を削除しますか？")) return;
+  if (!confirm("🗑 この投稿を削除しますか？")) return;
 
-      try {
-        const res = await fetch("posts.json", { cache: "no-cache" });
-        const data = await res.json();
-        const updated = data.filter(p => String(p.id) !== String(id));
+  try {
+    // まずサーバー保存用の最新一覧を取得
+    const res = await fetch(`posts.json?ts=${Date.now()}`, { cache: "no-store" });
+    const data = await res.json();
 
-        const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: "Delete post from posts.json",
-            target: "posts.json",
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
-          })
-        });
+    // サーバーへ送る内容
+    const updated = data.filter(p => String(p.id) !== String(id));
 
-        if (saveRes.ok) {
-          alert("✅ 投稿を削除しました。");
-          loadPosts();
-        } else {
-          alert("⚠️ 削除失敗: " + saveRes.status);
-        }
-      } catch (err) {
-        console.error("削除エラー:", err);
-        alert("⚠️ 削除中にエラーが発生しました。");
-      }
+    const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Delete post from posts.json",
+        target: "posts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+      })
+    });
+
+    if (!saveRes.ok) {
+      alert("⚠️ 削除失敗: " + saveRes.status);
+      return;
     }
 
+    // ✅ 楽観的更新：フロントの配列も即時反映
+    postsData = postsData.filter(p => String(p.id) !== String(id));
+    renderPosts();
+
+    alert("✅ 投稿を削除しました。");
+
+    // 念のため最新を取り直し（CDN回避）
+    await loadPosts();
+
+  } catch (err) {
+    console.error("削除エラー:", err);
+    alert("⚠️ 削除中にエラーが発生しました。");
+  }
+}
     function editPost(id) {
       window.location.href = `edit-post.html?id=${id}`;
     }
