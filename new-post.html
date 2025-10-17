@@ -6,73 +6,129 @@
   <title>📝 新規投稿フォーム</title>
   <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
-  <style>
-    #postForm {
-      max-width: 700px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      background: #1b1b1b;
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
-    #postForm label {
-      font-weight: 600;
-      color: #b0cfff;
-    }
-    #postForm input {
-      background: #222;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 10px;
-      color: #fff;
-      font-size: 15px;
-    }
-    #postForm button {
-      align-self: flex-end;
-      background: #47bcec;
-      color: #111;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
-    }
-    #sitePreview {
-      color: #47bcec;
-      font-weight: bold;
-      margin-bottom: 5px;
-      text-align: right;
-      font-size: 14px;
-    }
-    #postTable {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 25px;
-      background: #1e1e1e;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    #postTable th, #postTable td {
-      padding: 12px;
-      border-bottom: 1px solid #333;
-      text-align: left;
-    }
-    #postTable th {
-      background: #2a2a2a;
-      color: #47bcec;
-    }
-    #postTable tr:hover {
-      background: #252525;
-    }
-    #postTable img {
-      width: 80px;
-      border-radius: 4px;
-    }
-  </style>
+<style>
+:root {
+  --accent: #47bcec; /* ← 作品タイトルと同色で統一 */
+}
+
+/* 投稿フォームを少しコンパクトに */
+#postForm {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #1b1b1b;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
+#postForm label {
+  font-weight: 600;
+  color: var(--accent); /* ← 同色 */
+  font-size: 14px;
+}
+#postForm input {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+#postForm button {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #111;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+#sitePreview {
+  color: var(--accent);
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-align: right;
+  font-size: 13px;
+}
+
+/* 見出し */
+.main-title {
+  font-size: 18px;
+  color: var(--accent); /* ← 同色 */
+  margin: 10px 0 14px 0;
+  line-height: 1.2;
+}
+
+/* 投稿リスト：カード型にしてサムネ左 */
+#postTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: none;
+}
+#postTable tbody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#postTable tr {
+  display: flex;
+  align-items: center;
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 10px;
+  gap: 15px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+}
+#postTable td {
+  border: none;
+  padding: 0;
+}
+#postTable img {
+  width: 85px;
+  height: auto;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.post-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.post-info a {
+  color: var(--accent); /* ← 統一 */
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+}
+.post-meta {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 3px;
+}
+
+/* 💡 横長・半画面対応 */
+@media (max-width: 1000px) {
+  .main-title {
+    font-size: 16px;
+    margin: 8px 0 12px 0;
+  }
+  #postForm {
+    max-width: 95%;
+    padding: 15px;
+  }
+  #postTable img {
+    width: 70px;
+  }
+  .post-info a {
+    font-size: 13px;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -102,30 +158,16 @@
     <h1 class="main-title">📋 投稿一覧</h1>
     <section class="section" id="post-list">
       <table id="postTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>サイト</th>
-            <th>タイトル</th>
-            <th>タグ</th>
-            <th>状態</th>
-            <th>編集者</th>
-            <th>投稿日</th>
-            <th>サムネ</th>
-          </tr>
-        </thead>
         <tbody></tbody>
       </table>
     </section>
   </main>
 
   <script>
-    // 🔹 日本語文字をBase64に変換する関数
     function encodeToBase64(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
 
-    // URL入力時に販売サイトを自動判定
     const urlInput = document.getElementById("url");
     const siteDisplay = document.getElementById("detectedSite");
 
@@ -139,35 +181,30 @@
       siteDisplay.style.color = site !== "未判定" ? "#47bcec" : "#999";
     });
 
-   // 投稿データの読み込み
-async function loadPosts() {
-  try {
-    const res = await fetch("https://respect4worker.github.io/posts.json", { cache: "no-cache" });
-    const posts = await res.json();
-    const tbody = document.querySelector("#postTable tbody");
-    tbody.innerHTML = "";
+    async function loadPosts() {
+      try {
+        const res = await fetch("posts.json", { cache: "no-cache" });
+        const posts = await res.json();
+        const tbody = document.querySelector("#postTable tbody");
+        tbody.innerHTML = "";
 
-    posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    posts.forEach((p) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${p.id}</td>
-        <td>${p.site}</td>
-        <td><a href="${p.url}" target="_blank" style="color:#47bcec;text-decoration:none;">${p.title || "(タイトル未設定)"}</a></td>
-        <td>${p.tags?.join(", ") || "-"}</td>
-        <td>${p.status}</td>
-        <td>${p.editor || "-"}</td>
-        <td>${new Date(p.created_at).toLocaleString("ja-JP")}</td>
-        <td><img src="${p.thumb}" alt="thumb"></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("一覧取得エラー:", err);
-  }
-}
+        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        posts.forEach((p) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><img src="${p.thumb}" alt="thumb"></td>
+            <td class="post-info">
+              <a href="${p.url}" target="_blank">${p.title || "(タイトル未設定)"}</a>
+              <div class="post-meta">${p.site} ｜ ${p.editor || "-"} ｜ ${new Date(p.created_at).toLocaleString("ja-JP")}</div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("一覧取得エラー:", err);
+      }
+    }
 
-    // 投稿処理（Cloudflare Worker経由）
     document.querySelector("#postForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const site = siteDisplay.textContent;
