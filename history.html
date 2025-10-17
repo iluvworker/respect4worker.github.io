@@ -95,15 +95,22 @@
 </head>
 
 <body>
+<body>
+  <!-- ✅ 共通サイドバーの自動読み込み -->
   <aside id="sidebar"></aside>
   <button id="toggleSidebar" class="toggle-btn">☰</button>
 
+  <!-- ✅ メイン領域 -->
   <main class="main-content">
     <h1 class="main-title">📜 編集履歴一覧</h1>
     <table id="historyTable">
       <tbody></tbody>
     </table>
   </main>
+
+  <!-- ✅ 共通サイドバー制御 -->
+  <script src="assets/sidebar.js" defer></script>
+</body>
 
   <script>
     function encodeToBase64(str) {
