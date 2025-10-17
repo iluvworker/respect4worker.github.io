@@ -7,17 +7,31 @@
   <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
   <style>
+    body {
+      display: flex;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    aside {
+      width: 220px;
+      background: #141414;
+      border-right: 1px solid #222;
+      min-height: 100vh;
+    }
+
     main {
+      flex: 1;
       max-width: 800px;
-      margin: 0 auto;
+      margin: 20px auto;
       background: #1b1b1b;
       border-radius: 12px;
       padding: 25px;
-      color: #eee;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
-    /* 🔹 タイトルを小さく */
     h1 {
       color: #47bcec;
       text-align: left;
@@ -84,6 +98,10 @@
   </style>
 </head>
 <body>
+  <!-- 🔹 サイドバー -->
+  <aside id="sidebar"></aside>
+
+  <!-- 🔹 メイン編集エリア -->
   <main>
     <h1>✏️ 編集</h1>
 
@@ -95,7 +113,6 @@
       <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
       <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
 
-      <!-- 🔹 ピックアップサムネ -->
       <label>ピックアップサムネ①</label>
       <input type="url" id="thumbPick1" placeholder="https://example.com/pickup1.jpg">
 
