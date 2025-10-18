@@ -32,30 +32,7 @@
       border-radius: 12px;
       padding: 25px;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-
-    #editForm label {
-      display: block;
-      margin-top: 12px;
-      color: #b0cfff;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    #editForm input, #editForm textarea {
-      width: 100%;
-      background: #222;
-      border: 1px solid #333;
-      border-radius: 6px;
-      color: #fff;
-      padding: 8px;
-      font-size: 14px;
-      margin-top: 5px;
-    }
-
-    #editForm textarea {
-      min-height: 120px;
-      resize: vertical;
+      position: relative;
     }
 
     #editForm button {
@@ -69,64 +46,40 @@
       font-weight: 600;
       margin-top: 20px;
       float: right;
+      transition: 0.2s ease;
     }
 
-    .thumb-preview {
-      width: 180px;
-      border-radius: 6px;
-      margin-top: 10px;
-      display: block;
+    #editForm button[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
-    .video-link {
-      display: inline-block;
-      margin-top: 5px;
+    /* ローディングオーバーレイ */
+    .loading-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
       color: #47bcec;
-      text-decoration: none;
-      font-size: 13px;
+      font-weight: bold;
+      font-size: 16px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
     }
-
-    .video-link:hover {
-      text-decoration: underline;
-    }
-
-    .counter {
-      font-size: 12px;
-      margin-top: 4px;
-      font-weight: 500;
-      display: inline-block;
-      transition: all 0.3s ease;
-    }
-
-    .counter.ok {
-      color: #00e0b5;
-      background: rgba(0, 255, 200, 0.12);
-      border: 1px solid rgba(0, 255, 200, 0.25);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .counter.warn {
-      color: #ff6a6a;
-      background: rgba(255, 80, 80, 0.1);
-      border: 1px solid rgba(255, 80, 80, 0.25);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    a#thumbLink[href="#"] {
-      pointer-events: none;
-      opacity: 0.7;
+    .loading-overlay.active {
+      display: flex;
     }
   </style>
 </head>
 
 <body>
-
   <main class="main-content">
     <h1 class="main-title">✏️ 編集（船長専用）</h1>
 
     <form id="editForm">
+      <div class="loading-overlay" id="loadingOverlay">⏳ 保存中... 他の作業を待っています</div>
+
       <label>商品タイトル</label>
       <input type="text" id="originalTitle" placeholder="船長投稿時のタイトル" />
 
@@ -161,7 +114,7 @@
       <textarea id="notes" placeholder="補足や備考を入力...
 基本的に空っぽで。"></textarea>
 
-      <button type="submit">💾 保存する</button>
+      <button type="submit" id="saveBtn">💾 保存する</button>
     </form>
   </main>
 
@@ -255,6 +208,12 @@
 
   document.getElementById("editForm").addEventListener("submit", async e => {
     e.preventDefault();
+    const saveBtn = document.getElementById("saveBtn");
+    const overlay = document.getElementById("loadingOverlay");
+
+    // ローディング開始
+    saveBtn.disabled = true;
+    overlay.classList.add("active");
 
     const oTitle = document.getElementById("originalTitle").value.trim();
     const url = document.getElementById("url").value.trim();
@@ -266,22 +225,23 @@
     const tags = document.getElementById("tags").value.trim().split(/\s+/).filter(Boolean);
     const notes = document.getElementById("notes").value.trim();
 
+    // ✅ 保存条件チェック
     if (!oTitle || !url || !eTitle || !tOrig || !t1 || !t2 || !video) {
       alert("⚠️ 備考以外の全ての項目を入力してください。");
-      return;
+      overlay.classList.remove("active"); saveBtn.disabled = false; return;
     }
     if (eTitle.length < 50 || eTitle.length > 60) {
       alert(`⚠️ タイトルは50〜60文字にしてください（現在${eTitle.length}文字）。`);
-      return;
+      overlay.classList.remove("active"); saveBtn.disabled = false; return;
     }
     if (tags.length < 8) {
       alert(`⚠️ タグが不足しています（現在${tags.length}個）。最低8個必要です。`);
-      return;
+      overlay.classList.remove("active"); saveBtn.disabled = false; return;
     }
 
     if (await isDupInHistory({ video, url, title_original: oTitle })) {
       alert("⚠️ この商品はすでに編集履歴に存在します。");
-      return;
+      overlay.classList.remove("active"); saveBtn.disabled = false; return;
     }
 
     const user = JSON.parse(localStorage.getItem("loginUser"));
@@ -341,6 +301,7 @@
     } catch (err) {
       console.error("保存エラー:", err);
       alert("⚠️ 保存中にエラーが発生しました。");
+      overlay.classList.remove("active"); saveBtn.disabled = false;
     }
   });
 
