@@ -446,77 +446,72 @@ window.addEventListener("DOMContentLoaded", async () => {
     container.id = "tagButtons";
     container.style.marginTop = "14px";
 
-    // グループごとに生成
-    for (const [group, tags] of Object.entries(tagGroups)) {
-      // 区切り線
-      if (group.startsWith("-")) {
-        const hr = document.createElement("hr");
-        hr.style.border = "none";
-        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-        hr.style.margin = "16px 0";
-        container.appendChild(hr);
-        continue;
+  // グループごとに生成
+for (const [group, tags] of Object.entries(tagGroups)) {
+  if (group.startsWith("-")) {
+    const hr = document.createElement("hr");
+    hr.style.border = "none";
+    hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+    hr.style.margin = "16px 0";
+    container.appendChild(hr);
+    continue;
+  }
+
+  const groupDiv = document.createElement("div");
+  groupDiv.style.marginBottom = "4px";
+
+  const title = document.createElement("h4");
+  title.textContent = group;
+  title.style.color = "#47bcec";
+  title.style.fontSize = "13px";
+  title.style.margin = "0 0 3px 0";
+  groupDiv.appendChild(title);
+
+  const btnWrap = document.createElement("div");
+  btnWrap.style.display = "flex";
+  btnWrap.style.flexWrap = "wrap";
+  btnWrap.style.columnGap = "5px";
+  btnWrap.style.rowGap = "2px";
+  btnWrap.style.justifyContent = "flex-start";
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.textContent = tag;
+    btn.type = "button";
+    btn.style.background = "#2b2b2b";
+    btn.style.color = "#b0cfff";
+    btn.style.border = "1px solid #444";
+    btn.style.borderRadius = "5px";
+    btn.style.fontSize = "12px";
+    btn.style.padding = "3px 9px";
+    btn.style.cursor = "pointer";
+    btn.style.transition = "all 0.2s ease";
+    btn.style.lineHeight = "1";
+    btn.style.margin = "1px 4px 1px 0";
+
+    btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
+    btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
+
+    btn.addEventListener("click", () => {
+      const input = document.getElementById("tags");
+      if (!input) return;
+      const current = input.value.trim().split(/\s+/).filter(Boolean);
+      if (!current.includes(tag)) {
+        current.push(tag);
+        input.value = current.join(" ");
+        input.dispatchEvent(new Event("input"));
       }
+    });
 
-      const groupDiv = document.createElement("div");
-      groupDiv.style.marginBottom = "4px";
+    btnWrap.appendChild(btn);
+  });
 
-      // 見出し
-      const title = document.createElement("h4");
-      title.textContent = group;
-      title.style.color = "#47bcec";
-      title.style.fontSize = "13px";
-      title.style.margin = "0 0 3px 0";
-      groupDiv.appendChild(title);
+  groupDiv.appendChild(btnWrap);
+  container.appendChild(groupDiv);
+}
 
-      // タグボタン群
-      const btnWrap = document.createElement("div");
-      btnWrap.style.display = "flex";
-      btnWrap.style.flexWrap = "wrap";
-      btnWrap.style.columnGap = "5px";
-      btnWrap.style.rowGap = "2px";
-      btnWrap.style.justifyContent = "flex-start";
-
-      tags.forEach(tag => {
-        const btn = document.createElement("button");
-        btn.textContent = tag;
-        btn.type = "button";
-        btn.style.background = "#2b2b2b";
-        btn.style.color = "#b0cfff";
-        btn.style.border = "1px solid #444";
-        btn.style.borderRadius = "5px";
-        btn.style.fontSize = "12px";
-        btn.style.padding = "3px 9px";
-        btn.style.cursor = "pointer";
-        btn.style.transition = "all 0.2s ease";
-        btn.style.lineHeight = "1";
-        btn.style.margin = "1px 4px 1px 0";
-
-        btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
-        btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
-
-        btn.addEventListener("click", () => {
-          const input = document.getElementById("tags");
-          if (!input) return;
-          const current = input.value.trim().split(/\s+/).filter(Boolean);
-          if (!current.includes(tag)) {
-            current.push(tag);
-            input.value = current.join(" ");
-            input.dispatchEvent(new Event("input"));
-          }
-        });
-
-        btnWrap.appendChild(btn);
-      });
-
-      groupDiv.appendChild(btnWrap);
-
-      // 「プレイ」ブロックの後に入力欄を移動
-      if (group === "プレイ") container.appendChild(tagInput);
-
-      container.appendChild(groupDiv);
-    }
-
+// ✅ タグ入力欄の前に配置（親子矛盾なし）
+tagInput.insertAdjacentElement("beforebegin", container);
     // フォーム内に挿入
     tagInput.insertAdjacentElement("beforebegin", container);
 
