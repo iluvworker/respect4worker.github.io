@@ -200,7 +200,7 @@
     const perPage = 30;
 
     async function loadPosts() {
-      const res = await fetch("./posts.json", { cache: "no-cache" });
+      const res = await fetch("./posts.json?ts=", { cache: "no-cache" });
       postsData = await res.json();
       renderPosts();
     }
