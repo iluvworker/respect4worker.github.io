@@ -85,10 +85,6 @@
       font-size: 13px;
     }
 
-    .video-link:hover {
-      text-decoration: underline;
-    }
-
     .counter {
       font-size: 12px;
       margin-top: 4px;
@@ -116,7 +112,6 @@
 </head>
 
 <body>
-
   <main class="main-content">
     <h1 class="main-title">📜 編集履歴エディタ（船長）</h1>
 
@@ -158,223 +153,175 @@
     </form>
   </main>
 
- <script>
-document.addEventListener("DOMContentLoaded", async () => {
+  <script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
 
-  // ========= 共通関数 =========
-  const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
-  const params = new URLSearchParams(window.location.search);
-  const postId = params.get("id");
+    const tagInput = document.getElementById("tags");
+    const tagCount = document.getElementById("tagCount");
+    const titleInput = document.getElementById("editableTitle");
+    const counter = document.getElementById("titleCounter");
 
-  const tagInput = document.getElementById("tags");
-  const tagCount = document.getElementById("tagCount");
-  const titleInput = document.getElementById("editableTitle");
-  const counter = document.getElementById("titleCounter");
+    const updateCounter = () => {
+      const len = titleInput.value.length;
+      counter.classList.remove("ok", "warn");
+      if (len >= 50 && len <= 60) {
+        counter.classList.add("ok");
+        counter.textContent = `✅ ${len}文字（合格っ🫶）`;
+      } else {
+        counter.classList.add("warn");
+        counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
+      }
+    };
+    titleInput.addEventListener("input", updateCounter);
 
-  // ========= タイトル文字数カウンター =========
-  const updateCounter = () => {
-    const len = titleInput.value.length;
-    counter.classList.remove("ok", "warn");
-    if (len >= 50 && len <= 60) {
-      counter.classList.add("ok");
-      counter.textContent = `✅ ${len}文字（合格っ🫶）`;
-    } else {
-      counter.classList.add("warn");
-      counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
-    }
-  };
-  titleInput.addEventListener("input", updateCounter);
+    const splitTags = (v) => (v || "").trim().split(/[\s\u3000]+/).filter(Boolean);
+    const updateTagCount = () => tagCount.textContent = `タグ数：${splitTags(tagInput.value).length}個`;
+    tagInput.addEventListener("input", updateTagCount);
 
-  // ========= タグカウンター（全角対応） =========
-  const splitTags = (v) => (v || "").trim().split(/[\s\u3000]+/).filter(Boolean);
-  const updateTagCount = () => tagCount.textContent = `タグ数：${splitTags(tagInput.value).length}個`;
-  tagInput.addEventListener("input", updateTagCount);
+    const makePreview = (inputId, previewId) => {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const preview = document.createElement("img");
+      preview.id = previewId;
+      preview.className = "thumb-preview";
+      preview.style.cursor = "zoom-in";
+      preview.style.maxWidth = "200px";
+      preview.style.marginTop = "6px";
+      input.insertAdjacentElement("afterend", preview);
+      preview.src = (input.value || "").trim() || "";
+      input.addEventListener("input", e => preview.src = e.target.value.trim() || "");
+    };
+    makePreview("thumbPick1", "thumbPreview1");
+    makePreview("thumbPick2", "thumbPreview2");
 
-  // ========= サムネ①②プレビュー生成 =========
- const makePreview = (inputId, previewId) => {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-
-  const preview = document.createElement("img");
-  preview.id = previewId;
-  preview.className = "thumb-preview";
-  preview.style.cursor = "zoom-in";
-  preview.style.maxWidth = "200px";
-  preview.style.marginTop = "6px";
-  input.insertAdjacentElement("afterend", preview);
-
-  // ✅ 生成直後にも現在値を反映（初期表示）
-  preview.src = (input.value || "").trim() || "";
-
-  // 入力で即時プレビュー反映
-  input.addEventListener("input", e => {
-    preview.src = e.target.value.trim() || "";
-  });
-};
-  makePreview("thumbPick1", "thumbPreview1");
-  makePreview("thumbPick2", "thumbPreview2");
-
-  // ========= 拡大表示オーバーレイ =========
-  const overlay = document.createElement("div");
-  Object.assign(overlay.style, {
-    position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-    background: "rgba(0,0,0,0.8)", display: "none",
-    justifyContent: "center", alignItems: "center", zIndex: 9999, cursor: "zoom-out"
-  });
-  const fullImg = document.createElement("img");
-  Object.assign(fullImg.style, {
-    maxWidth: "95%", maxHeight: "95%", borderRadius: "10px", boxShadow: "0 0 10px #000"
-  });
-  overlay.appendChild(fullImg);
-  document.body.appendChild(overlay);
-  overlay.addEventListener("click", () => overlay.style.display = "none");
-  document.addEventListener("click", e => {
-    if (e.target.classList.contains("thumb-preview") && e.target.src) {
-      fullImg.src = e.target.src;
-      overlay.style.display = "flex";
-    }
-  });
-
-  // ========= 履歴ロード =========
-  async function loadHistoryPost() {
-    try {
-      const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
-      const posts = await res.json();
-      const post = posts.find(p => String(p.id) === postId);
-      if (!post) { alert("該当する履歴データが見つかりません。"); return; }
-
-      document.getElementById("originalTitle").value = post.title_original || "";
-      document.getElementById("editableTitle").value = post.title_final || "";
-      document.getElementById("thumbOriginal").value = post.thumb_original || "";
-      document.getElementById("thumbPreview").src = post.thumb_original || "";
-      document.getElementById("url").value = post.url || "";
-      document.getElementById("video").value = post.video || "";
-      document.getElementById("videoLink").href = post.video || "#";
-      document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
-      document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
-      document.getElementById("tags").value = (post.tags || []).join(" ");
-      document.getElementById("notes").value = post.notes || "";
-      // ← loadHistoryPost()の try 内、フォームへの値セットが終わった直後に追加
-document.getElementById("tags").dispatchEvent(new Event("input"));
-document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
-document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
-
-    
-
-      // ✅ 初期化反映
-      updateCounter();
-      // ← loadHistoryPost()の try 内、フォームへの値セットが終わった直後に追加
-document.getElementById("tags").dispatchEvent(new Event("input"));
-document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
-document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
-      updateTagCount();
-      document.getElementById("thumbPreview1").src = post.thumb_pick1 || "";
-      document.getElementById("thumbPreview2").src = post.thumb_pick2 || "";
-    } catch (err) {
-      console.error("ロードエラー:", err);
-      alert("履歴の読み込みに失敗しました。");
-    }
-  }
-
-  await loadHistoryPost();
-// ========= タグボタン群（属性/女優） =========
-const labelTags = document.getElementById("labelTags");
-const tagInput  = document.getElementById("tags");
-const tagCount  = document.getElementById("tagCount");
-const notes     = document.getElementById("notes");
-const notesLabel= notes ? notes.previousElementSibling : null; // 「内容メモ／補足（任意）」の<label>
-
-// 汎用ボタン生成
-const createTagButtons = async (file) => {
-  const res = await fetch(`${file}?ts=${Date.now()}`);
-  if (!res.ok) return null;
-  const tagGroups = await res.json();
-
-  const container = document.createElement("div");
-  container.style.margin = "14px 0";
-
-  for (const [group, tags] of Object.entries(tagGroups)) {
-    if (group.startsWith("-")) {
-      const hr = document.createElement("hr");
-      hr.style.border = "none";
-      hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-      hr.style.margin = "16px 0";
-      container.appendChild(hr);
-      continue;
-    }
-
-    const title = document.createElement("h4");
-    title.textContent = group;
-    Object.assign(title.style, {
-      color:"#47bcec", fontSize:"13px", margin:"6px 0 3px 0"
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+      position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+      background: "rgba(0,0,0,0.8)", display: "none",
+      justifyContent: "center", alignItems: "center", zIndex: 9999, cursor: "zoom-out"
     });
-    container.appendChild(title);
-
-    const wrap = document.createElement("div");
-    Object.assign(wrap.style, {
-      display:"flex", flexWrap:"wrap", columnGap:"5px", rowGap:"3px"
+    const fullImg = document.createElement("img");
+    Object.assign(fullImg.style, {
+      maxWidth: "95%", maxHeight: "95%", borderRadius: "10px", boxShadow: "0 0 10px #000"
+    });
+    overlay.appendChild(fullImg);
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", () => overlay.style.display = "none");
+    document.addEventListener("click", e => {
+      if (e.target.classList.contains("thumb-preview") && e.target.src) {
+        fullImg.src = e.target.src;
+        overlay.style.display = "flex";
+      }
     });
 
-    tags.forEach(tag => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = tag;
-      Object.assign(btn.style, {
-        background:"#2b2b2b", color:"#b0cfff", border:"1px solid #444",
-        borderRadius:"5px", fontSize:"12px", padding:"3px 9px",
-        cursor:"pointer", margin:"1px 4px 1px 0", lineHeight:"1.3",
-        transition:"all 0.2s ease"
-      });
-      btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
-      btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
-      btn.addEventListener("click", () => {
-        const cur = (tagInput.value || "").trim().split(/[\s\u3000]+/).filter(Boolean);
-        if (!cur.includes(tag)) {
-          tagInput.value = [...cur, tag].join(" ");
-          tagInput.dispatchEvent(new Event("input"));
+    async function loadHistoryPost() {
+      try {
+        const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
+        const posts = await res.json();
+        const post = posts.find(p => String(p.id) === postId);
+        if (!post) { alert("該当する履歴データが見つかりません。"); return; }
+
+        document.getElementById("originalTitle").value = post.title_original || "";
+        document.getElementById("editableTitle").value = post.title_final || "";
+        document.getElementById("thumbOriginal").value = post.thumb_original || "";
+        document.getElementById("thumbPreview").src = post.thumb_original || "";
+        document.getElementById("url").value = post.url || "";
+        document.getElementById("video").value = post.video || "";
+        document.getElementById("videoLink").href = post.video || "#";
+        document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
+        document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+        document.getElementById("tags").value = (post.tags || []).join(" ");
+        document.getElementById("notes").value = post.notes || "";
+
+        document.getElementById("tags").dispatchEvent(new Event("input"));
+        document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
+        document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
+        updateCounter();
+        updateTagCount();
+      } catch (err) {
+        console.error("ロードエラー:", err);
+        alert("履歴の読み込みに失敗しました。");
+      }
+    }
+
+    await loadHistoryPost();
+
+    // ========= タグボタン群 =========
+    const labelTags = document.getElementById("labelTags");
+    const notes = document.getElementById("notes");
+    const notesLabel = notes ? notes.previousElementSibling : null;
+
+    const createTagButtons = async (file) => {
+      const res = await fetch(`${file}?ts=${Date.now()}`);
+      if (!res.ok) return null;
+      const tagGroups = await res.json();
+      const container = document.createElement("div");
+      container.style.margin = "14px 0";
+
+      for (const [group, tags] of Object.entries(tagGroups)) {
+        if (group.startsWith("-")) {
+          const hr = document.createElement("hr");
+          hr.style.border = "none";
+          hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+          hr.style.margin = "16px 0";
+          container.appendChild(hr);
+          continue;
         }
-      });
-      wrap.appendChild(btn);
-    });
 
-    container.appendChild(wrap);
-  }
+        const title = document.createElement("h4");
+        title.textContent = group;
+        Object.assign(title.style, { color:"#47bcec", fontSize:"13px", margin:"6px 0 3px 0" });
+        container.appendChild(title);
 
-  return container; // ← ここが絶対必要！！
-};
+        const wrap = document.createElement("div");
+        Object.assign(wrap.style, { display:"flex", flexWrap:"wrap", columnGap:"5px", rowGap:"3px" });
 
-// ① 属性/シチュ/プレイ（tag-manager）を「ラベルの直後」に置く
-const blockAttr = await createTagButtons("tag-manager.json");
-if (blockAttr && labelTags) {
-  labelTags.insertAdjacentElement("afterend", blockAttr);
-}
+        tags.forEach(tag => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = tag;
+          Object.assign(btn.style, {
+            background:"#2b2b2b", color:"#b0cfff", border:"1px solid #444",
+            borderRadius:"5px", fontSize:"12px", padding:"3px 9px",
+            cursor:"pointer", margin:"1px 4px 1px 0", lineHeight:"1.3",
+            transition:"all 0.2s ease"
+          });
+          btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
+          btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
+          btn.addEventListener("click", () => {
+            const cur = (tagInput.value || "").trim().split(/[\s\u3000]+/).filter(Boolean);
+            if (!cur.includes(tag)) {
+              tagInput.value = [...cur, tag].join(" ");
+              tagInput.dispatchEvent(new Event("input"));
+            }
+          });
+          wrap.appendChild(btn);
+        });
+        container.appendChild(wrap);
+      }
+      return container;
+    };
 
-// ② タグ入力欄 → タグ数（位置をボタンの下へ移動）
-if (blockAttr && tagInput) {
-  blockAttr.insertAdjacentElement("afterend", tagInput);
-  tagInput.insertAdjacentElement("afterend", tagCount);
-}
+    const blockAttr = await createTagButtons("tag-manager.json");
+    if (blockAttr && labelTags) labelTags.insertAdjacentElement("afterend", blockAttr);
 
-// ③ 人気女優/監督（tag-manager2）を「タグ数の直後」に置く
-const blockCeleb = await createTagButtons("tag-manager2.json");
-if (blockCeleb && tagCount) {
-  tagCount.insertAdjacentElement("afterend", blockCeleb);
-}
+    if (blockAttr && tagInput) {
+      blockAttr.insertAdjacentElement("afterend", tagInput);
+      tagInput.insertAdjacentElement("afterend", tagCount);
+    }
 
-// ④ 備考（label+textarea）を「人気女優/監督ブロックの下」へ移動
-if (blockCeleb && notes) {
-  if (notesLabel) blockCeleb.insertAdjacentElement("afterend", notesLabel);
-  (notesLabel || blockCeleb).insertAdjacentElement("afterend", notes);
-}
+    const blockCeleb = await createTagButtons("tag-manager2.json");
+    if (blockCeleb && tagCount) tagCount.insertAdjacentElement("afterend", blockCeleb);
 
-// ⑤ 初期カウントを正しい位置で更新（0固定を防ぐ）
-const updateTagCount = () => {
-  const n = (tagInput.value || "").trim().split(/[\s\u3000]+/).filter(Boolean).length;
-  tagCount.textContent = `タグ数：${n}個`;
-};
-updateTagCount();
-tagInput.addEventListener("input", updateTagCount);
-
-</script>
+    if (blockCeleb && notes) {
+      if (notesLabel) blockCeleb.insertAdjacentElement("afterend", notesLabel);
+      (notesLabel || blockCeleb).insertAdjacentElement("afterend", notes);
+    }
+    updateTagCount();
+  });
+  </script>
 </body>
 </html>
