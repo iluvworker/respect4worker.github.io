@@ -249,7 +249,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: "Update post in history (船長)",
-          target: "history.json",
+          target: "history.json?ts=",
           content: encodeToBase64(JSON.stringify(list, null, 2))
         })
       });
