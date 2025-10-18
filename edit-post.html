@@ -179,7 +179,7 @@ a#thumbLink[href="#"] {
     try {
       const res = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return false;
-      const list = await res.json=();
+const list = await res.json();
       return list.some(p =>
         (p.video || "") === (editedPost.video || "") &&
         (p.url || "") === (editedPost.url || "") &&
@@ -190,48 +190,54 @@ a#thumbLink[href="#"] {
       return false;
     }
   }
+// === 投稿読み込み（posts.json or history.json） ===
+async function loadPost() {
+  console.log("🧩 開始: loadPost()");
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get("id");
+  const type = params.get("type");
+  const sourceFile = type === "history" ? "history.json" : "posts.json";
 
-  // === 投稿読み込み（posts.json or history.json） ===
-  async function loadPost() {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const type = params.get("type");
-      const sourceFile = type === "history" ? "history.json?ts=" : "posts.json?ts=";
+  try {
+    const res = await fetch(`${sourceFile}?ts=${Date.now()}`, { cache: "no-store" });
+    const posts = await res.json();
+    const post = posts.find(p => String(p.id) === String(postId));
 
-      const res = await fetch(sourceFile + "?t=" + Date.now(), { cache: "no-cache" });
-      const posts = await res.json();
-      const post = posts.find(p => String(p.id) === postId);
-      if (!post) {
-        alert("該当する投稿が見つかりません。");
-        return;
-      }
+    console.log("🧩 postId:", postId);
+    console.log("🧩 post:", post);
 
-      // 🟦 history.json 互換パッチ（フォームは空欄維持方針）
-      if (type === "history") {
-        post.thumb = post.thumb_pick1 || post.thumb_original || post.thumb || "";
-        post.url = post.url || "";
-        post.video = post.video || post.url || "";
-        post.tags = post.tags || [];
-        post.notes = post.notes || "";
-      }
-
-      document.getElementById("originalTitle").value = post.title || "";
-      document.getElementById("url").value = post.url || "";
-      document.getElementById("editableTitle").value = ""; // ← タイトルは常に空から
-      document.getElementById("thumbOriginal").value = post.thumb || "";
-      document.getElementById("video").value = post.video || "";
-      document.getElementById("videoLink").href = post.video || "#";
-      document.getElementById("thumbPreview").src = post.thumb || "";
-      document.getElementById("thumbLink").href = post.url || "#";
-
-      updateCounter();
-      updateTagCount();
-    } catch (err) {
-      console.error("ロードエラー:", err);
-      alert("投稿の読み込みに失敗しました。");
+    if (!post) {
+      alert("該当する投稿が見つかりません。");
+      return;
     }
-  }
 
+    // 🟦 history用補完
+    if (type === "history") {
+      post.thumb = post.thumb_pick1 || post.thumb_original || post.thumb || "";
+      post.url = post.url || "";
+      post.video = post.video || post.url || "";
+      post.tags = post.tags || [];
+      post.notes = post.notes || "";
+    }
+
+    // 🟩 フォーム反映
+    document.getElementById("originalTitle").value = post.title || "";
+    document.getElementById("thumbOriginal").value = post.thumb || "";
+    document.getElementById("url").value = post.url || "";
+    document.getElementById("video").value = post.video || "";
+    document.getElementById("videoLink").href = post.video || "#";
+    document.getElementById("thumbPreview").src = post.thumb || "";
+    document.getElementById("thumbLink").href = post.url || "#";
+
+    updateCounter();
+    updateTagCount();
+
+  } catch (err) {
+    console.error("ロードエラー:", err);
+    alert("投稿の読み込みに失敗しました。");
+  }
+}
+    
   // === タイトル文字数カウンタ ===
   const titleInput = document.getElementById("editableTitle");
   const counter = document.getElementById("titleCounter");
