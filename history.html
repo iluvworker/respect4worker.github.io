@@ -3,374 +3,266 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📜 編集履歴一覧</title>
-  <link rel="stylesheet" href="assets/style.css?v=8">
+  <title>📜 編集履歴エディタ（船長）</title>
+
+  <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
 
   <style>
-    /* ===== カードレイアウト ===== */
-    .post-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .post-card {
-      background: #1e1e1e;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
-      transition: transform 0.2s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .post-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .post-thumb {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-
-    .post-info {
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .post-site {
-      color: #47bcec;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .post-title {
-      font-size: 16px;
-      color: #fff;
-      text-decoration: none;
-    }
-
-    .post-title:hover {
-      color: #5fd0ff;
-    }
-
-    .btn-area {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .edit-btn, .delete-btn {
+    .main-content {
       flex: 1;
-      border: none;
-      padding: 8px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
+      padding: 30px;
+      margin-left: 230px;
+      transition: margin-left 0.3s ease;
     }
 
-    .edit-btn {
-      background: #47bcec;
-      color: #111;
-    }
-
-    .edit-btn:hover {
-      background: #5fd0ff;
-    }
-
-    .delete-btn {
-      background: #ff4d4d;
-      color: #fff;
-    }
-
-    .delete-btn:hover {
-      background: #ff6666;
-    }
-
-    /* ===== 検索バー ===== */
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
+    .main-title {
+      font-size: 20px;
+      color: #47bcec;
+      border-left: 5px solid #47bcec;
+      padding-left: 10px;
       margin-bottom: 20px;
     }
 
-    #searchInput {
-      flex: 1;
-      padding: 10px;
+    #editForm {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #1b1b1b;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    #editForm label {
+      display: block;
+      margin-top: 12px;
+      color: #b0cfff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    #editForm input, #editForm textarea {
+      width: 100%;
+      background: #222;
+      border: 1px solid #333;
       border-radius: 6px;
+      color: #fff;
+      padding: 8px;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    #editForm textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    #editForm button {
+      background: #47bcec;
+      color: #111;
       border: none;
-      background: #1e1e1e;
-      color: #eee;
-      font-size: 15px;
-    }
-
-    #sortBtn {
-      background: #333;
-      border: 1px solid #47bcec;
-      color: #47bcec;
-      padding: 8px 12px;
       border-radius: 6px;
+      padding: 10px 22px;
       cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 20px;
+      float: right;
     }
 
-    #sortBtn:hover {
-      background: #47bcec;
-      color: #111;
+    .thumb-preview {
+      width: 180px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: block;
     }
 
-    /* ===== ページネーション ===== */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 30px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .pagination button {
-      background: #1e1e1e;
-      border: 1px solid #47bcec;
+    .video-link {
+      display: inline-block;
+      margin-top: 5px;
       color: #47bcec;
-      padding: 6px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      min-width: 32px;
-      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: 13px;
     }
 
-    .pagination button:hover {
-      background: #47bcec;
-      color: #111;
+    .video-link:hover {
+      text-decoration: underline;
     }
 
-    .pagination button.active {
-      background: #47bcec;
-      color: #111;
-      font-weight: bold;
+    .counter {
+      font-size: 12px;
+      margin-top: 4px;
+      font-weight: 500;
+      display: inline-block;
+      transition: all 0.3s ease;
     }
 
-    .pagination span {
-      color: #666;
-      user-select: none;
+    .counter.ok {
+      color: #00e0b5;
+      background: rgba(0, 255, 200, 0.12);
+      border: 1px solid rgba(0, 255, 200, 0.25);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .counter.warn {
+      color: #ff6a6a;
+      background: rgba(255, 80, 80, 0.1);
+      border: 1px solid rgba(255, 80, 80, 0.25);
+      padding: 2px 6px;
+      border-radius: 4px;
     }
   </style>
 </head>
 
 <body>
+
   <main class="main-content">
-    <h1 class="main-title">📜 編集履歴一覧</h1>
+    <h1 class="main-title">📜 編集履歴エディタ（船長）</h1>
 
-    <!-- 🔍 検索・並び替え -->
-    <section class="section filter-bar">
-      <input type="text" id="searchInput" placeholder="🔍 タイトル・編集者・タグで検索" />
-      <button id="sortBtn">⬇️ 降順</button>
-    </section>
+    <form id="editForm">
+      <label>商品タイトル</label>
+      <input type="text" id="originalTitle" placeholder="船長投稿時のタイトル" />
 
-    <!-- 🧱 履歴カード一覧 -->
-    <section class="section">
-      <div id="postGrid" class="post-grid"></div>
-      <div id="pagination" class="pagination"></div>
-    </section>
+      <label>パッケージ</label>
+      <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
+      <a id="thumbLink" href="#" target="_blank">
+        <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
+      </a>
+
+      <label>商品ページ</label>
+      <input type="text" id="url" placeholder="動画や商品ページのURL" />
+
+      <label>タイトル（50〜60文字）</label>
+      <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
+      <div id="titleCounter" class="counter"></div>
+
+      <label>サムネ①</label>
+      <input type="url" id="thumbPick1" placeholder="右クリック→画像のアドレスをコピーしてここにペースト">
+
+      <label>サムネ②</label>
+      <input type="url" id="thumbPick2" placeholder="同上">
+
+      <label>動画</label>
+      <input type="text" id="video">
+      <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
+
+      <label>タグ（スペース区切り）</label>
+      <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ 計8個">
+      <div id="tagCount" style="color:#aaa;font-size:13px;margin-top:4px;">0個</div>
+
+      <label>内容メモ／補足（任意）</label>
+      <textarea id="notes" placeholder="補足や備考を入力..."></textarea>
+
+      <button type="submit">💾 履歴を上書き保存</button>
+    </form>
   </main>
 
- <script>
-  let historyData = [];
-  let sortDesc = true;
-  let currentPage = 1;
-  const perPage = 30;
+  <script>
+    function encodeToBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
 
-  const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
 
-  // ✅ 全角・半角・大文字・小文字を統一して検索精度UP
-  function normalizeText(text) {
-    return (text || "")
-      .toString()
-      .toLowerCase()
-      .normalize("NFKC")
-      .replace(/\s+/g, "");
-  }
+    async function loadHistoryPost() {
+      try {
+        const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
+        const posts = await res.json();
+        const post = posts.find(p => String(p.id) === postId);
+        if (!post) {
+          alert("該当する履歴データが見つかりません。");
+          return;
+        }
 
-  async function loadHistory() {
-    const res = await fetch("./history.json", { cache: "no-cache" });
-    historyData = await res.json();
-    renderHistory();
-  }
+        document.getElementById("originalTitle").value = post.title_original || "";
+        document.getElementById("editableTitle").value = post.title_final || "";
+        document.getElementById("thumbOriginal").value = post.thumb_original || "";
+        document.getElementById("thumbPreview").src = post.thumb_original || "";
+        document.getElementById("url").value = post.url || "";
+        document.getElementById("video").value = post.video || "";
+        document.getElementById("videoLink").href = post.video || "#";
+        document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
+        document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+        document.getElementById("tags").value = (post.tags || []).join(" ");
+        document.getElementById("notes").value = post.notes || "";
+        updateCounter();
+      } catch (err) {
+        console.error("ロードエラー:", err);
+        alert("履歴の読み込みに失敗しました。");
+      }
+    }
 
-  function renderHistory() {
-    const grid = document.getElementById("postGrid");
-    const keywordRaw = document.getElementById("searchInput").value.trim();
-
-    // ✅ 「船長 10月」などの複数キーワードを空白区切りで分割
-    const keywords = keywordRaw
-      .split(/\s+/)
-      .map(k => normalizeText(k))
-      .filter(k => k.length > 0);
-
-    let filtered = historyData.filter(p => {
-      const title = normalizeText(p.title_final || p.title_original || "");
-      const editor = normalizeText(p.editor || "");
-      const tags = normalizeText((p.tags || []).join(","));
-      const month = normalizeText(p.month || "");
-      const date = normalizeText(p.date || "");
-
-      // ✅ すべてのキーワードがどこかに含まれているかチェック（AND検索）
-      return keywords.every(k =>
-        title.includes(k) ||
-        editor.includes(k) ||
-        tags.includes(k) ||
-        month.includes(k) ||
-        date.includes(k)
-      );
+    document.getElementById("thumbOriginal").addEventListener("input", e => {
+      document.getElementById("thumbPreview").src = e.target.value.trim() || "";
     });
 
-    filtered.sort((a, b) => sortDesc
-      ? new Date(b.updated_at) - new Date(a.updated_at)
-      : new Date(a.updated_at) - new Date(b.updated_at)
-    );
+    const titleInput = document.getElementById("editableTitle");
+    const counter = document.getElementById("titleCounter");
+    function updateCounter() {
+      const len = titleInput.value.length;
+      counter.classList.remove("ok", "warn");
+      if (len >= 50 && len <= 60) {
+        counter.classList.add("ok");
+        counter.textContent = `✅ ${len}文字（合格っ🫶）`;
+      } else {
+        counter.classList.add("warn");
+        counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
+      }
+    }
+    titleInput.addEventListener("input", updateCounter);
 
-    const totalPages = Math.ceil(filtered.length / perPage);
-    if (currentPage > totalPages) currentPage = totalPages || 1;
-
-    const start = (currentPage - 1) * perPage;
-    const pageData = filtered.slice(start, start + perPage);
-
-    grid.innerHTML = "";
-    pageData.forEach(p => {
-      const card = document.createElement("div");
-      card.className = "post-card";
-      card.innerHTML = `
-        <img src="${p.thumb_pick1 || p.thumb_original || 'no-thumb.jpg'}" class="post-thumb" alt="thumb">
-        <div class="post-info">
-          <div class="post-site">${p.editor || "船長"}</div>
-          <div class="post-title">${p.title_final || "(タイトル未設定)"}</div>
-          <div class="post-site">${p.month || ""} ／ ${p.date || ""}</div>
-          <div class="btn-area">
-            <button class="edit-btn" onclick="editPost('${p.id}')">✏ 編集</button>
-            <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
-          </div>
-        </div>
-      `;
-      grid.appendChild(card);
+    const tagInput = document.getElementById("tags");
+    tagInput.addEventListener("input", () => {
+      const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
+      document.getElementById("tagCount").textContent = `タグ数：${tags.length}個`;
     });
 
-    renderPagination(totalPages);
-  }
+    document.getElementById("editForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const res = await fetch("history.json?t=" + Date.now());
+      const list = await res.json();
+      const index = list.findIndex(p => String(p.id) === postId);
+      if (index === -1) {
+        alert("該当データが見つかりません。");
+        return;
+      }
 
-  function renderPagination(totalPages) {
-    const container = document.getElementById("pagination");
-    container.innerHTML = "";
-    if (totalPages <= 1) return;
+      list[index] = {
+        ...list[index],
+        title_original: document.getElementById("originalTitle").value,
+        title_final: document.getElementById("editableTitle").value,
+        thumb_original: document.getElementById("thumbOriginal").value,
+        thumb_pick1: document.getElementById("thumbPick1").value,
+        thumb_pick2: document.getElementById("thumbPick2").value,
+        url: document.getElementById("url").value,
+        video: document.getElementById("video").value,
+        tags: tagInput.value.split(" ").map(t => t.trim()).filter(Boolean),
+        notes: document.getElementById("notes").value,
+        updated_at: new Date().toISOString()
+      };
 
-    const createBtn = (label, page, disabled = false, active = false) => {
-      const btn = document.createElement("button");
-      btn.textContent = label;
-      if (disabled) btn.disabled = true;
-      if (active) btn.classList.add("active");
-      btn.addEventListener("click", () => {
-        currentPage = page;
-        renderHistory();
+      const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Update post in history (船長)",
+          target: "history.json",
+          content: encodeToBase64(JSON.stringify(list, null, 2))
+        })
       });
-      return btn;
-    };
 
-    container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
-
-    const visibleRange = 2;
-    const startPage = Math.max(1, currentPage - visibleRange);
-    const endPage = Math.min(totalPages, currentPage + visibleRange);
-
-    if (startPage > 1) {
-      container.appendChild(createBtn("1", 1));
-      if (startPage > 2)
-        container.appendChild(document.createElement("span")).textContent = "…";
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      container.appendChild(createBtn(i, i, false, i === currentPage));
-    }
-
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1)
-        container.appendChild(document.createElement("span")).textContent = "…";
-      container.appendChild(createBtn(totalPages, totalPages));
-    }
-
-    container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
-  }
-
-  // 編集ページ遷移
-  function editPost(id) {
-  window.location.href = `edit-post.html?id=${id}&type=history`;
-}
-  // 削除処理（既存のままでOK）
-async function deletePost(id, source = "posts.json") {
-  if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
-
-  try {
-    // 1️⃣ 最新データ取得（キャッシュ完全無効化）
-    const res = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("一覧取得失敗");
-    const list = await res.json();
-
-    // 2️⃣ 対象削除
-    const updated = list.filter(p => String(p.id) !== String(id));
-    if (updated.length === list.length) {
-      alert("⚠️ 該当IDが見つかりませんでした。");
-      return;
-    }
-
-    // 3️⃣ GitHub反映
-    const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: `Delete id:${id} from ${source}`,
-        target: source,
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
-      })
+      if (saveRes.ok) {
+        alert("✅ 編集履歴を上書き保存しました！");
+        window.location.href = "history.html";
+      } else {
+        alert("⚠️ 保存失敗: " + saveRes.status);
+      }
     });
 
-    if (!save.ok) throw new Error(`削除失敗: ${save.status}`);
-
-    // 4️⃣ 完了確認
-    await new Promise(r => setTimeout(r, 1200)); // 書き込み反映待機
-    const check = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-    const verify = await check.json();
-    const exists = verify.some(p => String(p.id) === String(id));
-
-    if (exists) {
-      alert("⚠️ 削除反映が遅延しています。数分後に再読み込みしてください。");
-    } else {
-      alert("✅ 完全に削除されました。");
-      location.reload();
-    }
-  } catch (err) {
-    console.error("削除エラー:", err);
-    alert("⚠️ 削除中にエラーが発生しました。");
-  }
-}
-  document.getElementById("searchInput").addEventListener("input", () => {
-    currentPage = 1;
-    renderHistory();
-  });
-
-  document.getElementById("sortBtn").addEventListener("click", () => {
-    sortDesc = !sortDesc;
-    document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
-    renderHistory();
-  });
-
-  loadHistory();
-</script>
+    loadHistoryPost();
+  </script>
 </body>
 </html>
