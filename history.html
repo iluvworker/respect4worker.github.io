@@ -312,36 +312,53 @@
   window.location.href = `edit-post.html?id=${id}&type=history`;
 }
   // 削除処理（既存のままでOK）
-  async function deletePost(id) {
-    if (!confirm("この履歴を削除しますか？")) return;
-    try {
-      const res = await fetch("history.json", { cache: "no-cache" });
-      const data = await res.json();
-      const updated = data.filter(p => String(p.id) !== String(id));
+async function deletePost(id, source = "posts.json") {
+  if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
 
-      const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Delete post from history",
-          target: "history.json",
-          content: encodeToBase64(JSON.stringify(updated, null, 2))
-        })
-      });
+  try {
+    // 1️⃣ 最新データ取得（キャッシュ完全無効化）
+    const res = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error("一覧取得失敗");
+    const list = await res.json();
 
-      if (saveRes.ok) {
-        alert("🗑 履歴を削除しました。");
-        loadHistory();
-      } else {
-        alert("⚠️ 削除失敗: " + saveRes.status);
-      }
-    } catch (err) {
-      console.error("削除エラー:", err);
-      alert("⚠️ 削除中にエラーが発生しました。");
+    // 2️⃣ 対象削除
+    const updated = list.filter(p => String(p.id) !== String(id));
+    if (updated.length === list.length) {
+      alert("⚠️ 該当IDが見つかりませんでした。");
+      return;
     }
-  }
 
+    // 3️⃣ GitHub反映
+    const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Delete id:${id} from ${source}`,
+        target: source,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+      })
+    });
+
+    if (!save.ok) throw new Error(`削除失敗: ${save.status}`);
+
+    // 4️⃣ 完了確認
+    await new Promise(r => setTimeout(r, 1200)); // 書き込み反映待機
+    const check = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
+    const verify = await check.json();
+    const exists = verify.some(p => String(p.id) === String(id));
+
+    if (exists) {
+      alert("⚠️ 削除反映が遅延しています。数分後に再読み込みしてください。");
+    } else {
+      alert("✅ 完全に削除されました。");
+      location.reload();
+    }
+  } catch (err) {
+    console.error("削除エラー:", err);
+    alert("⚠️ 削除中にエラーが発生しました。");
+  }
+}
   document.getElementById("searchInput").addEventListener("input", () => {
     currentPage = 1;
     renderHistory();
