@@ -294,28 +294,36 @@ if (await isDupInHistory({
       status: "edited"
     };
 
-    try {
-      const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Add edited post to history (船長)",
-          target: "history.json",
-          content: encodeToBase64(JSON.stringify(editedPost, null, 2))
-        })
-      });
+  // 💾 保存成功後に追記する部分
+if (res.ok) {
+  alert("✅ 編集履歴を保存しました（history.json）");
 
-      if (res.ok) {
-        alert("✅ 編集履歴を保存しました（history.json）");
-        window.location.href = "post-list.html";
-      } else {
-        alert("⚠️ 保存失敗: " + res.status);
-      }
-    } catch (err) {
-      console.error("送信エラー:", err);
-      alert("⚠️ 保存中にエラーが発生しました。");
-    }
+  // 🟦 posts.jsonから対象削除 or ステータス更新
+  try {
+    const resPosts = await fetch("posts.json?t=" + Date.now(), { cache: "no-store" });
+    const posts = await resPosts.json();
+    const updatedPosts = posts.map(p => 
+      String(p.id) === String(postId)
+        ? { ...p, status: "edited", updated_at: new Date().toISOString() }
+        : p
+    );
+
+    await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Mark edited post id:${postId}`,
+        target: "posts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedPosts, null, 2))))
+      })
+    });
+  } catch (e) {
+    console.warn("posts.json更新失敗:", e);
+  }
+
+  window.location.href = "post-list.html";
+}
   });
 
   loadPost();
