@@ -263,7 +263,7 @@ let filtered = postsData.filter(p => {
       renderPagination(totalPages);
     }
 
-  async function deletePost(id, source = "posts.json") {
+  async function deletePost(id, source = "posts.json?ts=") {
   if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
 
   try {
