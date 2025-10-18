@@ -9,159 +9,31 @@
 
   <style>
     /* ===== カードレイアウト ===== */
-    .post-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .post-card {
-      background: #1e1e1e;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
-      transition: transform 0.2s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .post-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .post-thumb {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-
-    .post-info {
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .post-site {
-      color: #47bcec;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .post-title {
-      font-size: 16px;
-      color: #fff;
-      text-decoration: none;
-    }
-
-    .post-title:hover {
-      color: #5fd0ff;
-    }
-
-    .btn-area {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .edit-btn, .delete-btn {
-      flex: 1;
-      border: none;
-      padding: 8px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .edit-btn {
-      background: #47bcec;
-      color: #111;
-    }
-
-    .edit-btn:hover {
-      background: #5fd0ff;
-    }
-
-    .delete-btn {
-      background: #ff4d4d;
-      color: #fff;
-    }
-
-    .delete-btn:hover {
-      background: #ff6666;
-    }
+    .post-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+    .post-card { background:#1e1e1e; border-radius:10px; overflow:hidden; box-shadow:0 0 6px rgba(0,0,0,.4); transition:.2s; display:flex; flex-direction:column; }
+    .post-card:hover { transform: translateY(-3px); }
+    .post-thumb { width:100%; height:180px; object-fit:cover; background:#111; }
+    .post-info { padding:15px; display:flex; flex-direction:column; gap:6px; }
+    .post-site { color:#47bcec; font-size:14px; font-weight:700; }
+    .post-title { font-size:16px; color:#fff; text-decoration:none; }
+    .post-title:hover { color:#5fd0ff; }
+    .btn-area { display:flex; gap:8px; margin-top:10px; }
+    .edit-btn,.delete-btn{ flex:1; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; }
+    .edit-btn{ background:#47bcec; color:#111; } .edit-btn:hover{ background:#5fd0ff; }
+    .delete-btn{ background:#ff4d4d; color:#fff; } .delete-btn:hover{ background:#ff6666; }
 
     /* ===== 検索バー ===== */
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    #searchInput {
-      flex: 1;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      background: #1e1e1e;
-      color: #eee;
-      font-size: 15px;
-    }
-
-    #sortBtn {
-      background: #333;
-      border: 1px solid #47bcec;
-      color: #47bcec;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #sortBtn:hover {
-      background: #47bcec;
-      color: #111;
-    }
+    .filter-bar{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:20px; }
+    #searchInput{ flex:1; padding:10px; border-radius:6px; border:none; background:#1e1e1e; color:#eee; font-size:15px; }
+    #sortBtn{ background:#333; border:1px solid #47bcec; color:#47bcec; padding:8px 12px; border-radius:6px; cursor:pointer; }
+    #sortBtn:hover{ background:#47bcec; color:#111; }
 
     /* ===== ページネーション ===== */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 30px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .pagination button {
-      background: #1e1e1e;
-      border: 1px solid #47bcec;
-      color: #47bcec;
-      padding: 6px 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      min-width: 32px;
-      transition: all 0.2s ease;
-    }
-
-    .pagination button:hover {
-      background: #47bcec;
-      color: #111;
-    }
-
-    .pagination button.active {
-      background: #47bcec;
-      color: #111;
-      font-weight: bold;
-    }
-
-    .pagination span {
-      color: #666;
-      user-select: none;
-    }
+    .pagination{ display:flex; justify-content:center; align-items:center; margin-top:30px; gap:8px; flex-wrap:wrap; }
+    .pagination button{ background:#1e1e1e; border:1px solid #47bcec; color:#47bcec; padding:6px 10px; border-radius:5px; cursor:pointer; min-width:32px; transition:.2s; }
+    .pagination button:hover{ background:#47bcec; color:#111; }
+    .pagination button.active{ background:#47bcec; color:#111; font-weight:bold; }
+    .pagination span{ color:#666; user-select:none; }
   </style>
 </head>
 
@@ -171,8 +43,8 @@
 
     <!-- 🔍 検索・並び替え -->
     <section class="section filter-bar">
-      <input type="text" id="searchInput" placeholder="🔍 タイトル・編集者・タグで検索" />
-      <button id="sortBtn">⬇️ 降順</button>
+      <input type="text" id="searchInput" placeholder="🔍 タイトル・編集者・タグ・月・日付 で検索（スペース区切りAND）" />
+      <button id="sortBtn">⬇️ 更新日 降順</button>
     </section>
 
     <!-- 🧱 履歴カード一覧 -->
@@ -182,79 +54,90 @@
     </section>
   </main>
 
- <script>
+<script>
   let historyData = [];
   let sortDesc = true;
   let currentPage = 1;
   const perPage = 30;
 
   const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
+  const nz = (v) => v ?? "";
 
-  // ✅ 全角・半角・大文字・小文字を統一して検索精度UP
-  function normalizeText(text) {
-    return (text || "")
-      .toString()
-      .toLowerCase()
-      .normalize("NFKC")
-      .replace(/\s+/g, "");
+  // ✅ 全角/半角/大小/空白を正規化
+  function normalize(text){
+    return (text||"").toString().toLowerCase().normalize("NFKC").replace(/\s+/g,"");
   }
 
-  async function loadHistory() {
-    const res = await fetch("./history.json", { cache: "no-cache" });
-    historyData = await res.json();
+async function loadHistory(){
+  try {
+    const res = await fetch("history.json?t=" + Date.now(), { cache: "no-store" });
+    let list = await res.json();
+
+    // 🔥 多重配列をフラット化
+    while (Array.isArray(list[0])) {
+      list = list.flat();
+    }
+
+    // 🧹 タイトルベースで重複削除（最後に現れたものを採用）
+    const uniqueMap = new Map();
+    for (const item of list) {
+      if (!item) continue;
+      const key = item.title_original || item.title_final || "(無題)";
+      uniqueMap.set(key, item);
+    }
+
+    historyData = Array.from(uniqueMap.values());
     renderHistory();
+  } catch (err) {
+    console.error("history.jsonの読み込みに失敗:", err);
+    alert("⚠️ 履歴データの読み込みに失敗しました。");
   }
+}
 
-  function renderHistory() {
+  function renderHistory(){
     const grid = document.getElementById("postGrid");
-    const keywordRaw = document.getElementById("searchInput").value.trim();
+    const kwRaw = document.getElementById("searchInput").value.trim();
+    const kws = kwRaw.split(/\s+/).map(normalize).filter(Boolean);
 
-    // ✅ 「船長 10月」などの複数キーワードを空白区切りで分割
-    const keywords = keywordRaw
-      .split(/\s+/)
-      .map(k => normalizeText(k))
-      .filter(k => k.length > 0);
+    // 🔎 AND検索（タイトル/編集者/タグ/月/日付）
+    let filtered = historyData.filter(p=>{
+      const title = normalize(p.title_final || p.title_original || "");
+      const editor = normalize(p.editor || "船長");
+      const tags = normalize((p.tags||[]).join(","));
+      const month = normalize(p.month || "");
+      const date  = normalize(p.date  || "");
 
-    let filtered = historyData.filter(p => {
-      const title = normalizeText(p.title_final || p.title_original || "");
-      const editor = normalizeText(p.editor || "");
-      const tags = normalizeText((p.tags || []).join(","));
-      const month = normalizeText(p.month || "");
-      const date = normalizeText(p.date || "");
-
-      // ✅ すべてのキーワードがどこかに含まれているかチェック（AND検索）
-      return keywords.every(k =>
-        title.includes(k) ||
-        editor.includes(k) ||
-        tags.includes(k) ||
-        month.includes(k) ||
-        date.includes(k)
+      return kws.every(k =>
+        title.includes(k) || editor.includes(k) || tags.includes(k) || month.includes(k) || date.includes(k)
       );
     });
 
-    filtered.sort((a, b) => sortDesc
-      ? new Date(b.updated_at) - new Date(a.updated_at)
-      : new Date(a.updated_at) - new Date(b.updated_at)
+    // 並び替え（更新日時）
+    filtered.sort((a,b)=> sortDesc
+      ? new Date(b.updated_at||0) - new Date(a.updated_at||0)
+      : new Date(a.updated_at||0) - new Date(b.updated_at||0)
     );
 
+    // ページング
     const totalPages = Math.ceil(filtered.length / perPage);
     if (currentPage > totalPages) currentPage = totalPages || 1;
+    const start = (currentPage-1)*perPage;
+    const pageData = filtered.slice(start, start+perPage);
 
-    const start = (currentPage - 1) * perPage;
-    const pageData = filtered.slice(start, start + perPage);
-
+    // 描画
     grid.innerHTML = "";
-    pageData.forEach(p => {
+    pageData.forEach(p=>{
       const card = document.createElement("div");
       card.className = "post-card";
+      const thumb = nz(p.thumb_pick1) || nz(p.thumb_original) || "no-thumb.jpg";
       card.innerHTML = `
-        <img src="${p.thumb_pick1 || p.thumb_original || 'no-thumb.jpg'}" class="post-thumb" alt="thumb">
+        <img src="${thumb}" class="post-thumb" alt="thumb">
         <div class="post-info">
-          <div class="post-site">${p.editor || "船長"}</div>
-          <div class="post-title">${p.title_final || "(タイトル未設定)"}</div>
-          <div class="post-site">${p.month || ""} ／ ${p.date || ""}</div>
+          <div class="post-site">${nz(p.editor) || "船長"}</div>
+          <div class="post-title">${nz(p.title_final) || "(タイトル未設定)"}</div>
+          <div class="post-site">${nz(p.month)} ／ ${nz(p.date)}</div>
           <div class="btn-area">
-            <button class="edit-btn" onclick="editPost('${p.id}')">✏ 編集</button>
+            <button class="edit-btn"  onclick="editPost('${p.id}')">✏ 編集</button>
             <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
           </div>
         </div>
@@ -265,108 +148,85 @@
     renderPagination(totalPages);
   }
 
-  function renderPagination(totalPages) {
+  function renderPagination(totalPages){
     const container = document.getElementById("pagination");
     container.innerHTML = "";
-    if (totalPages <= 1) return;
+    if (totalPages<=1) return;
 
-    const createBtn = (label, page, disabled = false, active = false) => {
-      const btn = document.createElement("button");
-      btn.textContent = label;
-      if (disabled) btn.disabled = true;
-      if (active) btn.classList.add("active");
-      btn.addEventListener("click", () => {
-        currentPage = page;
-        renderHistory();
-      });
+    const mk = (label,page,dis=false,act=false)=>{
+      const btn=document.createElement("button");
+      btn.textContent=label;
+      if(dis) btn.disabled=true;
+      if(act) btn.classList.add("active");
+      btn.addEventListener("click", ()=>{ currentPage=page; renderHistory(); });
       return btn;
     };
 
-    container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+    container.appendChild(mk("⏮", currentPage-1, currentPage===1));
 
-    const visibleRange = 2;
-    const startPage = Math.max(1, currentPage - visibleRange);
-    const endPage = Math.min(totalPages, currentPage + visibleRange);
+    const range=2;
+    const s=Math.max(1,currentPage-range);
+    const e=Math.min(totalPages,currentPage+range);
 
-    if (startPage > 1) {
-      container.appendChild(createBtn("1", 1));
-      if (startPage > 2)
-        container.appendChild(document.createElement("span")).textContent = "…";
+    if(s>1){
+      container.appendChild(mk("1",1));
+      if(s>2){ const span=document.createElement("span"); span.textContent="…"; container.appendChild(span); }
+    }
+    for(let i=s;i<=e;i++) container.appendChild(mk(i,i,false,i===currentPage));
+    if(e<totalPages){
+      if(e<totalPages-1){ const span=document.createElement("span"); span.textContent="…"; container.appendChild(span); }
+      container.appendChild(mk(totalPages,totalPages));
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      container.appendChild(createBtn(i, i, false, i === currentPage));
-    }
-
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1)
-        container.appendChild(document.createElement("span")).textContent = "…";
-      container.appendChild(createBtn(totalPages, totalPages));
-    }
-
-    container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+    container.appendChild(mk("⏭", currentPage+1, currentPage===totalPages));
   }
 
-  // 編集ページ遷移
-  function editPost(id) {
-  window.location.href = `edit-post.html?id=${id}&type=history`;
+  // ✏ 履歴由来として edit-post を開く（type=history）
+// ✏ 履歴編集ページに遷移
+function editPost(id){
+  window.location.href = `history-edit.html?id=${id}`;
 }
-  // 削除処理（既存のままでOK）
-async function deletePost(id, source = "posts.json") {
-  if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
 
-  try {
-    // 1️⃣ 最新データ取得（キャッシュ完全無効化）
-    const res = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("一覧取得失敗");
-    const list = await res.json();
+  // 🗑 削除（history.json から対象IDを除外して保存）
+  async function deletePost(id){
+    if(!confirm("この履歴を削除しますか？")) return;
+    try{
+      const res = await fetch("history.json?t="+Date.now(), {cache:"no-store"});
+      const list = await res.json();
+      const updated = list.filter(p => String(p.id)!==String(id));
 
-    // 2️⃣ 対象削除
-    const updated = list.filter(p => String(p.id) !== String(id));
-    if (updated.length === list.length) {
-      alert("⚠️ 該当IDが見つかりませんでした。");
-      return;
+      const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method:"POST", mode:"cors",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          message:`Delete history id:${id}`,
+          target:"history.json",
+          content: encodeToBase64(JSON.stringify(updated, null, 2))
+        })
+      });
+
+      if(save.ok){
+        alert("🗑 履歴を削除しました。");
+        // クライアント側も反映
+        historyData = updated;
+        renderHistory();
+      }else{
+        alert("⚠️ 削除失敗: "+save.status);
+      }
+    }catch(e){
+      console.error("削除エラー:", e);
+      alert("⚠️ 削除中にエラーが発生しました。");
     }
-
-    // 3️⃣ GitHub反映
-    const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: `Delete id:${id} from ${source}`,
-        target: source,
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
-      })
-    });
-
-    if (!save.ok) throw new Error(`削除失敗: ${save.status}`);
-
-    // 4️⃣ 完了確認
-    await new Promise(r => setTimeout(r, 1200)); // 書き込み反映待機
-    const check = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-    const verify = await check.json();
-    const exists = verify.some(p => String(p.id) === String(id));
-
-    if (exists) {
-      alert("⚠️ 削除反映が遅延しています。数分後に再読み込みしてください。");
-    } else {
-      alert("✅ 完全に削除されました。");
-      location.reload();
-    }
-  } catch (err) {
-    console.error("削除エラー:", err);
-    alert("⚠️ 削除中にエラーが発生しました。");
   }
-}
-  document.getElementById("searchInput").addEventListener("input", () => {
+
+  // UIイベント
+  document.getElementById("searchInput").addEventListener("input", ()=>{
     currentPage = 1;
     renderHistory();
   });
-
-  document.getElementById("sortBtn").addEventListener("click", () => {
+  document.getElementById("sortBtn").addEventListener("click", ()=>{
     sortDesc = !sortDesc;
-    document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
+    document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 更新日 降順" : "⬆️ 更新日 昇順";
     renderHistory();
   });
 

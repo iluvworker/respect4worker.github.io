@@ -174,68 +174,70 @@ a#thumbLink[href="#"] {
   const params = new URLSearchParams(window.location.search);
   const postId = params.get("id");
 
-    // === 編集履歴（history.json）重複チェック ===
-async function isDupInHistory(editedPost) {
-  try {
-    const res = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
-    if (!res.ok) return false;
-    const list = await res.json();
-
-    // 3つすべて一致したら重複
-    return list.some(p =>
-      (p.video || "") === (editedPost.video || "") &&
-      (p.url || "") === (editedPost.url || "") &&
-      (p.title_original || "") === (editedPost.title_original || "")
-    );
-  } catch (e) {
-    console.error("重複チェック失敗 (history.json):", e);
-    return false;
+  // === 編集履歴（history.json）重複チェック（video+url+title_original一致） ===
+  async function isDupInHistory(editedPost) {
+    try {
+      const res = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return false;
+      const list = await res.json();
+      return list.some(p =>
+        (p.video || "") === (editedPost.video || "") &&
+        (p.url || "") === (editedPost.url || "") &&
+        (p.title_original || "") === (editedPost.title_original || "")
+      );
+    } catch (e) {
+      console.error("重複チェック失敗 (history.json):", e);
+      return false;
+    }
   }
-}
+
+  // === 投稿読み込み（posts.json or history.json） ===
   async function loadPost() {
     try {
       const params = new URLSearchParams(window.location.search);
-const type = params.get("type");
-const sourceFile = type === "history" ? "history.json" : "posts.json";
+      const type = params.get("type");
+      const sourceFile = type === "history" ? "history.json" : "posts.json";
 
-const res = await fetch(sourceFile + "?t=" + Date.now(), { cache: "no-cache" });
+      const res = await fetch(sourceFile + "?t=" + Date.now(), { cache: "no-cache" });
       const posts = await res.json();
       const post = posts.find(p => String(p.id) === postId);
       if (!post) {
         alert("該当する投稿が見つかりません。");
         return;
       }
-// 🟦 history.json 互換パッチ（タイトルの自動上書きを削除）
-if (type === "history") {
-  post.thumb = post.thumb_pick1 || post.thumb_original || post.thumb || "";
-  post.url = post.url || "";
-  post.video = post.video || post.url || "";
-  post.tags = post.tags || [];
-  post.notes = post.notes || "";
-}
+
+      // 🟦 history.json 互換パッチ（フォームは空欄維持方針）
+      if (type === "history") {
+        post.thumb = post.thumb_pick1 || post.thumb_original || post.thumb || "";
+        post.url = post.url || "";
+        post.video = post.video || post.url || "";
+        post.tags = post.tags || [];
+        post.notes = post.notes || "";
+      }
+
       document.getElementById("originalTitle").value = post.title || "";
       document.getElementById("url").value = post.url || "";
-     document.getElementById("editableTitle").value = post.editableTitle || "";
+      document.getElementById("editableTitle").value = ""; // ← タイトルは常に空から
       document.getElementById("thumbOriginal").value = post.thumb || "";
       document.getElementById("video").value = post.video || "";
-      document.getElementById("videoLink").href = post.video;
+      document.getElementById("videoLink").href = post.video || "#";
       document.getElementById("thumbPreview").src = post.thumb || "";
-
-      // ✅ サムネとリンクを初期反映
       document.getElementById("thumbLink").href = post.url || "#";
 
       updateCounter();
+      updateTagCount();
     } catch (err) {
       console.error("ロードエラー:", err);
       alert("投稿の読み込みに失敗しました。");
     }
   }
 
+  // === タイトル文字数カウンタ ===
   const titleInput = document.getElementById("editableTitle");
   const counter = document.getElementById("titleCounter");
 
   function updateCounter() {
-    const length = titleInput.value.length;
+    const length = (titleInput.value || "").length;
     counter.classList.remove("ok", "warn");
     if (length >= 50 && length <= 60) {
       counter.classList.add("ok");
@@ -245,107 +247,167 @@ if (type === "history") {
       counter.innerHTML = `⚠️ ${length}文字（50〜60文字）`;
     }
   }
-
   titleInput.addEventListener("input", updateCounter);
 
+  // === タグ数カウンタ ===
   const tagInput = document.getElementById("tags");
   const tagCountDisplay = document.getElementById("tagCount");
 
-  tagInput.addEventListener("input", () => {
-    const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
+  function updateTagCount() {
+    const tags = (tagInput.value || "").trim().split(/\s+/).filter(Boolean);
     tagCountDisplay.textContent = `タグ数：${tags.length}個`;
-  });
+  }
+  tagInput.addEventListener("input", updateTagCount);
 
+  // === プレビュー連動 ===
   document.getElementById("url").addEventListener("input", (e) => {
     document.getElementById("thumbLink").href = e.target.value.trim() || "#";
   });
-
   document.getElementById("thumbOriginal").addEventListener("input", (e) => {
     document.getElementById("thumbPreview").src = e.target.value.trim() || "";
   });
 
-  document.getElementById("editForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  // === 入力バリデーション ===
+  function validateForm() {
+    const errors = [];
 
-  // 🔒 編集履歴の重複チェック
-  if (await isDupInHistory({
-    video: document.getElementById("video").value,
-    url: document.getElementById("url").value,
-    title_original: document.getElementById("originalTitle").value
-  })) {
-    alert("⚠️ この商品はすでに編集履歴に存在します（video＋url＋title_original一致）");
-    return;
+    const originalTitle = document.getElementById("originalTitle").value.trim();
+    const thumbOriginal = document.getElementById("thumbOriginal").value.trim();
+    const url = document.getElementById("url").value.trim();
+    const editableTitle = document.getElementById("editableTitle").value.trim();
+    const thumbPick1 = document.getElementById("thumbPick1").value.trim();
+    const thumbPick2 = document.getElementById("thumbPick2").value.trim();
+    const video = document.getElementById("video").value.trim();
+    const tagsRaw = document.getElementById("tags").value.trim();
+
+    // 4️⃣ 備考以外は空NG
+    if (!originalTitle) errors.push("・商品タイトルが未入力");
+    if (!thumbOriginal) errors.push("・パッケージURLが未入力");
+    if (!url) errors.push("・商品ページURLが未入力");
+    if (!editableTitle) errors.push("・タイトルが未入力");
+    if (!thumbPick1) errors.push("・サムネ①が未入力");
+    if (!thumbPick2) errors.push("・サムネ②が未入力");
+    if (!video) errors.push("・動画URLが未入力");
+    if (!tagsRaw) errors.push("・タグが未入力");
+
+    // 1️⃣ タイトル 50〜60
+    const len = editableTitle.length;
+    if (!(len >= 50 && len <= 60)) {
+      errors.push(`・タイトルは50〜60文字（現在 ${len} 文字）`);
+    }
+
+    // 2️⃣ サムネ必須（2つ）
+    if (!thumbPick1 || !thumbPick2) {
+      errors.push("・サムネは2つとも必須です");
+    }
+
+    // 3️⃣ タグ8個以上（スペース区切り）
+    const tagList = tagsRaw.split(/\s+/).filter(Boolean);
+    if (tagList.length < 8) {
+      errors.push(`・タグは最低8個（現在 ${tagList.length} 個）`);
+    }
+
+    return { ok: errors.length === 0, errors, tagList };
   }
 
-  const user = JSON.parse(localStorage.getItem("loginUser"));
-  const editor = user ? user.name : "船長";
+  // === 送信処理 ===
+  document.getElementById("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const editedPost = {
-    id: postId,
-    title_original: document.getElementById("originalTitle").value,
-    url: document.getElementById("url").value,
-    title_final: document.getElementById("editableTitle").value,
-    thumb_original: document.getElementById("thumbOriginal").value,
-    thumb_pick1: document.getElementById("thumbPick1").value,
-    thumb_pick2: document.getElementById("thumbPick2").value,
-    video: document.getElementById("video").value,
-    tags: document.getElementById("tags").value.split(" ").map(t => t.trim()).filter(Boolean),
-    notes: document.getElementById("notes").value,
-    editor,
-    updated_at: new Date().toISOString(),
-    status: "edited"
-  };
+    // 入力チェック
+    const v = validateForm();
+    if (!v.ok) {
+      alert("保存できません。\n" + v.errors.join("\n"));
+      return;
+    }
 
-  try {
-    // ✅ まず history.json に保存
-    const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: "Add edited post to history.json",
-        target: "history.json",
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(editedPost, null, 2))))
-      })
-    });
+    // 重複チェック
+    if (await isDupInHistory({
+      video: document.getElementById("video").value,
+      url: document.getElementById("url").value,
+      title_original: document.getElementById("originalTitle").value
+    })) {
+      alert("⚠️ この商品はすでに編集履歴に存在します（video＋url＋title_original一致）");
+      return;
+    }
 
-    // 💾 保存成功後に posts.json 側を更新
-    if (res.ok) {
-      alert("✅ 編集履歴を保存しました（history.json）");
+    const user = JSON.parse(localStorage.getItem("loginUser"));
+    const editor = user ? user.name : "船長";
 
+    const editedPost = {
+      id: postId,
+      title_original: document.getElementById("originalTitle").value.trim(),
+      url: document.getElementById("url").value.trim(),
+      title_final: document.getElementById("editableTitle").value.trim(),
+      thumb_original: document.getElementById("thumbOriginal").value.trim(),
+      thumb_pick1: document.getElementById("thumbPick1").value.trim(),
+      thumb_pick2: document.getElementById("thumbPick2").value.trim(),
+      video: document.getElementById("video").value.trim(),
+      tags: v.tagList,
+      notes: document.getElementById("notes").value,
+      editor,
+      updated_at: new Date().toISOString(),
+      status: "edited"
+    };
+
+    try {
+      // 1) history.json を読み出して追記
+      let historyList = [];
       try {
-        const resPosts = await fetch("posts.json?t=" + Date.now(), { cache: "no-store" });
-        const posts = await resPosts.json();
-        const updatedPosts = posts.map(p =>
-          String(p.id) === String(postId)
-            ? { ...p, status: "edited", updated_at: new Date().toISOString() }
-            : p
-        );
+        const hr = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
+        if (hr.ok) historyList = await hr.json();
+      } catch (_) {}
+      historyList.push(editedPost);
 
-        await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      const saveHistory = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Add edited post to history.json",
+          target: "history.json",
+          content: encodeToBase64(JSON.stringify(historyList, null, 2))
+        })
+      });
+
+      if (!saveHistory.ok) {
+        alert("⚠️ 履歴保存に失敗: " + saveHistory.status);
+        return;
+      }
+
+      // 2) posts.json から対象IDを削除（＝移動）
+      try {
+        const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+        const posts = pr.ok ? await pr.json() : [];
+        const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+
+        const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
           method: "POST",
           mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: `Mark edited post id:${postId}`,
+            message: `Remove id:${postId} from posts.json (moved to history.json)`,
             target: "posts.json",
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedPosts, null, 2))))
+            content: encodeToBase64(JSON.stringify(updatedPosts, null, 2))
           })
         });
-      } catch (e) {
-        console.warn("posts.json更新失敗:", e);
+
+        if (!savePosts.ok) {
+          console.warn("posts.json の削除反映に失敗:", savePosts.status);
+        }
+      } catch (e2) {
+        console.warn("posts.json 更新エラー:", e2);
       }
 
+      alert("✅ 保存しました。投稿は履歴へ移動し、一覧から削除しました。");
       window.location.href = "post-list.html";
-    } else {
-      alert("⚠️ 保存失敗: " + res.status);
+    } catch (err) {
+      console.error("送信エラー:", err);
+      alert("⚠️ 保存中にエラーが発生しました。");
     }
-  } catch (err) {
-    console.error("送信エラー:", err);
-    alert("⚠️ 保存中にエラーが発生しました。");
-  }
-});
+  });
+
   loadPost();
-  </script>
+</script>
 </body>
 </html>
