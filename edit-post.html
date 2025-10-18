@@ -379,7 +379,8 @@ a#thumbLink[href="#"] {
       try {
         const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
         const posts = pr.ok ? await pr.json() : [];
-        const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+ const flatPosts = Array.isArray(posts[0]) ? posts.flat() : posts;
+ const updatedPosts = flatPosts.filter(p => String(p.id) !== String(postId));
 
         const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
           method: "POST",
