@@ -415,7 +415,7 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
-// ✅ tag-manager（区切り線対応済）
+// ✅ タググループ（属性/シチュ/プレイ）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadPost();
@@ -432,7 +432,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     container.style.marginTop = "14px";
 
     for (const [group, tags] of Object.entries(tagGroups)) {
-      // --- 区切り線処理追加 ---
       if (group.startsWith("-")) {
         const hr = document.createElement("hr");
         hr.style.border = "none";
@@ -441,7 +440,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         container.appendChild(hr);
         continue;
       }
-      // ---------------------
 
       const groupDiv = document.createElement("div");
       groupDiv.style.marginBottom = "8px";
@@ -492,20 +490,34 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // ✅ tag-manager は入力フォームの「上」に配置
+    // 💎 入力欄の「上」に配置
     tagInput.insertAdjacentElement("beforebegin", container);
-    console.log("✅ tag-manager 区切り線込みで配置完了");
+
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
 });
 
 
-// ✅ 人気女優・監督（下）
+// ✅ タグ数カウンター＋人気女優を入力欄の下に統一
 window.addEventListener("DOMContentLoaded", async () => {
   const tagInput = document.getElementById("tags");
   const notes = document.getElementById("notes");
   if (!tagInput || !notes) return;
+
+  // タグ数カウンターを動的に生成
+  const tagCount = document.createElement("div");
+  tagCount.id = "tagCount";
+  tagCount.style.color = "#aaa";
+  tagCount.style.fontSize = "13px";
+  tagCount.style.marginTop = "4px";
+  tagCount.textContent = "タグ数：0個";
+  tagInput.insertAdjacentElement("afterend", tagCount);
+
+  tagInput.addEventListener("input", () => {
+    const tags = (tagInput.value || "").trim().split(/\s+/).filter(Boolean);
+    tagCount.textContent = `タグ数：${tags.length}個`;
+  });
 
   try {
     const res = await fetch("tag-manager2.json?ts=" + Date.now());
@@ -567,9 +579,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // ✅ 入力フォームの下、備考の上に配置
-    tagInput.insertAdjacentElement("afterend", container);
-    console.log("✅ 人気女優・監督タグ群を正しい位置に配置");
+    // 💎 タグ欄（＋タグ数）の直下に人気女優ブロックを配置
+    tagCount.insertAdjacentElement("afterend", container);
+
   } catch (e) {
     console.error("人気女優タグロード失敗:", e);
   }
