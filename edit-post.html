@@ -415,7 +415,7 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
-// ✅ タグボタン生成（安定＆デザイン維持＆フォーム上配置）
+// ✅ タグボタン生成（通常タグ）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadPost();
@@ -462,19 +462,20 @@ window.addEventListener("DOMContentLoaded", async () => {
         const btn = document.createElement("button");
         btn.textContent = tag;
         btn.type = "button";
-        btn.style.background = "#2b2b2b";
-        btn.style.color = "#b0cfff";
-        btn.style.border = "1px solid #444";
-        btn.style.borderRadius = "5px";
-        btn.style.fontSize = "12px";
-        btn.style.padding = "3px 9px";
-        btn.style.cursor = "pointer";
-        btn.style.margin = "1px 4px 1px 0";
-        btn.style.lineHeight = "1.3";
-        btn.style.transition = "all 0.2s ease";
-
-        btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
-        btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
+        Object.assign(btn.style, {
+          background: "#2b2b2b",
+          color: "#b0cfff",
+          border: "1px solid #444",
+          borderRadius: "5px",
+          fontSize: "12px",
+          padding: "3px 9px",
+          cursor: "pointer",
+          margin: "1px 4px 1px 0",
+          lineHeight: "1.3",
+          transition: "all 0.2s ease"
+        });
+        btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
+        btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
         btn.addEventListener("click", () => {
           const current = tagInput.value.trim().split(/\s+/).filter(Boolean);
           if (!current.includes(tag)) {
@@ -490,16 +491,15 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // 💎 人気女優・監督の直前にタグフォームが来るよう調整
     tagCount.insertAdjacentElement("afterend", container);
-
-    console.log("✅ タグボタン生成：フォーム上配置完了");
+    console.log("✅ 通常タグ生成完了");
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
 });
 
-// 🎯 人気女優・監督専用タグ群（フォームの「タグ欄の直下」に統一配置）
+
+// ✅ 人気女優・監督タグ群
 window.addEventListener("DOMContentLoaded", async () => {
   const tagInput = document.getElementById("tags");
   const tagCount = document.getElementById("tagCount");
@@ -518,7 +518,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       const groupDiv = document.createElement("div");
       groupDiv.style.marginBottom = "8px";
 
-        const title = document.createElement("h4");
+      const title = document.createElement("h4");
       title.textContent = group;
       title.style.color = "#47bcec";
       title.style.fontSize = "13px";
@@ -535,17 +535,17 @@ window.addEventListener("DOMContentLoaded", async () => {
         const btn = document.createElement("button");
         btn.textContent = tag;
         btn.type = "button";
-        btn.style.background = "#2b2b2b";
-        btn.style.color = "#b0cfff";
-        btn.style.border = "1px solid #444";
-        btn.style.borderRadius = "5px";
-        btn.style.fontSize = "12px";
-        btn.style.padding = "3px 9px";
-        btn.style.cursor = "pointer";
-        btn.style.margin = "1px 4px 1px 0";
-        btn.style.lineHeight = "1.3";
-        btn.style.transition = "all 0.2s ease";
-
+        Object.assign(btn.style, {
+          background: "#2b2b2b",
+          color: "#b0cfff",
+          border: "1px solid #444",
+          borderRadius: "5px",
+          fontSize: "12px",
+          padding: "3px 9px",
+          cursor: "pointer",
+          margin: "1px 4px 1px 0",
+          lineHeight: "1.3",
+          transition: "all 0.2s ease"
         });
         btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
         btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
@@ -557,17 +557,16 @@ window.addEventListener("DOMContentLoaded", async () => {
             tagInput.dispatchEvent(new Event("input"));
           }
         });
-        wrap.appendChild(btn);
+        btnWrap.appendChild(btn);
       });
 
-      groupDiv.appendChild(wrap);
+      groupDiv.appendChild(btnWrap);
       container.appendChild(groupDiv);
     }
 
-    // 💎 タグ欄の“直後”に配置（＝フォーム内で正しい位置）
+    // 💎 タグ欄の直後に配置
     tagCount.insertAdjacentElement("afterend", container);
-
-    console.log("✅ 人気女優タグ群をタグ欄の直下に配置");
+    console.log("✅ 人気女優・監督タグ群をタグ欄の直下に配置");
   } catch (e) {
     console.error("人気女優タグロード失敗:", e);
   }
