@@ -415,22 +415,25 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
-// ✅ タグボタン生成（最終安定配置版）
+// ✅ タグボタン生成（安定＆デザイン維持＆フォームが上）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadPost();
 
     const tagInput = document.getElementById("tags");
-    if (!tagInput) throw new Error("#tags が見つかりません");
+    const tagCount = document.getElementById("tagCount");
+    if (!tagInput || !tagCount) throw new Error("#tags または #tagCount が見つかりません");
 
     const res = await fetch("tag-manager.json?ts=" + Date.now());
     if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
     const tagGroups = await res.json();
 
+    // 全体コンテナ
     const container = document.createElement("div");
     container.id = "tagButtons";
     container.style.marginTop = "14px";
 
+    // グループ単位で生成
     for (const [group, tags] of Object.entries(tagGroups)) {
       if (group.startsWith("-")) {
         const hr = document.createElement("hr");
@@ -455,7 +458,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       btnWrap.style.display = "flex";
       btnWrap.style.flexWrap = "wrap";
       btnWrap.style.columnGap = "5px";
-      btnWrap.style.rowGap = "2px";
+      btnWrap.style.rowGap = "3px";
 
       tags.forEach(tag => {
         const btn = document.createElement("button");
@@ -468,6 +471,10 @@ window.addEventListener("DOMContentLoaded", async () => {
         btn.style.fontSize = "12px";
         btn.style.padding = "3px 9px";
         btn.style.cursor = "pointer";
+        btn.style.margin = "1px 4px 1px 0";
+        btn.style.lineHeight = "1.3";
+        btn.style.transition = "all 0.2s ease";
+
         btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
         btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
         btn.addEventListener("click", () => {
@@ -478,6 +485,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             tagInput.dispatchEvent(new Event("input"));
           }
         });
+
         btnWrap.appendChild(btn);
       });
 
@@ -485,14 +493,21 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // 💎 タグ欄の“直前”ではなく、“直後”に配置する
-    tagInput.insertAdjacentElement("afterend", container);
+    // 💎 タグ群の“最初のグループ（人気女優・監督）”の前にフォームを差し込む
+    const firstGroup = container.querySelector("h4");
+    if (firstGroup && firstGroup.parentElement) {
+      firstGroup.parentElement.insertAdjacentElement("beforebegin", tagInput);
+      tagInput.insertAdjacentElement("afterend", tagCount);
+    }
 
-    console.log("✅ タグボタン安定生成（フォームの下）");
+    // 🔹 すべてのボタン群はフォームの下に挿入
+    tagCount.insertAdjacentElement("afterend", container);
+
+    console.log("✅ タグボタン生成：フォーム上・デザイン維持");
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
 });
-</script>
+  </script>
 </body>
 </html>
