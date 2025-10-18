@@ -158,326 +158,68 @@
     </form>
   </main>
 
-  <script>
-    function encodeToBase64(str) {
-      return btoa(unescape(encodeURIComponent(str)));
-    }
+ <script>
+document.addEventListener("DOMContentLoaded", async () => {
 
-    const params = new URLSearchParams(window.location.search);
-    const postId = params.get("id");
+  // ========= 共通関数 =========
+  const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get("id");
 
-    async function loadHistoryPost() {
-      try {
-        const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
-        const posts = await res.json();
-        const post = posts.find(p => String(p.id) === postId);
-        if (!post) {
-          alert("該当する履歴データが見つかりません。");
-          return;
-        }
-
-        document.getElementById("originalTitle").value = post.title_original || "";
-        document.getElementById("editableTitle").value = post.title_final || "";
-        document.getElementById("thumbOriginal").value = post.thumb_original || "";
-        document.getElementById("thumbPreview").src = post.thumb_original || "";
-        document.getElementById("url").value = post.url || "";
-        document.getElementById("video").value = post.video || "";
-        document.getElementById("videoLink").href = post.video || "#";
-        document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
-        document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
-        document.getElementById("tags").value = (post.tags || []).join(" ");
-        document.getElementById("notes").value = post.notes || "";
-        updateCounter();
-      } catch (err) {
-        console.error("ロードエラー:", err);
-        alert("履歴の読み込みに失敗しました。");
-      }
-    }
-
-    document.getElementById("thumbOriginal").addEventListener("input", e => {
-      document.getElementById("thumbPreview").src = e.target.value.trim() || "";
-    });
-
-    const titleInput = document.getElementById("editableTitle");
-    const counter = document.getElementById("titleCounter");
-    function updateCounter() {
-      const len = titleInput.value.length;
-      counter.classList.remove("ok", "warn");
-      if (len >= 50 && len <= 60) {
-        counter.classList.add("ok");
-        counter.textContent = `✅ ${len}文字（合格っ🫶）`;
-      } else {
-        counter.classList.add("warn");
-        counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
-      }
-    }
-    titleInput.addEventListener("input", updateCounter);
-
-    const tagInput = document.getElementById("tags");
-
-    document.getElementById("editForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const res = await fetch("history.json?t=" + Date.now());
-      const list = await res.json();
-      const index = list.findIndex(p => String(p.id) === postId);
-      if (index === -1) {
-        alert("該当データが見つかりません。");
-        return;
-      }
-
-      list[index] = {
-        ...list[index],
-        title_original: document.getElementById("originalTitle").value,
-        title_final: document.getElementById("editableTitle").value,
-        thumb_original: document.getElementById("thumbOriginal").value,
-        thumb_pick1: document.getElementById("thumbPick1").value,
-        thumb_pick2: document.getElementById("thumbPick2").value,
-        url: document.getElementById("url").value,
-        video: document.getElementById("video").value,
-        tags: tagInput.value.split(" ").map(t => t.trim()).filter(Boolean),
-        notes: document.getElementById("notes").value,
-        updated_at: new Date().toISOString()
-      };
-
-      const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Update post in history (船長)",
-          target: "history.json?ts=",
-          content: encodeToBase64(JSON.stringify(list, null, 2))
-        })
-      });
-
-      if (saveRes.ok) {
-        alert("✅ 編集履歴を上書き保存しました！");
-        window.location.href = "history.html";
-      } else {
-        alert("⚠️ 保存失敗: " + saveRes.status);
-      }
-    });
-
-    loadHistoryPost();
-
-    // ✅ タググループ（属性/シチュ/プレイ）
-window.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const tagInput = document.getElementById("tags");
-    if (!tagInput) throw new Error("#tags が見つかりません");
-
-    const res = await fetch("tag-manager.json?ts=" + Date.now());
-    if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
-    const tagGroups = await res.json();
-
-    const container = document.createElement("div");
-    container.id = "tagButtons";
-    container.style.marginTop = "14px";
-
-    for (const [group, tags] of Object.entries(tagGroups)) {
-      if (group.startsWith("-")) {
-        const hr = document.createElement("hr");
-        hr.style.border = "none";
-        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-        hr.style.margin = "16px 0";
-        container.appendChild(hr);
-        continue;
-      }
-
-      const groupDiv = document.createElement("div");
-      groupDiv.style.marginBottom = "8px";
-
-      const title = document.createElement("h4");
-      title.textContent = group;
-      title.style.color = "#47bcec";
-      title.style.fontSize = "13px";
-      title.style.margin = "0 0 3px 0";
-      groupDiv.appendChild(title);
-
-      const btnWrap = document.createElement("div");
-      btnWrap.style.display = "flex";
-      btnWrap.style.flexWrap = "wrap";
-      btnWrap.style.columnGap = "5px";
-      btnWrap.style.rowGap = "3px";
-
-      tags.forEach(tag => {
-        const btn = document.createElement("button");
-        btn.textContent = tag;
-        btn.type = "button";
-        Object.assign(btn.style, {
-          background: "#2b2b2b",
-          color: "#b0cfff",
-          border: "1px solid #444",
-          borderRadius: "5px",
-          fontSize: "12px",
-          padding: "3px 9px",
-          cursor: "pointer",
-          margin: "1px 4px 1px 0",
-          lineHeight: "1.3",
-          transition: "all 0.2s ease"
-        });
-        btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
-        btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
-        btn.addEventListener("click", () => {
-          const current = tagInput.value.trim().split(/\s+/).filter(Boolean);
-          if (!current.includes(tag)) {
-            current.push(tag);
-            tagInput.value = current.join(" ");
-            tagInput.dispatchEvent(new Event("input"));
-          }
-        });
-        btnWrap.appendChild(btn);
-      });
-
-      groupDiv.appendChild(btnWrap);
-      container.appendChild(groupDiv);
-    }
-
-    // 💎 入力欄の「上」に配置
-    tagInput.insertAdjacentElement("beforebegin", container);
-
-  } catch (err) {
-    console.error("タグ生成エラー:", err);
-  }
-});
-
-
-// ✅ タグ数カウンター＋人気女優を入力欄の下に統一
-window.addEventListener("DOMContentLoaded", async () => {
   const tagInput = document.getElementById("tags");
-  const tagCount = document.getElementById("tagCount"); // ←既存を取得
-  const notes = document.getElementById("notes");
-  if (!tagInput || !notes || !tagCount) return;
+  const tagCount = document.getElementById("tagCount");
+  const titleInput = document.getElementById("editableTitle");
+  const counter = document.getElementById("titleCounter");
 
-  tagInput.addEventListener("input", () => {
-    const tags = (tagInput.value || "").trim().split(/\s+/).filter(Boolean);
-    tagCount.textContent = `タグ数：${tags.length}個`;
-  });
-
-  try {
-    const res = await fetch("tag-manager2.json?ts=" + Date.now());
-    if (!res.ok) throw new Error("tag-manager2.json が見つかりません");
-    const tagGroups = await res.json();
-
-    const container = document.createElement("div");
-    container.id = "tagButtons2";
-    container.style.marginTop = "14px";
-    container.style.marginBottom = "14px";
-
-    for (const [group, tags] of Object.entries(tagGroups)) {
-      const groupDiv = document.createElement("div");
-      groupDiv.style.marginBottom = "8px";
-
-      const title = document.createElement("h4");
-      title.textContent = group;
-      title.style.color = "#47bcec";
-      title.style.fontSize = "13px";
-      title.style.margin = "0 0 3px 0";
-      groupDiv.appendChild(title);
-
-      const btnWrap = document.createElement("div");
-      btnWrap.style.display = "flex";
-      btnWrap.style.flexWrap = "wrap";
-      btnWrap.style.columnGap = "5px";
-      btnWrap.style.rowGap = "3px";
-
-      tags.forEach(tag => {
-        const btn = document.createElement("button");
-        btn.textContent = tag;
-        btn.type = "button";
-        Object.assign(btn.style, {
-          background: "#2b2b2b",
-          color: "#b0cfff",
-          border: "1px solid #444",
-          borderRadius: "5px",
-          fontSize: "12px",
-          padding: "3px 9px",
-          cursor: "pointer",
-          margin: "1px 4px 1px 0",
-          lineHeight: "1.3",
-          transition: "all 0.2s ease"
-        });
-        btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
-        btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
-        btn.addEventListener("click", () => {
-          const current = tagInput.value.trim().split(/\s+/).filter(Boolean);
-          if (!current.includes(tag)) {
-            current.push(tag);
-            tagInput.value = current.join(" ");
-            tagInput.dispatchEvent(new Event("input"));
-          }
-        });
-        btnWrap.appendChild(btn);
-      });
-
-      groupDiv.appendChild(btnWrap);
-      container.appendChild(groupDiv);
+  // ========= タイトル文字数カウンター =========
+  const updateCounter = () => {
+    const len = titleInput.value.length;
+    counter.classList.remove("ok", "warn");
+    if (len >= 50 && len <= 60) {
+      counter.classList.add("ok");
+      counter.textContent = `✅ ${len}文字（合格っ🫶）`;
+    } else {
+      counter.classList.add("warn");
+      counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
     }
-
-    // 💎 タグ欄（＋タグ数）の直下に人気女優ブロックを配置
-    tagCount.insertAdjacentElement("afterend", container);
-
-  } catch (e) {
-    console.error("人気女優タグロード失敗:", e);
-  }
-});
-    // 🔧 タグ数カウンター（初期化 & 全角スペース対応）
-// ※ 他のタグ生成コードの後に置けばOK
-(() => {
-  const tagInput  = document.getElementById("tags");
-  const tagCount  = document.getElementById("tagCount");
-  if (!tagInput || !tagCount) return;
-
-  // 半角/全角スペースどちらでも区切る
-  const splitTags = (v) => (v || "")
-    .trim()
-    .split(/[\s\u3000]+/)   // \u3000 = 全角スペース
-    .filter(Boolean);
-
-  const update = () => {
-    const n = splitTags(tagInput.value).length;
-    tagCount.textContent = `タグ数：${n}個`;
   };
+  titleInput.addEventListener("input", updateCounter);
 
-  // 入力時に更新（ボタンクリックで dispatch される input にも反応）
-  tagInput.addEventListener("input", update);
+  // ========= タグカウンター（全角対応） =========
+  const splitTags = (v) => (v || "").trim().split(/[\s\u3000]+/).filter(Boolean);
+  const updateTagCount = () => tagCount.textContent = `タグ数：${splitTags(tagInput.value).length}個`;
+  tagInput.addEventListener("input", updateTagCount);
 
-  // 履歴読み込み直後の初期値を即時反映
-  // （loadPost → 値が入ったあとでもここが走るので確実に反映される）
-  requestAnimationFrame(update);
-})();
+  // ========= サムネ①②プレビュー生成 =========
+ const makePreview = (inputId, previewId) => {
+  const input = document.getElementById(inputId);
+  if (!input) return;
 
-    // 🖼️ サムネ①＆②プレビュー＋クリック拡大表示
-(() => {
-  const makePreview = (inputId, previewId) => {
-    const input = document.getElementById(inputId);
-    if (!input) return;
+  const preview = document.createElement("img");
+  preview.id = previewId;
+  preview.className = "thumb-preview";
+  preview.style.cursor = "zoom-in";
+  preview.style.maxWidth = "200px";
+  preview.style.marginTop = "6px";
+  input.insertAdjacentElement("afterend", preview);
 
-    const preview = document.createElement("img");
-    preview.id = previewId;
-    preview.className = "thumb-preview";
-    preview.style.cursor = "zoom-in";
-    preview.style.maxWidth = "200px";
-    preview.style.marginTop = "6px";
-    input.insertAdjacentElement("afterend", preview);
+  // ✅ 生成直後にも現在値を反映（初期表示）
+  preview.src = (input.value || "").trim() || "";
 
-    // 入力で即時プレビュー反映
-    input.addEventListener("input", e => {
-      preview.src = e.target.value.trim() || "";
-    });
-  };
-
+  // 入力で即時プレビュー反映
+  input.addEventListener("input", e => {
+    preview.src = e.target.value.trim() || "";
+  });
+};
   makePreview("thumbPick1", "thumbPreview1");
   makePreview("thumbPick2", "thumbPreview2");
 
-  // 拡大ポップアップ
+  // ========= 拡大表示オーバーレイ =========
   const overlay = document.createElement("div");
   Object.assign(overlay.style, {
-    position: "fixed",
-    top: 0, left: 0, width: "100vw", height: "100vh",
-    background: "rgba(0,0,0,0.8)",
-    display: "none", justifyContent: "center", alignItems: "center",
-    zIndex: 9999, cursor: "zoom-out"
+    position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+    background: "rgba(0,0,0,0.8)", display: "none",
+    justifyContent: "center", alignItems: "center", zIndex: 9999, cursor: "zoom-out"
   });
   const fullImg = document.createElement("img");
   Object.assign(fullImg.style, {
@@ -485,17 +227,112 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
   overlay.appendChild(fullImg);
   document.body.appendChild(overlay);
-
   overlay.addEventListener("click", () => overlay.style.display = "none");
-
-  // 全プレビューにクリックイベント追加
   document.addEventListener("click", e => {
     if (e.target.classList.contains("thumb-preview") && e.target.src) {
       fullImg.src = e.target.src;
       overlay.style.display = "flex";
     }
   });
-})();
-  </script>
+
+  // ========= 履歴ロード =========
+  async function loadHistoryPost() {
+    try {
+      const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
+      const posts = await res.json();
+      const post = posts.find(p => String(p.id) === postId);
+      if (!post) { alert("該当する履歴データが見つかりません。"); return; }
+
+      document.getElementById("originalTitle").value = post.title_original || "";
+      document.getElementById("editableTitle").value = post.title_final || "";
+      document.getElementById("thumbOriginal").value = post.thumb_original || "";
+      document.getElementById("thumbPreview").src = post.thumb_original || "";
+      document.getElementById("url").value = post.url || "";
+      document.getElementById("video").value = post.video || "";
+      document.getElementById("videoLink").href = post.video || "#";
+      document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
+      document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+      document.getElementById("tags").value = (post.tags || []).join(" ");
+      document.getElementById("notes").value = post.notes || "";
+      // ← loadHistoryPost()の try 内、フォームへの値セットが終わった直後に追加
+document.getElementById("tags").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
+
+    
+
+      // ✅ 初期化反映
+      updateCounter();
+      // ← loadHistoryPost()の try 内、フォームへの値セットが終わった直後に追加
+document.getElementById("tags").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
+      updateTagCount();
+      document.getElementById("thumbPreview1").src = post.thumb_pick1 || "";
+      document.getElementById("thumbPreview2").src = post.thumb_pick2 || "";
+    } catch (err) {
+      console.error("ロードエラー:", err);
+      alert("履歴の読み込みに失敗しました。");
+    }
+  }
+
+  await loadHistoryPost();
+
+  // ========= タグボタン群（属性/女優） =========
+  const createTagButtons = async (file, insertAfterEl) => {
+    const res = await fetch(`${file}?ts=${Date.now()}`);
+    if (!res.ok) return;
+    const tagGroups = await res.json();
+    const container = document.createElement("div");
+    container.style.margin = "14px 0";
+    for (const [group, tags] of Object.entries(tagGroups)) {
+      if (group.startsWith("-")) {
+        const hr = document.createElement("hr");
+        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+        hr.style.margin = "16px 0";
+        container.appendChild(hr);
+        continue;
+      }
+      const h4 = document.createElement("h4");
+      h4.textContent = group;
+      h4.style.color = "#47bcec";
+      h4.style.fontSize = "13px";
+      h4.style.margin = "0 0 4px";
+      container.appendChild(h4);
+
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.flexWrap = "wrap";
+      wrap.style.gap = "4px";
+
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = tag;
+        Object.assign(btn.style, {
+          background: "#2b2b2b", color: "#b0cfff",
+          border: "1px solid #444", borderRadius: "5px",
+          fontSize: "12px", padding: "3px 8px", cursor: "pointer"
+        });
+        btn.addEventListener("click", () => {
+          const cur = splitTags(tagInput.value);
+          if (!cur.includes(tag)) {
+            tagInput.value = [...cur, tag].join(" ");
+            tagInput.dispatchEvent(new Event("input"));
+          }
+        });
+        wrap.appendChild(btn);
+      });
+
+      container.appendChild(wrap);
+    }
+    insertAfterEl.insertAdjacentElement("afterend", container);
+  };
+
+  await createTagButtons("tag-manager.json", tagInput);
+  await createTagButtons("tag-manager2.json", tagCount);
+
+});
+</script>
 </body>
 </html>
