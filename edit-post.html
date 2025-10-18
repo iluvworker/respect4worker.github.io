@@ -502,17 +502,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 // ✅ タグ数カウンター＋人気女優を入力欄の下に統一
 window.addEventListener("DOMContentLoaded", async () => {
   const tagInput = document.getElementById("tags");
+  const tagCount = document.getElementById("tagCount"); // ←既存を取得
   const notes = document.getElementById("notes");
-  if (!tagInput || !notes) return;
-
-  // タグ数カウンターを動的に生成
-  const tagCount = document.createElement("div");
-  tagCount.id = "tagCount";
-  tagCount.style.color = "#aaa";
-  tagCount.style.fontSize = "13px";
-  tagCount.style.marginTop = "4px";
-  tagCount.textContent = "タグ数：0個";
-  tagInput.insertAdjacentElement("afterend", tagCount);
+  if (!tagInput || !notes || !tagCount) return;
 
   tagInput.addEventListener("input", () => {
     const tags = (tagInput.value || "").trim().split(/\s+/).filter(Boolean);
