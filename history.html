@@ -89,7 +89,7 @@ async function loadHistory(){
     historyData = Array.from(uniqueMap.values());
     renderHistory();
   } catch (err) {
-    console.error("history.jsonの読み込みに失敗:", err);
+    console.error("history.json?ts=の読み込みに失敗:", err);
     alert("⚠️ 履歴データの読み込みに失敗しました。");
   }
 }
@@ -200,7 +200,7 @@ function editPost(id){
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
           message:`Delete history id:${id}`,
-          target:"history.json",
+          target:"history.json?ts=",
           content: encodeToBase64(JSON.stringify(updated, null, 2))
         })
       });
