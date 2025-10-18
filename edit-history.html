@@ -425,6 +425,31 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.error("人気女優タグロード失敗:", e);
   }
 });
+    // 🔧 タグ数カウンター（初期化 & 全角スペース対応）
+// ※ 他のタグ生成コードの後に置けばOK
+(() => {
+  const tagInput  = document.getElementById("tags");
+  const tagCount  = document.getElementById("tagCount");
+  if (!tagInput || !tagCount) return;
+
+  // 半角/全角スペースどちらでも区切る
+  const splitTags = (v) => (v || "")
+    .trim()
+    .split(/[\s\u3000]+/)   // \u3000 = 全角スペース
+    .filter(Boolean);
+
+  const update = () => {
+    const n = splitTags(tagInput.value).length;
+    tagCount.textContent = `タグ数：${n}個`;
+  };
+
+  // 入力時に更新（ボタンクリックで dispatch される input にも反応）
+  tagInput.addEventListener("input", update);
+
+  // 履歴読み込み直後の初期値を即時反映
+  // （loadPost → 値が入ったあとでもここが走るので確実に反映される）
+  requestAnimationFrame(update);
+})();
   </script>
 </body>
 </html>
