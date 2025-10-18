@@ -277,11 +277,17 @@ document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
   }
 
   await loadHistoryPost();
-
 // ========= タグボタン群（属性/女優） =========
-const createTagButtons = async (file, insertAfterEl) => {
+const labelTags = document.getElementById("labelTags");
+const tagInput  = document.getElementById("tags");
+const tagCount  = document.getElementById("tagCount");
+const notes     = document.getElementById("notes");
+const notesLabel= notes ? notes.previousElementSibling : null; // 「内容メモ／補足（任意）」の<label>
+
+// 汎用ボタン生成
+const createTagButtons = async (file) => {
   const res = await fetch(`${file}?ts=${Date.now()}`);
-  if (!res.ok) return;
+  if (!res.ok) return null;
   const tagGroups = await res.json();
 
   const container = document.createElement("div");
@@ -299,37 +305,30 @@ const createTagButtons = async (file, insertAfterEl) => {
 
     const title = document.createElement("h4");
     title.textContent = group;
-    title.style.color = "#47bcec";
-    title.style.fontSize = "13px";
-    title.style.margin = "6px 0 3px 0";
+    Object.assign(title.style, {
+      color:"#47bcec", fontSize:"13px", margin:"6px 0 3px 0"
+    });
     container.appendChild(title);
 
     const wrap = document.createElement("div");
-    wrap.style.display = "flex";
-wrap.style.flexWrap = "wrap";
-wrap.style.columnGap = "5px";
-wrap.style.rowGap = "3px";
+    Object.assign(wrap.style, {
+      display:"flex", flexWrap:"wrap", columnGap:"5px", rowGap:"3px"
+    });
 
     tags.forEach(tag => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = tag;
       Object.assign(btn.style, {
-  background: "#2b2b2b",
-  color: "#b0cfff",
-  border: "1px solid #444",
-  borderRadius: "5px",
-  fontSize: "12px",
-  padding: "3px 9px",
-  cursor: "pointer",
-  margin: "1px 4px 1px 0",
-  lineHeight: "1.3",
-  transition: "all 0.2s ease"
-});
-btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
-btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
+        background:"#2b2b2b", color:"#b0cfff", border:"1px solid #444",
+        borderRadius:"5px", fontSize:"12px", padding:"3px 9px",
+        cursor:"pointer", margin:"1px 4px 1px 0", lineHeight:"1.3",
+        transition:"all 0.2s ease"
+      });
+      btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
+      btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
       btn.addEventListener("click", () => {
-        const cur = splitTags(tagInput.value);
+        const cur = (tagInput.value || "").trim().split(/[\s\u3000]+/).filter(Boolean);
         if (!cur.includes(tag)) {
           tagInput.value = [...cur, tag].join(" ");
           tagInput.dispatchEvent(new Event("input"));
@@ -341,10 +340,40 @@ btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
     container.appendChild(wrap);
   }
 
-  // 💎 edit-post.html と同じ位置構成に統一
-  insertAfterEl.insertAdjacentElement("afterend", container);
+  return container; // ← ここが絶対必要！！
 };
 
+// ① 属性/シチュ/プレイ（tag-manager）を「ラベルの直後」に置く
+const blockAttr = await createTagButtons("tag-manager.json");
+if (blockAttr && labelTags) {
+  labelTags.insertAdjacentElement("afterend", blockAttr);
+}
+
+// ② タグ入力欄 → タグ数（位置をボタンの下へ移動）
+if (blockAttr && tagInput) {
+  blockAttr.insertAdjacentElement("afterend", tagInput);
+  tagInput.insertAdjacentElement("afterend", tagCount);
+}
+
+// ③ 人気女優/監督（tag-manager2）を「タグ数の直後」に置く
+const blockCeleb = await createTagButtons("tag-manager2.json");
+if (blockCeleb && tagCount) {
+  tagCount.insertAdjacentElement("afterend", blockCeleb);
+}
+
+// ④ 備考（label+textarea）を「人気女優/監督ブロックの下」へ移動
+if (blockCeleb && notes) {
+  if (notesLabel) blockCeleb.insertAdjacentElement("afterend", notesLabel);
+  (notesLabel || blockCeleb).insertAdjacentElement("afterend", notes);
+}
+
+// ⑤ 初期カウントを正しい位置で更新（0固定を防ぐ）
+const updateTagCount = () => {
+  const n = (tagInput.value || "").trim().split(/[\s\u3000]+/).filter(Boolean).length;
+  tagCount.textContent = `タグ数：${n}個`;
+};
+updateTagCount();
+tagInput.addEventListener("input", updateTagCount);
 
 </script>
 </body>
