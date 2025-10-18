@@ -415,7 +415,7 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
-// ✅ タグボタン生成（安定＆デザイン維持＆フォームが上）
+// ✅ タグボタン生成（安定＆デザイン維持＆フォーム上配置）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadPost();
@@ -428,12 +428,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
     const tagGroups = await res.json();
 
-    // 全体コンテナ
     const container = document.createElement("div");
     container.id = "tagButtons";
     container.style.marginTop = "14px";
 
-    // グループ単位で生成
     for (const [group, tags] of Object.entries(tagGroups)) {
       if (group.startsWith("-")) {
         const hr = document.createElement("hr");
@@ -485,7 +483,6 @@ window.addEventListener("DOMContentLoaded", async () => {
             tagInput.dispatchEvent(new Event("input"));
           }
         });
-
         btnWrap.appendChild(btn);
       });
 
@@ -493,17 +490,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // 💎 タグ群の“最初のグループ（人気女優・監督）”の前にフォームを差し込む
-    const firstGroup = container.querySelector("h4");
-    if (firstGroup && firstGroup.parentElement) {
-      firstGroup.parentElement.insertAdjacentElement("beforebegin", tagInput);
-      tagInput.insertAdjacentElement("afterend", tagCount);
-    }
-
-    // 🔹 すべてのボタン群はフォームの下に挿入
+    // 💎 人気女優・監督の直前にタグフォームが来るよう調整
     tagCount.insertAdjacentElement("afterend", container);
 
-    console.log("✅ タグボタン生成：フォーム上・デザイン維持");
+    console.log("✅ タグボタン生成：フォーム上配置完了");
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
