@@ -415,41 +415,53 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
- // ✅ DOMが完全に読み込まれてから実行
-// ✅ DOMが完全に読み込まれてから実行
+// ✅ タグボタン生成（完全安定版）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 投稿データのロード
+    // 投稿データをロード
     await loadPost();
 
-    // DOMが描画されるのを少し待つ（←重要）
-    await new Promise(r => setTimeout(r, 100));
+    // ✅ #tags が確実に描画されるまで待機
+    const tagInput = await new Promise((resolve, reject) => {
+      const start = Date.now();
+      const timer = setInterval(() => {
+        const el = document.getElementById("tags");
+        if (el) {
+          clearInterval(timer);
+          resolve(el);
+        } else if (Date.now() - start > 5000) { // 5秒経過でタイムアウト
+          clearInterval(timer);
+          reject(new Error("#tags が見つかりませんでした"));
+        }
+      }, 100);
+    });
 
-    // タグ一覧のロード
+    // タグ定義ファイルを取得
     const res = await fetch("tag-manager.json?ts=" + Date.now());
     if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
     const tagGroups = await res.json();
 
+    // コンテナ作成
     const container = document.createElement("div");
     container.id = "tagButtons";
     container.style.marginTop = "14px";
 
+    // グループごとに生成
     for (const [group, tags] of Object.entries(tagGroups)) {
       // 区切り線
       if (group.startsWith("-")) {
         const hr = document.createElement("hr");
         hr.style.border = "none";
         hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-        hr.style.width = "100%";
         hr.style.margin = "16px 0";
         container.appendChild(hr);
         continue;
       }
 
-      // グループタイトル
       const groupDiv = document.createElement("div");
       groupDiv.style.marginBottom = "4px";
 
+      // 見出し
       const title = document.createElement("h4");
       title.textContent = group;
       title.style.color = "#47bcec";
@@ -490,7 +502,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           if (!current.includes(tag)) {
             current.push(tag);
             input.value = current.join(" ");
-            input.dispatchEvent(new Event("input")); // カウンタ更新
+            input.dispatchEvent(new Event("input"));
           }
         });
 
@@ -499,20 +511,16 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       groupDiv.appendChild(btnWrap);
 
-      // 「プレイ」ブロックの後にタグ入力欄を追加
-      if (group === "プレイ") {
-        const tagInput = document.getElementById("tags");
-        if (tagInput) container.appendChild(tagInput);
-      }
+      // 「プレイ」ブロックの後に入力欄を移動
+      if (group === "プレイ") container.appendChild(tagInput);
 
-      // ✅ for文内に留めて appendChild
       container.appendChild(groupDiv);
     }
 
-    // ✅ for文が完全に終わったあとに配置
-    const tagInput = document.getElementById("tags");
-    if (tagInput) tagInput.insertAdjacentElement("beforebegin", container);
-    else console.warn("⚠️ タグ入力欄 (#tags) が見つかりませんでした。");
+    // フォーム内に挿入
+    tagInput.insertAdjacentElement("beforebegin", container);
+
+    console.log("✅ タグボタン正常生成完了");
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
