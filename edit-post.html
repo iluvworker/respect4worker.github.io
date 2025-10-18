@@ -495,16 +495,16 @@ btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
         btnWrap.appendChild(btn);
       });
 
-      groupDiv.appendChild(btnWrap
-  // 「プレイ」ブロックの直後にタグ入力フォームを挿入
+     groupDiv.appendChild(btnWrap);
+
+// 「プレイ」ブロックの直後にタグ入力フォームを挿入
 if (group === "プレイ") {
   const tagInput = document.getElementById("tags");
   if (tagInput) container.appendChild(tagInput);
 }
-      container.appendChild(groupDiv);
-    }
 
-    const tagInput = document.getElementById("tags");
+container.appendChild(groupDiv);
+
     if (tagInput) tagInput.insertAdjacentElement("beforebegin", container);
     else console.warn("⚠️ タグ入力欄 (#tags) が見つかりませんでした。");
   } catch (err) {
