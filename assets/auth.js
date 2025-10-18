@@ -6,7 +6,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
   try {
     // ✅ ここが重要。GitHub Pagesではルート相対パスにしないと404になる
-    const res = await fetch("users.json");
+    const res = await fetch("users.json?ts=");
 
     if (!res.ok) throw new Error("ユーザー情報を読み込めません。");
     const users = await res.json();
