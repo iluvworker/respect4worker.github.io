@@ -191,18 +191,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   tagInput.addEventListener("input", updateTagCount);
 
   // ========= サムネ①②プレビュー生成 =========
-  const makePreview = (inputId, previewId) => {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const preview = document.createElement("img");
-    preview.id = previewId;
-    preview.className = "thumb-preview";
-    preview.style.cursor = "zoom-in";
-    preview.style.maxWidth = "200px";
-    preview.style.marginTop = "6px";
-    input.insertAdjacentElement("afterend", preview);
-    input.addEventListener("input", e => preview.src = e.target.value.trim() || "");
-  };
+ const makePreview = (inputId, previewId) => {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const preview = document.createElement("img");
+  preview.id = previewId;
+  preview.className = "thumb-preview";
+  preview.style.cursor = "zoom-in";
+  preview.style.maxWidth = "200px";
+  preview.style.marginTop = "6px";
+  input.insertAdjacentElement("afterend", preview);
+
+  // ✅ 生成直後にも現在値を反映（初期表示）
+  preview.src = (input.value || "").trim() || "";
+
+  // 入力で即時プレビュー反映
+  input.addEventListener("input", e => {
+    preview.src = e.target.value.trim() || "";
+  });
+};
   makePreview("thumbPick1", "thumbPreview1");
   makePreview("thumbPick2", "thumbPreview2");
 
@@ -246,9 +254,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
       document.getElementById("tags").value = (post.tags || []).join(" ");
       document.getElementById("notes").value = post.notes || "";
+      // ← loadHistoryPost()の try 内、フォームへの値セットが終わった直後に追加
+document.getElementById("tags").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
+
+    
 
       // ✅ 初期化反映
       updateCounter();
+      // ← loadHistoryPost()の try 内、フォームへの値セットが終わった直後に追加
+document.getElementById("tags").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
+document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
       updateTagCount();
       document.getElementById("thumbPreview1").src = post.thumb_pick1 || "";
       document.getElementById("thumbPreview2").src = post.thumb_pick2 || "";
