@@ -458,6 +458,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       btnWrap.style.display = "flex";
 btnWrap.style.flexWrap = "wrap";
 btnWrap.style.gap = "1px 6px"; // ← 横4px・縦5pxに
+      btnWrap.style.rowGap = "0px";   // ← 各行の間のスペースを詰める
+btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
       btnWrap.style.justifyContent = "flex-start"; // ← 均等割じゃなく左寄せキープ
 
       tags.forEach(tag => {
