@@ -281,14 +281,14 @@ a#thumbLink[href="#"] {
     const tagsRaw = document.getElementById("tags").value.trim();
 
     // 4️⃣ 備考以外は空NG
-    if (!originalTitle) errors.push("・商品タイトル（originalTitle）が未入力");
-    if (!thumbOriginal) errors.push("・パッケージURL（thumbOriginal）が未入力");
-    if (!url) errors.push("・商品ページURL（url）が未入力");
-    if (!editableTitle) errors.push("・タイトル（editableTitle）が未入力");
-    if (!thumbPick1) errors.push("・サムネ①（thumbPick1）が未入力");
-    if (!thumbPick2) errors.push("・サムネ②（thumbPick2）が未入力");
-    if (!video) errors.push("・動画URL（video）が未入力");
-    if (!tagsRaw) errors.push("・タグ（tags）が未入力");
+    if (!originalTitle) errors.push("・商品タイトルが未入力");
+    if (!thumbOriginal) errors.push("・パッケージURLが未入力");
+    if (!url) errors.push("・商品ページURLが未入力");
+    if (!editableTitle) errors.push("・タイトルが未入力");
+    if (!thumbPick1) errors.push("・サムネ①が未入力");
+    if (!thumbPick2) errors.push("・サムネ②が未入力");
+    if (!video) errors.push("・動画URLが未入力");
+    if (!tagsRaw) errors.push("・タグが未入力");
 
     // 1️⃣ タイトル 50〜60
     const len = editableTitle.length;
