@@ -415,14 +415,13 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
-// ✅ タグボタン生成（tag-manager.json）
+// ✅ tag-manager（区切り線対応済）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadPost();
 
     const tagInput = document.getElementById("tags");
-    const tagCount = document.getElementById("tagCount");
-    if (!tagInput || !tagCount) throw new Error("#tags または #tagCount が見つかりません");
+    if (!tagInput) throw new Error("#tags が見つかりません");
 
     const res = await fetch("tag-manager.json?ts=" + Date.now());
     if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
@@ -433,6 +432,17 @@ window.addEventListener("DOMContentLoaded", async () => {
     container.style.marginTop = "14px";
 
     for (const [group, tags] of Object.entries(tagGroups)) {
+      // --- 区切り線処理追加 ---
+      if (group.startsWith("-")) {
+        const hr = document.createElement("hr");
+        hr.style.border = "none";
+        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+        hr.style.margin = "16px 0";
+        container.appendChild(hr);
+        continue;
+      }
+      // ---------------------
+
       const groupDiv = document.createElement("div");
       groupDiv.style.marginBottom = "8px";
 
@@ -482,16 +492,16 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // ✅ tag-manager を入力フォームの「上」に配置
+    // ✅ tag-manager は入力フォームの「上」に配置
     tagInput.insertAdjacentElement("beforebegin", container);
-    console.log("✅ tag-manager タグ群をフォーム上に配置");
+    console.log("✅ tag-manager 区切り線込みで配置完了");
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
 });
 
 
-// ✅ 人気女優・監督タグ群（tag-manager2.json）入力フォームの「下」→備考の「上」
+// ✅ 人気女優・監督（下）
 window.addEventListener("DOMContentLoaded", async () => {
   const tagInput = document.getElementById("tags");
   const notes = document.getElementById("notes");
@@ -557,9 +567,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // ✅ tag-manager2 は入力フォームの直後、備考の直前に配置
+    // ✅ 入力フォームの下、備考の上に配置
     tagInput.insertAdjacentElement("afterend", container);
-    console.log("✅ 人気女優・監督タグ群を入力フォームの下／備考の上に配置");
+    console.log("✅ 人気女優・監督タグ群を正しい位置に配置");
   } catch (e) {
     console.error("人気女優タグロード失敗:", e);
   }
