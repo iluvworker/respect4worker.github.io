@@ -21,7 +21,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       if (user.role === "admin") {
         window.location.href = "admin.html";
       } else {
-        window.location.href = "worker.html";
+        window.location.href = "crew-dashboard.html";
       }
     } else {
       alert("IDまたはパスワードが違います。");
