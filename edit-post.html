@@ -81,6 +81,49 @@
     .loading-overlay.active {
       display: flex;
     }
+
+    /* ===== 修正パッチ: フォーム全体の整形 ===== */
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 30px;
+  min-height: 100vh;
+  background: transparent;
+}
+
+/* ===== 編集フォーム全体の調整 ===== */
+#editForm {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  background: #1b1b1b;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+/* ===== ボタン位置補正 ===== */
+#editForm button {
+  display: block;
+  width: fit-content;
+  margin-left: auto;
+  margin-top: 25px;
+}
+
+/* ===== サムネ画像整形 ===== */
+.thumb-preview {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 10px auto;
+  border-radius: 6px;
+  object-fit: contain;
+  background: #111;
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}
   </style>
 </head>
 
