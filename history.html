@@ -68,18 +68,25 @@
     return (text||"").toString().toLowerCase().normalize("NFKC").replace(/\s+/g,"");
   }
 
- // ✅ 修正版：多重配列を平坦化して読み込む
 async function loadHistory(){
   try {
-    const res = await fetch("history.json?t="+Date.now(), {cache:"no-store"});
+    const res = await fetch("history.json?t=" + Date.now(), { cache: "no-store" });
     let list = await res.json();
 
-    // 🔥 配列が多重構造になっていたら自動で平坦化
+    // 🔥 多重配列をフラット化
     while (Array.isArray(list[0])) {
       list = list.flat();
     }
 
-    historyData = list;
+    // 🧹 タイトルベースで重複削除（最後に現れたものを採用）
+    const uniqueMap = new Map();
+    for (const item of list) {
+      if (!item) continue;
+      const key = item.title_original || item.title_final || "(無題)";
+      uniqueMap.set(key, item);
+    }
+
+    historyData = Array.from(uniqueMap.values());
     renderHistory();
   } catch (err) {
     console.error("history.jsonの読み込みに失敗:", err);
