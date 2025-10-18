@@ -214,10 +214,6 @@
     titleInput.addEventListener("input", updateCounter);
 
     const tagInput = document.getElementById("tags");
-    tagInput.addEventListener("input", () => {
-      const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
-      document.getElementById("tagCount").textContent = `タグ数：${tags.length}個`;
-    });
 
     document.getElementById("editForm").addEventListener("submit", async e => {
       e.preventDefault();
@@ -449,6 +445,56 @@ window.addEventListener("DOMContentLoaded", async () => {
   // 履歴読み込み直後の初期値を即時反映
   // （loadPost → 値が入ったあとでもここが走るので確実に反映される）
   requestAnimationFrame(update);
+})();
+
+    // 🖼️ サムネ①＆②プレビュー＋クリック拡大表示
+(() => {
+  const makePreview = (inputId, previewId) => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const preview = document.createElement("img");
+    preview.id = previewId;
+    preview.className = "thumb-preview";
+    preview.style.cursor = "zoom-in";
+    preview.style.maxWidth = "200px";
+    preview.style.marginTop = "6px";
+    input.insertAdjacentElement("afterend", preview);
+
+    // 入力で即時プレビュー反映
+    input.addEventListener("input", e => {
+      preview.src = e.target.value.trim() || "";
+    });
+  };
+
+  makePreview("thumbPick1", "thumbPreview1");
+  makePreview("thumbPick2", "thumbPreview2");
+
+  // 拡大ポップアップ
+  const overlay = document.createElement("div");
+  Object.assign(overlay.style, {
+    position: "fixed",
+    top: 0, left: 0, width: "100vw", height: "100vh",
+    background: "rgba(0,0,0,0.8)",
+    display: "none", justifyContent: "center", alignItems: "center",
+    zIndex: 9999, cursor: "zoom-out"
+  });
+  const fullImg = document.createElement("img");
+  Object.assign(fullImg.style, {
+    maxWidth: "95%", maxHeight: "95%", borderRadius: "10px", boxShadow: "0 0 10px #000"
+  });
+  overlay.appendChild(fullImg);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", () => overlay.style.display = "none");
+
+  // 全プレビューにクリックイベント追加
+  document.addEventListener("click", e => {
+    if (e.target.classList.contains("thumb-preview") && e.target.src) {
+      fullImg.src = e.target.src;
+      overlay.style.display = "flex";
+    }
+  });
 })();
   </script>
 </body>
