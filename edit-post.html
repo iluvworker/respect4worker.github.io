@@ -413,8 +413,167 @@ async function loadPost() {
       alert("⚠️ 保存中にエラーが発生しました。");
     }
   });
+    // === 保存処理ここまで ===
+  
+// ✅ tag-manager（区切り線対応済）
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadPost();
 
-  loadPost();
-</script>
+    const tagInput = document.getElementById("tags");
+    if (!tagInput) throw new Error("#tags が見つかりません");
+
+    const res = await fetch("tag-manager.json?ts=" + Date.now());
+    if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
+    const tagGroups = await res.json();
+
+    const container = document.createElement("div");
+    container.id = "tagButtons";
+    container.style.marginTop = "14px";
+
+    for (const [group, tags] of Object.entries(tagGroups)) {
+      // --- 区切り線処理追加 ---
+      if (group.startsWith("-")) {
+        const hr = document.createElement("hr");
+        hr.style.border = "none";
+        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+        hr.style.margin = "16px 0";
+        container.appendChild(hr);
+        continue;
+      }
+      // ---------------------
+
+      const groupDiv = document.createElement("div");
+      groupDiv.style.marginBottom = "8px";
+
+      const title = document.createElement("h4");
+      title.textContent = group;
+      title.style.color = "#47bcec";
+      title.style.fontSize = "13px";
+      title.style.margin = "0 0 3px 0";
+      groupDiv.appendChild(title);
+
+      const btnWrap = document.createElement("div");
+      btnWrap.style.display = "flex";
+      btnWrap.style.flexWrap = "wrap";
+      btnWrap.style.columnGap = "5px";
+      btnWrap.style.rowGap = "3px";
+
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.textContent = tag;
+        btn.type = "button";
+        Object.assign(btn.style, {
+          background: "#2b2b2b",
+          color: "#b0cfff",
+          border: "1px solid #444",
+          borderRadius: "5px",
+          fontSize: "12px",
+          padding: "3px 9px",
+          cursor: "pointer",
+          margin: "1px 4px 1px 0",
+          lineHeight: "1.3",
+          transition: "all 0.2s ease"
+        });
+        btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
+        btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
+        btn.addEventListener("click", () => {
+          const current = tagInput.value.trim().split(/\s+/).filter(Boolean);
+          if (!current.includes(tag)) {
+            current.push(tag);
+            tagInput.value = current.join(" ");
+            tagInput.dispatchEvent(new Event("input"));
+          }
+        });
+        btnWrap.appendChild(btn);
+      });
+
+      groupDiv.appendChild(btnWrap);
+      container.appendChild(groupDiv);
+    }
+
+    // ✅ tag-manager は入力フォームの「上」に配置
+    tagInput.insertAdjacentElement("beforebegin", container);
+    console.log("✅ tag-manager 区切り線込みで配置完了");
+  } catch (err) {
+    console.error("タグ生成エラー:", err);
+  }
+});
+
+
+// ✅ 人気女優・監督（下）
+window.addEventListener("DOMContentLoaded", async () => {
+  const tagInput = document.getElementById("tags");
+  const notes = document.getElementById("notes");
+  if (!tagInput || !notes) return;
+
+  try {
+    const res = await fetch("tag-manager2.json?ts=" + Date.now());
+    if (!res.ok) throw new Error("tag-manager2.json が見つかりません");
+    const tagGroups = await res.json();
+
+    const container = document.createElement("div");
+    container.id = "tagButtons2";
+    container.style.marginTop = "14px";
+    container.style.marginBottom = "14px";
+
+    for (const [group, tags] of Object.entries(tagGroups)) {
+      const groupDiv = document.createElement("div");
+      groupDiv.style.marginBottom = "8px";
+
+      const title = document.createElement("h4");
+      title.textContent = group;
+      title.style.color = "#47bcec";
+      title.style.fontSize = "13px";
+      title.style.margin = "0 0 3px 0";
+      groupDiv.appendChild(title);
+
+      const btnWrap = document.createElement("div");
+      btnWrap.style.display = "flex";
+      btnWrap.style.flexWrap = "wrap";
+      btnWrap.style.columnGap = "5px";
+      btnWrap.style.rowGap = "3px";
+
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.textContent = tag;
+        btn.type = "button";
+        Object.assign(btn.style, {
+          background: "#2b2b2b",
+          color: "#b0cfff",
+          border: "1px solid #444",
+          borderRadius: "5px",
+          fontSize: "12px",
+          padding: "3px 9px",
+          cursor: "pointer",
+          margin: "1px 4px 1px 0",
+          lineHeight: "1.3",
+          transition: "all 0.2s ease"
+        });
+        btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
+        btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
+        btn.addEventListener("click", () => {
+          const current = tagInput.value.trim().split(/\s+/).filter(Boolean);
+          if (!current.includes(tag)) {
+            current.push(tag);
+            tagInput.value = current.join(" ");
+            tagInput.dispatchEvent(new Event("input"));
+          }
+        });
+        btnWrap.appendChild(btn);
+      });
+
+      groupDiv.appendChild(btnWrap);
+      container.appendChild(groupDiv);
+    }
+
+    // ✅ 入力フォームの下、備考の上に配置
+    tagInput.insertAdjacentElement("afterend", container);
+    console.log("✅ 人気女優・監督タグ群を正しい位置に配置");
+  } catch (e) {
+    console.error("人気女優タグロード失敗:", e);
+  }
+});
+  </script>
 </body>
 </html>
