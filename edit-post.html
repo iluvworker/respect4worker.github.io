@@ -456,30 +456,30 @@ window.addEventListener("DOMContentLoaded", async () => {
       // タグボタン群
       const btnWrap = document.createElement("div");
       btnWrap.style.display = "flex";
-btnWrap.style.flexWrap = "wrap";
-btnWrap.style.gap = "1px 6px"; // ← 横4px・縦5pxに
-      btnWrap.style.rowGap = "0px";   // ← 各行の間のスペースを詰める
-btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
-      btnWrap.style.justifyContent = "flex-start"; // ← 均等割じゃなく左寄せキープ
+      btnWrap.style.flexWrap = "wrap";
+      btnWrap.style.gap = "1px 6px";
+      btnWrap.style.rowGap = "0px";
+      btnWrap.style.columnGap = "5px";
+      btnWrap.style.justifyContent = "flex-start";
 
       tags.forEach(tag => {
-  const btn = document.createElement("button");
-  btn.textContent = tag;
-  btn.type = "button";
-  btn.style.background = "#2b2b2b";
-  btn.style.color = "#b0cfff";
-  btn.style.border = "1px solid #444";
-  btn.style.borderRadius = "5px";
-  btn.style.fontSize = "12px";
-  btn.style.padding = "3px 9px";
-  btn.style.cursor = "pointer";
-  btn.style.transition = "all 0.2s ease";
-  btn.style.flexShrink = "0";
-  btn.style.lineHeight = "1";
-  btn.style.margin = "2px 4px 0 0"; // ← ココ！！縦を1pxに詰めて横に少し余白
+        const btn = document.createElement("button");
+        btn.textContent = tag;
+        btn.type = "button";
+        btn.style.background = "#2b2b2b";
+        btn.style.color = "#b0cfff";
+        btn.style.border = "1px solid #444";
+        btn.style.borderRadius = "5px";
+        btn.style.fontSize = "12px";
+        btn.style.padding = "3px 9px";
+        btn.style.cursor = "pointer";
+        btn.style.transition = "all 0.2s ease";
+        btn.style.flexShrink = "0";
+        btn.style.lineHeight = "1";
+        btn.style.margin = "2px 4px 0 0";
 
-  btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
-  btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
+        btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
+        btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
 
         btn.addEventListener("click", () => {
           const input = document.getElementById("tags");
@@ -488,25 +488,29 @@ btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
           if (!current.includes(tag)) {
             current.push(tag);
             input.value = current.join(" ");
-            input.dispatchEvent(new Event("input")); // タグ数カウンタ更新
+            input.dispatchEvent(new Event("input"));
           }
         });
 
         btnWrap.appendChild(btn);
       });
 
-     groupDiv.appendChild(btnWrap);
+      groupDiv.appendChild(btnWrap);
 
-// 「プレイ」ブロックの直後にタグ入力フォームを挿入
-if (group === "プレイ") {
-  const tagInput = document.getElementById("tags");
-  if (tagInput) container.appendChild(tagInput);
-}
+      // 「プレイ」ブロックの直後にタグ入力フォームを挿入
+      if (group === "プレイ") {
+        const tagInput = document.getElementById("tags");
+        if (tagInput) container.appendChild(tagInput);
+      }
 
-container.appendChild(groupDiv);
+      container.appendChild(groupDiv);
+    }
 
+    // 🟡 ← ここ重要：最後にフォームの前へ配置
+    const tagInput = document.getElementById("tags");
     if (tagInput) tagInput.insertAdjacentElement("beforebegin", container);
     else console.warn("⚠️ タグ入力欄 (#tags) が見つかりませんでした。");
+
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
