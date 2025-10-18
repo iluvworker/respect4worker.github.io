@@ -179,7 +179,7 @@ a#thumbLink[href="#"] {
     try {
       const res = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return false;
-      const list = await res.json=();
+const list = await res.json();
       return list.some(p =>
         (p.video || "") === (editedPost.video || "") &&
         (p.url || "") === (editedPost.url || "") &&
