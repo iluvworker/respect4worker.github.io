@@ -278,60 +278,75 @@ document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
 
   await loadHistoryPost();
 
-  // ========= タグボタン群（属性/女優） =========
-  const createTagButtons = async (file, insertAfterEl) => {
-    const res = await fetch(`${file}?ts=${Date.now()}`);
-    if (!res.ok) return;
-    const tagGroups = await res.json();
-    const container = document.createElement("div");
-    container.style.margin = "14px 0";
-    for (const [group, tags] of Object.entries(tagGroups)) {
-      if (group.startsWith("-")) {
-        const hr = document.createElement("hr");
-        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-        hr.style.margin = "16px 0";
-        container.appendChild(hr);
-        continue;
-      }
-      const h4 = document.createElement("h4");
-      h4.textContent = group;
-      h4.style.color = "#47bcec";
-      h4.style.fontSize = "13px";
-      h4.style.margin = "0 0 4px";
-      container.appendChild(h4);
+// ========= タグボタン群（属性/女優） =========
+const createTagButtons = async (file, insertAfterEl) => {
+  const res = await fetch(`${file}?ts=${Date.now()}`);
+  if (!res.ok) return;
+  const tagGroups = await res.json();
 
-      const wrap = document.createElement("div");
-      wrap.style.display = "flex";
-      wrap.style.flexWrap = "wrap";
-      wrap.style.gap = "4px";
+  const container = document.createElement("div");
+  container.style.margin = "14px 0";
 
-      tags.forEach(tag => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.textContent = tag;
-        Object.assign(btn.style, {
-          background: "#2b2b2b", color: "#b0cfff",
-          border: "1px solid #444", borderRadius: "5px",
-          fontSize: "12px", padding: "3px 8px", cursor: "pointer"
-        });
-        btn.addEventListener("click", () => {
-          const cur = splitTags(tagInput.value);
-          if (!cur.includes(tag)) {
-            tagInput.value = [...cur, tag].join(" ");
-            tagInput.dispatchEvent(new Event("input"));
-          }
-        });
-        wrap.appendChild(btn);
-      });
-
-      container.appendChild(wrap);
+  for (const [group, tags] of Object.entries(tagGroups)) {
+    if (group.startsWith("-")) {
+      const hr = document.createElement("hr");
+      hr.style.border = "none";
+      hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+      hr.style.margin = "16px 0";
+      container.appendChild(hr);
+      continue;
     }
-    insertAfterEl.insertAdjacentElement("afterend", container);
-  };
 
-  await createTagButtons("tag-manager.json", tagInput);
-  await createTagButtons("tag-manager2.json", tagCount);
+    const title = document.createElement("h4");
+    title.textContent = group;
+    title.style.color = "#47bcec";
+    title.style.fontSize = "13px";
+    title.style.margin = "6px 0 3px 0";
+    container.appendChild(title);
 
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.flexWrap = "wrap";
+    wrap.style.gap = "6px";
+
+    tags.forEach(tag => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = tag;
+      Object.assign(btn.style, {
+        background: "#2e2e2e",
+        color: "#b0cfff",
+        border: "1px solid #444",
+        borderRadius: "6px",
+        fontSize: "13px",
+        padding: "4px 10px",
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      });
+      btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
+      btn.addEventListener("mouseleave", () => btn.style.background = "#2e2e2e");
+      btn.addEventListener("click", () => {
+        const cur = splitTags(tagInput.value);
+        if (!cur.includes(tag)) {
+          tagInput.value = [...cur, tag].join(" ");
+          tagInput.dispatchEvent(new Event("input"));
+        }
+      });
+      wrap.appendChild(btn);
+    });
+
+    container.appendChild(wrap);
+  }
+
+  // 💎 edit-post.html と同じ位置構成に統一
+  insertAfterEl.insertAdjacentElement("afterend", container);
+};
+
+// 属性・シチュなどのタグ群（タグ入力欄の直下）
+await createTagButtons("tag-manager.json?ts=", tagInput);
+
+// 人気女優タグ群（タグ数の直下ではなく、タグ入力欄の直下に統一）
+await createTagButtons("tag-manager2.json?ts=", tagInput);
 });
 </script>
 </body>
