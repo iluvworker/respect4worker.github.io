@@ -216,13 +216,13 @@ a#thumbLink[href="#"] {
       }
 
       document.getElementById("originalTitle").value = post.title || "";
-      document.getElementById("url").value = post.url || "";
-      document.getElementById("editableTitle").value = ""; // ← タイトルは常に空から
-      document.getElementById("thumbOriginal").value = post.thumb || "";
-      document.getElementById("video").value = post.video || "";
-      document.getElementById("videoLink").href = post.video || "#";
-      document.getElementById("thumbPreview").src = post.thumb || "";
-      document.getElementById("thumbLink").href = post.url || "#";
+document.getElementById("thumbOriginal").value = post.thumb || "";
+document.getElementById("url").value = post.url || "";
+document.getElementById("video").value = post.video || "";
+
+document.getElementById("videoLink").href = post.video || "#";
+document.getElementById("thumbPreview").src = post.thumb || "";
+document.getElementById("thumbLink").href = post.url || "#";
 
       updateCounter();
       updateTagCount();
