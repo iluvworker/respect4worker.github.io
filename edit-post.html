@@ -496,7 +496,7 @@ btnWrap.style.marginBottom = "4px"; // ← 下の余白も軽く追加
     }
 
     const tagInput = document.getElementById("tags");
-    if (tagInput) tagInput.insertAdjacentElement("afterend", container);
+    if (tagInput) tagInput.insertAdjacentElement("beforebegin", container);
     else console.warn("⚠️ タグ入力欄 (#tags) が見つかりませんでした。");
   } catch (err) {
     console.error("タグ生成エラー:", err);
