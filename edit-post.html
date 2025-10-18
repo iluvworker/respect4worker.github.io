@@ -193,6 +193,9 @@ a#thumbLink[href="#"] {
 
   // === 投稿読み込み（posts.json or history.json） ===
   async function loadPost() {
+   const post = posts.find(p => String(p.id) === postId);
+console.log("🧩 postId:", postId);
+console.log("🧩 post:", post);
     try {
       const params = new URLSearchParams(window.location.search);
       const type = params.get("type");
