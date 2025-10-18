@@ -444,7 +444,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       // グループタイトル
       const groupDiv = document.createElement("div");
-      groupDiv.style.marginBottom = "14px";
+      groupDiv.style.marginBottom = "8px";
 
       const title = document.createElement("h4");
       title.textContent = group;
@@ -456,8 +456,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       // タグボタン群
       const btnWrap = document.createElement("div");
       btnWrap.style.display = "flex";
-      btnWrap.style.flexWrap = "wrap";
-      btnWrap.style.gap = "6px";
+btnWrap.style.flexWrap = "wrap";
+btnWrap.style.gap = "4px 5px"; // ← 横4px・縦5pxに
+btnWrap.style.marginBottom = "4px"; // ← 下の余白も軽く追加
 
       tags.forEach(tag => {
         const btn = document.createElement("button");
