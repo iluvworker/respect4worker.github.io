@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📜 編集履歴エディタ（船長）</title>
+  <title>📜 編集履歴一覧</title>
 
   <link rel="stylesheet" href="assets/style.css?v=4">
   <script src="assets/sidebar.js" defer></script>
@@ -24,245 +24,126 @@
       margin-bottom: 20px;
     }
 
-    #editForm {
-      max-width: 720px;
-      margin: 0 auto;
-      background: #1b1b1b;
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-
-    #editForm label {
-      display: block;
-      margin-top: 12px;
-      color: #b0cfff;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    #editForm input, #editForm textarea {
+    table {
       width: 100%;
-      background: #222;
-      border: 1px solid #333;
-      border-radius: 6px;
-      color: #fff;
-      padding: 8px;
-      font-size: 14px;
-      margin-top: 5px;
+      border-collapse: collapse;
+      background: #1c1c1c;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
-    #editForm textarea {
-      min-height: 120px;
-      resize: vertical;
+    th, td {
+      border-bottom: 1px solid #333;
+      padding: 10px;
+      text-align: left;
     }
 
-    #editForm button {
-      background: #47bcec;
-      color: #111;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 22px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
-      margin-top: 20px;
-      float: right;
-    }
-
-    .thumb-preview {
-      width: 180px;
-      border-radius: 6px;
-      margin-top: 10px;
-      display: block;
-    }
-
-    .video-link {
-      display: inline-block;
-      margin-top: 5px;
+    th {
+      background: #2a2a2a;
       color: #47bcec;
-      text-decoration: none;
-      font-size: 13px;
+      font-weight: 700;
     }
 
-    .video-link:hover {
+    tr:hover {
+      background: #222;
+    }
+
+    a.btn-edit {
+      color: #00d0ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a.btn-edit:hover {
       text-decoration: underline;
     }
 
-    .counter {
-      font-size: 12px;
-      margin-top: 4px;
-      font-weight: 500;
-      display: inline-block;
-      transition: all 0.3s ease;
+    .status {
+      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 5px;
     }
 
-    .counter.ok {
-      color: #00e0b5;
-      background: rgba(0, 255, 200, 0.12);
-      border: 1px solid rgba(0, 255, 200, 0.25);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .counter.warn {
-      color: #ff6a6a;
-      background: rgba(255, 80, 80, 0.1);
-      border: 1px solid rgba(255, 80, 80, 0.25);
-      padding: 2px 6px;
-      border-radius: 4px;
+    .status.edited {
+      background: rgba(0,255,150,0.1);
+      color: #00e6b0;
+      border: 1px solid rgba(0,255,150,0.3);
     }
   </style>
 </head>
 
 <body>
-
   <main class="main-content">
-    <h1 class="main-title">📜 編集履歴エディタ（船長）</h1>
-
-    <form id="editForm">
-      <label>商品タイトル</label>
-      <input type="text" id="originalTitle" placeholder="船長投稿時のタイトル" />
-
-      <label>パッケージ</label>
-      <input type="url" id="thumbOriginal" placeholder="https://example.com/thumb.jpg">
-      <a id="thumbLink" href="#" target="_blank">
-        <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
-      </a>
-
-      <label>商品ページ</label>
-      <input type="text" id="url" placeholder="動画や商品ページのURL" />
-
-      <label>タイトル（50〜60文字）</label>
-      <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
-      <div id="titleCounter" class="counter"></div>
-
-      <label>サムネ①</label>
-      <input type="url" id="thumbPick1" placeholder="右クリック→画像のアドレスをコピーしてここにペースト">
-
-      <label>サムネ②</label>
-      <input type="url" id="thumbPick2" placeholder="同上">
-
-      <label>動画</label>
-      <input type="text" id="video">
-      <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
-
-      <label>タグ（スペース区切り）</label>
-      <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ 計8個">
-      <div id="tagCount" style="color:#aaa;font-size:13px;margin-top:4px;">0個</div>
-
-      <label>内容メモ／補足（任意）</label>
-      <textarea id="notes" placeholder="補足や備考を入力..."></textarea>
-
-      <button type="submit">💾 履歴を上書き保存</button>
-    </form>
+    <h1 class="main-title">📜 編集履歴一覧</h1>
+    <div style="margin-bottom: 15px;">
+  <input type="text" id="searchBox" placeholder="タイトル・編集者・タグで検索" 
+         style="width: 320px; padding: 6px 10px; border-radius: 6px; border: 1px solid #444; background:#222; color:#fff;">
+</div>
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>タイトル（編集後）</th>
+          <th>動画</th>
+          <th>タグ数</th>
+          <th>編集者</th>
+          <th>更新日時</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </main>
 
   <script>
-    function encodeToBase64(str) {
-      return btoa(unescape(encodeURIComponent(str)));
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const postId = params.get("id");
-
-    async function loadHistoryPost() {
+    async function loadHistory() {
       try {
-        const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
-        const posts = await res.json();
-        const post = posts.find(p => String(p.id) === postId);
-        if (!post) {
-          alert("該当する履歴データが見つかりません。");
-          return;
-        }
+        const res = await fetch("history.json?t=" + Date.now(), { cache: "no-store" });
+        const list = await res.json();
 
-        document.getElementById("originalTitle").value = post.title_original || "";
-        document.getElementById("editableTitle").value = post.title_final || "";
-        document.getElementById("thumbOriginal").value = post.thumb_original || "";
-        document.getElementById("thumbPreview").src = post.thumb_original || "";
-        document.getElementById("url").value = post.url || "";
-        document.getElementById("video").value = post.video || "";
-        document.getElementById("videoLink").href = post.video || "#";
-        document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
-        document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
-        document.getElementById("tags").value = (post.tags || []).join(" ");
-        document.getElementById("notes").value = post.notes || "";
-        updateCounter();
+        const tbody = document.querySelector("#historyTable tbody");
+        tbody.innerHTML = "";
+
+        list.slice().reverse().forEach(p => {
+          const tr = document.createElement("tr");
+
+          const tags = (p.tags || []).filter(Boolean);
+          const editor = p.editor || "船長";
+          const updatedAt = p.updated_at
+            ? new Date(p.updated_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+            : "-";
+
+          tr.innerHTML = `
+            <td>${p.id || "-"}</td>
+            <td>${p.title_final || "(無題)"}</td>
+            <td><a href="${p.video || "#"}" target="_blank">▶</a></td>
+            <td>${tags.length}</td>
+            <td>${editor}</td>
+            <td>${updatedAt}</td>
+            <td>
+              <a class="btn-edit" href="history-edit.html?id=${p.id}">編集</a>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
       } catch (err) {
-        console.error("ロードエラー:", err);
-        alert("履歴の読み込みに失敗しました。");
+        console.error("読み込み失敗:", err);
+        alert("history.json の読み込みに失敗しました。");
       }
     }
 
-    document.getElementById("thumbOriginal").addEventListener("input", e => {
-      document.getElementById("thumbPreview").src = e.target.value.trim() || "";
-    });
+    loadHistory();
+    // === 🔍 検索機能 ===
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  const keyword = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll("#historyTable tbody tr");
 
-    const titleInput = document.getElementById("editableTitle");
-    const counter = document.getElementById("titleCounter");
-    function updateCounter() {
-      const len = titleInput.value.length;
-      counter.classList.remove("ok", "warn");
-      if (len >= 50 && len <= 60) {
-        counter.classList.add("ok");
-        counter.textContent = `✅ ${len}文字（合格っ🫶）`;
-      } else {
-        counter.classList.add("warn");
-        counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
-      }
-    }
-    titleInput.addEventListener("input", updateCounter);
-
-    const tagInput = document.getElementById("tags");
-    tagInput.addEventListener("input", () => {
-      const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
-      document.getElementById("tagCount").textContent = `タグ数：${tags.length}個`;
-    });
-
-    document.getElementById("editForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const res = await fetch("history.json?t=" + Date.now());
-      const list = await res.json();
-      const index = list.findIndex(p => String(p.id) === postId);
-      if (index === -1) {
-        alert("該当データが見つかりません。");
-        return;
-      }
-
-      list[index] = {
-        ...list[index],
-        title_original: document.getElementById("originalTitle").value,
-        title_final: document.getElementById("editableTitle").value,
-        thumb_original: document.getElementById("thumbOriginal").value,
-        thumb_pick1: document.getElementById("thumbPick1").value,
-        thumb_pick2: document.getElementById("thumbPick2").value,
-        url: document.getElementById("url").value,
-        video: document.getElementById("video").value,
-        tags: tagInput.value.split(" ").map(t => t.trim()).filter(Boolean),
-        notes: document.getElementById("notes").value,
-        updated_at: new Date().toISOString()
-      };
-
-      const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Update post in history (船長)",
-          target: "history.json",
-          content: encodeToBase64(JSON.stringify(list, null, 2))
-        })
-      });
-
-      if (saveRes.ok) {
-        alert("✅ 編集履歴を上書き保存しました！");
-        window.location.href = "history.html";
-      } else {
-        alert("⚠️ 保存失敗: " + saveRes.status);
-      }
-    });
-
-    loadHistoryPost();
+  rows.forEach(tr => {
+    const text = tr.innerText.toLowerCase();
+    tr.style.display = text.includes(keyword) ? "" : "none";
+  });
+});
   </script>
 </body>
 </html>
