@@ -162,9 +162,10 @@
   }
 
   // ✏ 履歴由来として edit-post を開く（type=history）
-  function editPost(id){
-    window.location.href = `edit-post.html?id=${id}&type=history`;
-  }
+// ✏ 履歴編集ページに遷移
+function editPost(id){
+  window.location.href = `history-edit.html?id=${id}`;
+}
 
   // 🗑 削除（history.json から対象IDを除外して保存）
   async function deletePost(id){
