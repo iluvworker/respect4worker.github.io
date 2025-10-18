@@ -265,59 +265,86 @@ if (type === "history") {
   });
 
   document.getElementById("editForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-// 🔒 編集履歴の重複チェック
-if (await isDupInHistory({
-  video: document.getElementById("video").value,
-  url: document.getElementById("url").value,
-  title_original: document.getElementById("originalTitle").value
-})) {
-  alert("⚠️ この商品はすでに編集履歴に存在します（video＋url＋title_original一致）");
-  return;
-}
-    const user = JSON.parse(localStorage.getItem("loginUser"));
-    const editor = user ? user.name : "船長";
+  e.preventDefault();
 
-    const editedPost = {
-      id: postId,
-      title_original: document.getElementById("originalTitle").value,
-      url: document.getElementById("url").value,
-      title_final: document.getElementById("editableTitle").value,
-      thumb_original: document.getElementById("thumbOriginal").value,
-      thumb_pick1: document.getElementById("thumbPick1").value,
-      thumb_pick2: document.getElementById("thumbPick2").value,
-      video: document.getElementById("video").value,
-      tags: document.getElementById("tags").value.split(" ").map(t => t.trim()).filter(Boolean),
-      notes: document.getElementById("notes").value,
-      editor,
-      updated_at: new Date().toISOString(),
-      status: "edited"
-    };
+  // 🔒 編集履歴の重複チェック
+  if (await isDupInHistory({
+    video: document.getElementById("video").value,
+    url: document.getElementById("url").value,
+    title_original: document.getElementById("originalTitle").value
+  })) {
+    alert("⚠️ この商品はすでに編集履歴に存在します（video＋url＋title_original一致）");
+    return;
+  }
 
-    try {
-      const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "Add edited post to history (船長)",
-          target: "history.json",
-          content: encodeToBase64(JSON.stringify(editedPost, null, 2))
-        })
-      });
+  const user = JSON.parse(localStorage.getItem("loginUser"));
+  const editor = user ? user.name : "船長";
 
-      if (res.ok) {
-        alert("✅ 編集履歴を保存しました（history.json）");
-        window.location.href = "post-list.html";
-      } else {
-        alert("⚠️ 保存失敗: " + res.status);
+  const editedPost = {
+    id: postId,
+    title_original: document.getElementById("originalTitle").value,
+    url: document.getElementById("url").value,
+    title_final: document.getElementById("editableTitle").value,
+    thumb_original: document.getElementById("thumbOriginal").value,
+    thumb_pick1: document.getElementById("thumbPick1").value,
+    thumb_pick2: document.getElementById("thumbPick2").value,
+    video: document.getElementById("video").value,
+    tags: document.getElementById("tags").value.split(" ").map(t => t.trim()).filter(Boolean),
+    notes: document.getElementById("notes").value,
+    editor,
+    updated_at: new Date().toISOString(),
+    status: "edited"
+  };
+
+  try {
+    // ✅ まず history.json に保存
+    const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Add edited post to history.json",
+        target: "history.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(editedPost, null, 2))))
+      })
+    });
+
+    // 💾 保存成功後に posts.json 側を更新
+    if (res.ok) {
+      alert("✅ 編集履歴を保存しました（history.json）");
+
+      try {
+        const resPosts = await fetch("posts.json?t=" + Date.now(), { cache: "no-store" });
+        const posts = await resPosts.json();
+        const updatedPosts = posts.map(p =>
+          String(p.id) === String(postId)
+            ? { ...p, status: "edited", updated_at: new Date().toISOString() }
+            : p
+        );
+
+        await fetch("https://github-writer.eda-ksuke.workers.dev", {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: `Mark edited post id:${postId}`,
+            target: "posts.json",
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedPosts, null, 2))))
+          })
+        });
+      } catch (e) {
+        console.warn("posts.json更新失敗:", e);
       }
-    } catch (err) {
-      console.error("送信エラー:", err);
-      alert("⚠️ 保存中にエラーが発生しました。");
-    }
-  });
 
+      window.location.href = "post-list.html";
+    } else {
+      alert("⚠️ 保存失敗: " + res.status);
+    }
+  } catch (err) {
+    console.error("送信エラー:", err);
+    alert("⚠️ 保存中にエラーが発生しました。");
+  }
+});
   loadPost();
   </script>
 </body>
