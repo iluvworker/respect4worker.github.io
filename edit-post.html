@@ -416,85 +416,92 @@ async function loadPost() {
     // === 保存処理ここまで ===
   });
   
-  // ✅ DOMが完全に読み込まれてから実行
-  window.addEventListener("DOMContentLoaded", () => {
+ // ✅ DOMが完全に読み込まれてから実行
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
     // 投稿データのロード
-    loadPost();
+    await loadPost();
 
     // タグ一覧のロード
-    fetch("tag-manager.json?ts=" + Date.now())
-      .then(res => res.json())
-      .then(tagGroups => {
-        const container = document.createElement("div");
-        container.id = "tagButtons";
-        container.style.marginTop = "14px";
+    const res = await fetch("tag-manager.json?ts=" + Date.now());
+    if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
+    const tagGroups = await res.json();
 
-        for (const [group, tags] of Object.entries(tagGroups)) {
-          if (group.startsWith("-")) {
-            const hr = document.createElement("hr");
-            hr.style.border = "none";
-            hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-            hr.style.width = "100%";
-            hr.style.margin = "16px 0";
-            container.appendChild(hr);
-            continue;
+    const container = document.createElement("div");
+    container.id = "tagButtons";
+    container.style.marginTop = "14px";
+
+    for (const [group, tags] of Object.entries(tagGroups)) {
+      // 区切り線対応
+      if (group.startsWith("-")) {
+        const hr = document.createElement("hr");
+        hr.style.border = "none";
+        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+        hr.style.width = "100%";
+        hr.style.margin = "16px 0";
+        container.appendChild(hr);
+        continue;
+      }
+
+      // グループタイトル
+      const groupDiv = document.createElement("div");
+      groupDiv.style.marginBottom = "14px";
+
+      const title = document.createElement("h4");
+      title.textContent = group;
+      title.style.color = "#47bcec";
+      title.style.fontSize = "13px";
+      title.style.margin = "0 0 6px 0";
+      groupDiv.appendChild(title);
+
+      // タグボタン群
+      const btnWrap = document.createElement("div");
+      btnWrap.style.display = "flex";
+      btnWrap.style.flexWrap = "wrap";
+      btnWrap.style.gap = "6px";
+
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.textContent = tag;
+        btn.type = "button";
+        btn.style.background = "#2b2b2b";
+        btn.style.color = "#b0cfff";
+        btn.style.border = "1px solid #444";
+        btn.style.borderRadius = "5px";
+        btn.style.fontSize = "12px";
+        btn.style.padding = "4px 10px";
+        btn.style.cursor = "pointer";
+        btn.style.transition = "all 0.2s ease";
+        btn.style.flexShrink = "0";
+
+        btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
+        btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
+
+        btn.addEventListener("click", () => {
+          const input = document.getElementById("tags");
+          if (!input) return;
+          const current = input.value.trim().split(/\s+/).filter(Boolean);
+          if (!current.includes(tag)) {
+            current.push(tag);
+            input.value = current.join(" ");
+            input.dispatchEvent(new Event("input")); // タグ数カウンタ更新
           }
+        });
 
-          const groupDiv = document.createElement("div");
-          groupDiv.style.marginBottom = "14px";
+        btnWrap.appendChild(btn);
+      });
 
-          const title = document.createElement("h4");
-          title.textContent = group;
-          title.style.color = "#47bcec";
-          title.style.fontSize = "13px";
-          title.style.margin = "0 0 6px 0";
-          groupDiv.appendChild(title);
+      groupDiv.appendChild(btnWrap);
+      container.appendChild(groupDiv);
+    }
 
-          const btnWrap = document.createElement("div");
-          btnWrap.style.display = "flex";
-          btnWrap.style.flexWrap = "wrap";
-          btnWrap.style.gap = "6px";
-
-          tags.forEach(tag => {
-            const btn = document.createElement("button");
-            btn.textContent = tag;
-            btn.type = "button";
-            btn.style.background = "#2b2b2b";
-            btn.style.color = "#b0cfff";
-            btn.style.border = "1px solid #444";
-            btn.style.borderRadius = "5px";
-            btn.style.fontSize = "12px";
-            btn.style.padding = "4px 10px";
-            btn.style.cursor = "pointer";
-            btn.style.transition = "all 0.2s ease";
-            btn.style.flexShrink = "0";
-
-            btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
-            btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
-
-            btn.addEventListener("click", () => {
-              const input = document.getElementById("tags");
-              if (!input) return;
-              const current = input.value.trim().split(/\s+/).filter(Boolean);
-              if (!current.includes(tag)) {
-                current.push(tag);
-                input.value = current.join(" ");
-                input.dispatchEvent(new Event("input"));
-              }
-            });
-
-            btnWrap.appendChild(btn);
-          });
-
-          groupDiv.appendChild(btnWrap);
-          container.appendChild(groupDiv);
-        }
-
-        const tagInput = document.getElementById("tags");
-        if (tagInput) tagInput.insertAdjacentElement("afterend", container);
-      })
-      .catch(err => console.error("タグリストの読み込みに失敗:", err));
-  });
+    const tagInput = document.getElementById("tags");
+    if (tagInput) tagInput.insertAdjacentElement("afterend", container);
+    else console.warn("⚠️ タグ入力欄 (#tags) が見つかりませんでした。");
+  } catch (err) {
+    console.error("タグ生成エラー:", err);
+  }
+});
 </script>
 </body>
 </html>
