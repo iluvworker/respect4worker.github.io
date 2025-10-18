@@ -421,6 +421,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     // 投稿データのロード
     await loadPost();
 
+    // DOMが描画されるのを少し待つ（←重要）
+    await new Promise(r => setTimeout(r, 100));
+
     // タグ一覧のロード
     const res = await fetch("tag-manager.json?ts=" + Date.now());
     if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
@@ -431,7 +434,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     container.style.marginTop = "14px";
 
     for (const [group, tags] of Object.entries(tagGroups)) {
-      // 区切り線対応
       if (group.startsWith("-")) {
         const hr = document.createElement("hr");
         hr.style.border = "none";
@@ -442,7 +444,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         continue;
       }
 
-      // グループタイトル
       const groupDiv = document.createElement("div");
       groupDiv.style.marginBottom = "4px";
 
@@ -453,13 +454,11 @@ window.addEventListener("DOMContentLoaded", async () => {
       title.style.margin = "0 0 3px 0";
       groupDiv.appendChild(title);
 
-      // タグボタン群
       const btnWrap = document.createElement("div");
       btnWrap.style.display = "flex";
       btnWrap.style.flexWrap = "wrap";
-      btnWrap.style.gap = "1px 6px";
-      btnWrap.style.rowGap = "0px";
       btnWrap.style.columnGap = "5px";
+      btnWrap.style.rowGap = "2px";
       btnWrap.style.justifyContent = "flex-start";
 
       tags.forEach(tag => {
@@ -476,7 +475,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         btn.style.transition = "all 0.2s ease";
         btn.style.flexShrink = "0";
         btn.style.lineHeight = "1";
-        btn.style.margin = "2px 4px 0 0";
 
         btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
         btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
@@ -497,7 +495,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       groupDiv.appendChild(btnWrap);
 
-      // 「プレイ」ブロックの直後にタグ入力フォームを挿入
+      // 「プレイ」の下にフォームを移動
       if (group === "プレイ") {
         const tagInput = document.getElementById("tags");
         if (tagInput) container.appendChild(tagInput);
@@ -506,11 +504,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(groupDiv);
     }
 
-    // 🟡 ← ここ重要：最後にフォームの前へ配置
+    // 最後にフォームの前に追加
     const tagInput = document.getElementById("tags");
     if (tagInput) tagInput.insertAdjacentElement("beforebegin", container);
     else console.warn("⚠️ タグ入力欄 (#tags) が見つかりませんでした。");
-
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
