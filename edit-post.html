@@ -179,14 +179,14 @@ a#thumbLink[href="#"] {
     try {
       const res = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return false;
-      const list = await res.json();
+      const list = await res.json=();
       return list.some(p =>
         (p.video || "") === (editedPost.video || "") &&
         (p.url || "") === (editedPost.url || "") &&
         (p.title_original || "") === (editedPost.title_original || "")
       );
     } catch (e) {
-      console.error("重複チェック失敗 (history.json):", e);
+      console.error("重複チェック失敗 (history.json?ts=):", e);
       return false;
     }
   }
@@ -196,7 +196,7 @@ a#thumbLink[href="#"] {
     try {
       const params = new URLSearchParams(window.location.search);
       const type = params.get("type");
-      const sourceFile = type === "history" ? "history.json" : "posts.json";
+      const sourceFile = type === "history" ? "history.json?ts=" : "posts.json?ts=";
 
       const res = await fetch(sourceFile + "?t=" + Date.now(), { cache: "no-cache" });
       const posts = await res.json();
@@ -364,8 +364,8 @@ a#thumbLink[href="#"] {
         mode: "cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: "Add edited post to history.json",
-          target: "history.json",
+          message: "Add edited post to history.json?ts=",
+          target: "history.json?ts=",
           content: encodeToBase64(JSON.stringify(historyList, null, 2))
         })
       });
@@ -387,17 +387,17 @@ a#thumbLink[href="#"] {
           mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: `Remove id:${postId} from posts.json (moved to history.json)`,
-            target: "posts.json",
+            message: `Remove id:${postId} from posts.json?ts= (moved to history.json?ts=)`,
+            target: "posts.json?ts=",
             content: encodeToBase64(JSON.stringify(updatedPosts, null, 2))
           })
         });
 
         if (!savePosts.ok) {
-          console.warn("posts.json の削除反映に失敗:", savePosts.status);
+          console.warn("posts.json?ts= の削除反映に失敗:", savePosts.status);
         }
       } catch (e2) {
-        console.warn("posts.json 更新エラー:", e2);
+        console.warn("posts.json?ts= 更新エラー:", e2);
       }
 
       alert("✅ 保存しました。投稿は履歴へ移動し、一覧から削除しました。");
