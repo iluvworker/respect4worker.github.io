@@ -415,107 +415,80 @@ async function loadPost() {
   });
     // === 保存処理ここまで ===
   
-// ✅ タグボタン生成（完全安定版）
+// ✅ タグボタン生成（最終安定配置版）
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 投稿データをロード
     await loadPost();
 
-    // ✅ #tags が確実に描画されるまで待機
-    const tagInput = await new Promise((resolve, reject) => {
-      const start = Date.now();
-      const timer = setInterval(() => {
-        const el = document.getElementById("tags");
-        if (el) {
-          clearInterval(timer);
-          resolve(el);
-        } else if (Date.now() - start > 5000) { // 5秒経過でタイムアウト
-          clearInterval(timer);
-          reject(new Error("#tags が見つかりませんでした"));
-        }
-      }, 100);
-    });
+    const tagInput = document.getElementById("tags");
+    if (!tagInput) throw new Error("#tags が見つかりません");
 
-    // タグ定義ファイルを取得
     const res = await fetch("tag-manager.json?ts=" + Date.now());
     if (!res.ok) throw new Error("tag-manager.json が読み込めませんでした。");
     const tagGroups = await res.json();
 
-    // コンテナ作成
     const container = document.createElement("div");
     container.id = "tagButtons";
     container.style.marginTop = "14px";
 
-  // グループごとに生成
-for (const [group, tags] of Object.entries(tagGroups)) {
-  if (group.startsWith("-")) {
-    const hr = document.createElement("hr");
-    hr.style.border = "none";
-    hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
-    hr.style.margin = "16px 0";
-    container.appendChild(hr);
-    continue;
-  }
-
-  const groupDiv = document.createElement("div");
-  groupDiv.style.marginBottom = "4px";
-
-  const title = document.createElement("h4");
-  title.textContent = group;
-  title.style.color = "#47bcec";
-  title.style.fontSize = "13px";
-  title.style.margin = "0 0 3px 0";
-  groupDiv.appendChild(title);
-
-  const btnWrap = document.createElement("div");
-  btnWrap.style.display = "flex";
-  btnWrap.style.flexWrap = "wrap";
-  btnWrap.style.columnGap = "5px";
-  btnWrap.style.rowGap = "2px";
-  btnWrap.style.justifyContent = "flex-start";
-
-  tags.forEach(tag => {
-    const btn = document.createElement("button");
-    btn.textContent = tag;
-    btn.type = "button";
-    btn.style.background = "#2b2b2b";
-    btn.style.color = "#b0cfff";
-    btn.style.border = "1px solid #444";
-    btn.style.borderRadius = "5px";
-    btn.style.fontSize = "12px";
-    btn.style.padding = "3px 9px";
-    btn.style.cursor = "pointer";
-    btn.style.transition = "all 0.2s ease";
-    btn.style.lineHeight = "1";
-    btn.style.margin = "1px 4px 1px 0";
-
-    btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
-    btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
-
-    btn.addEventListener("click", () => {
-      const input = document.getElementById("tags");
-      if (!input) return;
-      const current = input.value.trim().split(/\s+/).filter(Boolean);
-      if (!current.includes(tag)) {
-        current.push(tag);
-        input.value = current.join(" ");
-        input.dispatchEvent(new Event("input"));
+    for (const [group, tags] of Object.entries(tagGroups)) {
+      if (group.startsWith("-")) {
+        const hr = document.createElement("hr");
+        hr.style.border = "none";
+        hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+        hr.style.margin = "16px 0";
+        container.appendChild(hr);
+        continue;
       }
-    });
 
-    btnWrap.appendChild(btn);
-  });
+      const groupDiv = document.createElement("div");
+      groupDiv.style.marginBottom = "8px";
 
-  groupDiv.appendChild(btnWrap);
-  container.appendChild(groupDiv);
-}
+      const title = document.createElement("h4");
+      title.textContent = group;
+      title.style.color = "#47bcec";
+      title.style.fontSize = "13px";
+      title.style.margin = "0 0 3px 0";
+      groupDiv.appendChild(title);
 
-// ✅ タグ入力欄の前に配置（親子矛盾なし）
-tagInput.insertAdjacentElement("beforebegin", container);
-    // フォーム内に挿入
-    tagInput.insertAdjacentElement("beforebegin", container);
+      const btnWrap = document.createElement("div");
+      btnWrap.style.display = "flex";
+      btnWrap.style.flexWrap = "wrap";
+      btnWrap.style.columnGap = "5px";
+      btnWrap.style.rowGap = "2px";
 
-    console.log("✅ タグボタン正常生成完了");
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.textContent = tag;
+        btn.type = "button";
+        btn.style.background = "#2b2b2b";
+        btn.style.color = "#b0cfff";
+        btn.style.border = "1px solid #444";
+        btn.style.borderRadius = "5px";
+        btn.style.fontSize = "12px";
+        btn.style.padding = "3px 9px";
+        btn.style.cursor = "pointer";
+        btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
+        btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
+        btn.addEventListener("click", () => {
+          const current = tagInput.value.trim().split(/\s+/).filter(Boolean);
+          if (!current.includes(tag)) {
+            current.push(tag);
+            tagInput.value = current.join(" ");
+            tagInput.dispatchEvent(new Event("input"));
+          }
+        });
+        btnWrap.appendChild(btn);
+      });
+
+      groupDiv.appendChild(btnWrap);
+      container.appendChild(groupDiv);
+    }
+
+    // 💎 タグ欄の“直前”ではなく、“直後”に配置する
+    tagInput.insertAdjacentElement("afterend", container);
+
+    console.log("✅ タグボタン安定生成（フォームの下）");
   } catch (err) {
     console.error("タグ生成エラー:", err);
   }
