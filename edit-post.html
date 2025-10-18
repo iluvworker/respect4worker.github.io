@@ -457,8 +457,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       const btnWrap = document.createElement("div");
       btnWrap.style.display = "flex";
 btnWrap.style.flexWrap = "wrap";
-btnWrap.style.gap = "0px 6px"; // ← 横4px・縦5pxに
-      btnWrap.style.rowGap = "0px";   // ← 各行の間のスペースを詰める
+btnWrap.style.gap = "1px 6px"; // ← 横4px・縦5pxに
+      btnWrap.style.rowGap = "1px";   // ← 各行の間のスペースを詰める
 btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
       btnWrap.style.justifyContent = "flex-start"; // ← 均等割じゃなく左寄せキープ
 
@@ -476,7 +476,7 @@ btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
   btn.style.transition = "all 0.2s ease";
   btn.style.flexShrink = "0";
   btn.style.lineHeight = "1";
-  btn.style.margin = "0 4px 1px 0"; // ← ココ！！縦を1pxに詰めて横に少し余白
+  btn.style.margin = "1 4px 0 0"; // ← ココ！！縦を1pxに詰めて横に少し余白
 
   btn.addEventListener("mouseenter", () => btn.style.background = "#3b3b3b");
   btn.addEventListener("mouseleave", () => btn.style.background = "#2b2b2b");
