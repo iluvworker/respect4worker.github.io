@@ -495,7 +495,12 @@ btnWrap.style.columnGap = "5px"; // ← 横だけ少し余裕を残す
         btnWrap.appendChild(btn);
       });
 
-      groupDiv.appendChild(btnWrap);
+      groupDiv.appendChild(btnWrap
+  // 「プレイ」ブロックの直後にタグ入力フォームを挿入
+if (group === "プレイ") {
+  const tagInput = document.getElementById("tags");
+  if (tagInput) container.appendChild(tagInput);
+}
       container.appendChild(groupDiv);
     }
 
