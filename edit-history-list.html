@@ -226,60 +226,72 @@
     }
 
     function renderPosts() {
-      const grid = document.getElementById("postGrid");
-      const keyword = document.getElementById("searchInput").value.toLowerCase();
+  const grid = document.getElementById("postGrid");
+  const keyword = document.getElementById("searchInput").value.toLowerCase();
 
-      let filtered = postsData.filter(p => {
-        const matchKeyword =
-          (p.title_final && p.title_final.toLowerCase().includes(keyword)) ||
-          (p.site && p.site.toLowerCase().includes(keyword)) ||
-          (p.tags && p.tags.join(",").toLowerCase().includes(keyword)) ||
-          (p.editor && p.editor.toLowerCase().includes(keyword));
-        return matchKeyword;
-      });
+  let filtered = postsData.filter(p => {
+    const matchKeyword =
+      (p.title_final && p.title_final.toLowerCase().includes(keyword)) ||
+      (p.title_original && p.title_original.toLowerCase().includes(keyword)) ||
+      (p.tags && p.tags.join(",").toLowerCase().includes(keyword)) ||
+      (p.editor && p.editor.toLowerCase().includes(keyword));
+    return matchKeyword;
+  });
 
-      filtered.sort((a, b) => sortDesc
-        ? new Date(b.posted_at || b.created_at) - new Date(a.posted_at || a.created_at)
-        : new Date(a.posted_at || a.created_at) - new Date(b.posted_at || b.created_at)
-      );
+  filtered.sort((a, b) =>
+    sortDesc
+      ? new Date(b.posted_at || b.updated_at) - new Date(a.posted_at || a.updated_at)
+      : new Date(a.posted_at || a.updated_at) - new Date(b.posted_at || b.updated_at)
+  );
 
-      const totalPages = Math.ceil(filtered.length / perPage);
-      if (currentPage > totalPages) currentPage = totalPages || 1;
+  const totalPages = Math.ceil(filtered.length / perPage);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
 
-      const start = (currentPage - 1) * perPage;
-      const pageData = filtered.slice(start, start + perPage);
+  const start = (currentPage - 1) * perPage;
+  const pageData = filtered.slice(start, start + perPage);
 
-      grid.innerHTML = "";
-      pageData.forEach(p => {
-        const site = getSiteName(p.url);
-        const card = document.createElement("div");
-        card.className = "post-card";
+  grid.innerHTML = "";
+  pageData.forEach(p => {
+    const site = p.url?.includes("dmm.co.jp")
+      ? "FANZA"
+      : p.url?.includes("mgstage.com")
+      ? "MGS"
+      : "不明";
 
-        const dateStr = p.posted_at
-          ? new Date(p.posted_at).toLocaleString("ja-JP")
-          : "(日時不明)";
-        const editorName = p.editor || "不明";
+    const thumb =
+      p.thumb_pick1 || p.thumb_pick2 || p.thumb_original ||
+      "https://placehold.co/600x400/222/fff?text=No+Image";
 
-        card.innerHTML = `
-          <img src="${p.thumb || 'https://placehold.co/600x400/222/fff?text=No+Image'}" class="post-thumb" alt="thumb">
-          <div class="post-info">
-            <div class="post-site">${site}</div>
-            <a href="${p.url || '#'}" class="post-title" target="_blank">${p.title_final || "(タイトル未設定)"}</a>
-            <div class="post-meta">
-              <span class="editor">👤 ${editorName}</span>
-              <span class="date">🕓 ${dateStr}</span>
-            </div>
-            <div class="btn-group">
-              <button class="edit-btn" onclick="editPost('${p.id}')">📄 確認</button>
-              <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
-            </div>
+    const title = p.title_final || p.title_original || "(タイトル未設定)";
+    const editorName = p.editor || "不明";
+    const dateStr = p.posted_at
+      ? new Date(p.posted_at).toLocaleString("ja-JP")
+      : "(日時不明)";
+
+    grid.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="post-card">
+        <img src="${thumb}" class="post-thumb" alt="thumb">
+        <div class="post-info">
+          <div class="post-site">${site}</div>
+          <a href="${p.url || "#"}" class="post-title" target="_blank">${title}</a>
+          <div class="post-meta">
+            <span class="editor">👤 ${editorName}</span>
+            <span class="date">🕓 ${dateStr}</span>
           </div>
-        `;
-        grid.appendChild(card);
-      });
+          <div class="btn-group">
+            <button class="edit-btn" onclick="editPost('${p.id}')">📄 確認</button>
+            <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
+          </div>
+        </div>
+      </div>
+      `
+    );
+  });
 
-      renderPagination(totalPages);
-    }
+  renderPagination(totalPages);
+}
 
     async function deletePost(id, source = "posted.json") {
       if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
