@@ -140,8 +140,9 @@
 
       <label>動画</label>
       <input type="text" id="video">
-      <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
-
+<button id="openVideo" type="button" class="video-link" style="margin-top:6px;">
+  ▶ 動画を見る
+</button>
       <label id="labelTags">タグ（スペース区切り）</label>
       <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ 計8個">
       <div id="tagCount" style="color:#aaa;font-size:13px;margin-top:4px;">0個</div>
@@ -278,6 +279,26 @@ async function loadHistoryPost() {
     
 await loadHistoryPost();
 
+    // 🎬「動画を見る」ボタンを右側ウィンドウで開く
+document.getElementById("openVideo").addEventListener("click", () => {
+  const videoUrl = document.getElementById("video").value.trim();
+  if (!videoUrl) {
+    alert("⚠️ 動画URLが設定されていません。");
+    return;
+  }
+
+  // 🪟 新しいウィンドウを右に寄せて開く設定
+  const width = 720; // 横幅
+  const height = window.screen.height; // 全高
+  const left = window.screen.width - width; // 右寄せ
+  const top = 0;
+
+  window.open(
+    videoUrl,
+    "videoPreview",
+    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
+});
 
 // ✅ 保存イベントを追加
 document.getElementById("editForm").addEventListener("submit", async (e) => {
