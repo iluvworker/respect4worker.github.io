@@ -150,7 +150,6 @@
 
         <label>動画</label>
         <input type="url" id="video" placeholder="https://example.com/video.mp4" required />
-<button type="button" id="openVideo" style="background:#333;color:#47bcec;margin-top:5px;">🎬 動画を開く</button>
         
         <button type="submit">投稿する</button>
       </form>
@@ -296,45 +295,7 @@ if (await isDupPostEverywhere({
       }
     });
 
-    // 🎬 右側に“新しいウィンドウ”で動画を開く
-let videoWin = null;
 
-document.getElementById("openVideo").addEventListener("click", () => {
-  const url = document.getElementById("video").value.trim();
-  if (!url) return alert("⚠️ 動画URLがありません。");
-
-  const width  = 720;
-  const height = screen.availHeight - 60;
-  const left   = screen.availWidth - width;
-  const top    = 30;
-
-  const features = [
-    "popup=yes",
-    `width=${width}`,
-    `height=${height}`,
-    `left=${left}`,
-    `top=${top}`,
-    "noopener",
-    "noreferrer",
-    "resizable=yes",
-    "scrollbars=yes",
-    "menubar=no",
-    "toolbar=no",
-    "location=no",
-    "status=no"
-  ].join(",");
-
-  if (!videoWin || videoWin.closed) {
-    videoWin = window.open(url, "_blank", features);
-  } else {
-    try {
-      videoWin.location.replace(url);
-    } catch {
-      videoWin.location.href = url;
-    }
-    videoWin.focus();
-  }
-});
     loadPosts();
   </script>
 </body>
