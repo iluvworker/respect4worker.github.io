@@ -324,66 +324,110 @@ document.getElementById("openVideo").addEventListener("click", () => {
 });
     
 // ✅ 保存イベントを追加
+const toBase64 = (s) => btoa(unescape(encodeURIComponent(s)));
+
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const params   = new URLSearchParams(location.search);
+  const postId   = params.get("id");
   const isPosted = document.getElementById("isPosted").checked;
-  const user = JSON.parse(localStorage.getItem("loginUser"));
-  const editorName = user?.name ?? "船長";
+  const user     = JSON.parse(localStorage.getItem("loginUser"));
+  const editor   = user?.name ?? "船長";
 
-  if (isPosted) {
-    try {
-      // 1️⃣ history.json 読み込み
-      const hr = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
-      const hist = hr.ok ? await hr.json() : [];
-      const targetPost = hist.find(p => String(p.id) === String(postId));
-      if (!targetPost) {
-        alert("該当する履歴が見つかりません。");
-        return;
-      }
+  try {
+    // 1) 現在の history を取得
+    const hr   = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
+    let   hist = hr.ok ? await hr.json() : [];
+    while (Array.isArray(hist[0])) hist = hist.flat();
 
-      // 2️⃣ posted.json 読み込み
-      const pr = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
-      const posted = pr.ok ? await pr.json() : [];
-
-      // 3️⃣ 編集者は上書き禁止
-      const existingEditor = targetPost.editor || editorName;
-      const finalPost = { ...targetPost, editor: existingEditor, status: "posted", posted_at: new Date().toISOString() };
-
-      // 4️⃣ posted.json に追記
-      posted.push(finalPost);
-      await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Move post ${postId} to posted.json`,
-          target: "posted.json",
-          content: encodeToBase64(JSON.stringify(posted, null, 2))
-        })
-      });
-
-      // 5️⃣ history.json から削除
-      const updatedHist = hist.filter(p => String(p.id) !== String(postId));
-      await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Remove post ${postId} from history.json (moved to posted.json)`,
-          target: "history.json",
-          content: encodeToBase64(JSON.stringify(updatedHist, null, 2))
-        })
-      });
-
-      alert("✅ 掲載済みに移動しました（posted.json へ）");
-      window.location.href = "edit-history-list.html"; // ← 投稿履歴ページ
-      return;
-    } catch (err) {
-      console.error("掲載済み処理エラー:", err);
-      alert("⚠️ 掲載済み処理に失敗しました。");
+    const idx = hist.findIndex(p => String(p.id) === String(postId));
+    if (idx === -1) {
+      alert("⚠️ 該当する履歴が見つかりません。");
       return;
     }
-  } else {
-    alert("💾 掲載チェックなし：履歴の上書き保存のみを行いました。");
+
+    // 2) フォーム内容で上書き（どちらの分岐でも共通）
+    const updated = {
+      ...hist[idx],
+      title_original: document.getElementById("originalTitle").value.trim(),
+      title_final:    document.getElementById("editableTitle").value.trim(),
+      thumb_original: document.getElementById("thumbOriginal").value.trim(),
+      thumb_pick1:    document.getElementById("thumbPick1").value.trim(),
+      thumb_pick2:    document.getElementById("thumbPick2").value.trim(),
+      url:            document.getElementById("url").value.trim(),
+      video:          document.getElementById("video").value.trim(),
+      tags:           (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
+      notes:          document.getElementById("notes").value.trim(),
+      editor,
+      updated_at:     new Date().toISOString()
+    };
+
+    if (!isPosted) {
+      // ─────────────────────────────
+      // 💾 チェックなし：history.json を上書きして post-list.html へ
+      // ─────────────────────────────
+      const newHist = hist.map(p => String(p.id) === String(postId) ? updated : p);
+
+      await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Update post ${postId} in history.json (no publish)`,
+          target:  "history.json",        // ← クエリは付けない
+          content: toBase64(JSON.stringify(newHist, null, 2))
+        })
+      });
+
+      alert("💾 履歴を上書き保存しました（掲載済みには移動しません）");
+      location.href = "post-list.html";
+      return;
+    }
+
+    // ─────────────────────────────
+    // ✅ チェックあり：posted.json に移動して edit-history-list.html へ
+    // ─────────────────────────────
+    const pr     = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
+    let   posted = pr.ok ? await pr.json() : [];
+    while (Array.isArray(posted[0])) posted = posted.flat();
+
+    const finalPost = {
+      ...updated,
+      status:   "posted",
+      posted_at: new Date().toISOString(),
+      editor:   updated.editor || editor
+    };
+
+    posted.push(finalPost);
+
+    // posted.json に追記
+    await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Move post ${postId} to posted.json`,
+        target:  "posted.json",
+        content: toBase64(JSON.stringify(posted, null, 2))
+      })
+    });
+
+    // history.json から削除
+    const newHist = hist.filter(p => String(p.id) !== String(postId));
+    await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Remove post ${postId} from history.json (moved to posted.json)`,
+        target:  "history.json",
+        content: toBase64(JSON.stringify(newHist, null, 2))
+      })
+    });
+
+    alert("✅ 掲載済みに移動しました（posted.json へ）");
+    location.href = "edit-history-list.html";
+  } catch (err) {
+    console.error("保存エラー:", err);
+    alert("⚠️ 保存処理に失敗しました。");
   }
 });
 
