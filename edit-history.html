@@ -228,37 +228,30 @@ async function loadHistoryPost() {
   try {
     const params = new URLSearchParams(window.location.search);
     const postId = params.get("id");
-    const type = params.get("type") || "auto";
+    const type = params.get("type") || "auto"; // ← autoモードにして両方検索
 
     const files = type === "posted" ? ["posted.json"] :
                   type === "history" ? ["history.json"] :
-                  ["history.json", "posted.json"];
+                  ["history.json", "posted.json"]; // ← 両方見る
 
     let post = null;
-    let foundSource = "";
-
     for (const file of files) {
       const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) continue;
       let list = await res.json();
       while (Array.isArray(list[0])) list = list.flat();
-
       const found = list.find(p => String(p.id ?? "") === String(postId ?? ""));
       if (found) {
         post = found;
-        foundSource = file;
         break;
       }
     }
 
     if (!post) {
-      alert(`⚠️ history.json と posted.json のどちらにも該当データが見つかりません。\nID: ${postId}`);
+      alert(`⚠️ history.json / posted.json のどちらにも該当データが見つかりません。\nID: ${postId}`);
       return;
     }
 
-    console.log(`✅ ${foundSource} からデータ取得成功`, post);
-
-    // --- 以下代入は今のままでOK ---
+    // --- 以下代入処理はそのまま ---
     document.getElementById("originalTitle").value = post.title_original || "";
     document.getElementById("editableTitle").value = post.title_final || "";
     document.getElementById("thumbOriginal").value = post.thumb_original || "";
@@ -277,12 +270,12 @@ async function loadHistoryPost() {
     document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
     updateCounter();
     updateTagCount();
-
   } catch (err) {
     console.error("ロードエラー:", err);
     alert("履歴の読み込みに失敗しました。");
   }
 }
+    
 await loadHistoryPost();
 
 
