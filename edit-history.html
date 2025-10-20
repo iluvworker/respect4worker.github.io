@@ -226,10 +226,17 @@
 // ✅ 投稿読み込みだけに専念
 async function loadHistoryPost() {
   try {
-const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
+    // 🔍 URLパラメータから type を確認（デフォルトは history）
+    const type = new URLSearchParams(window.location.search).get("type") || "history";
+    const jsonFile = type === "posted" ? "posted.json" : "history.json";
+
+    const res = await fetch(`${jsonFile}?t=${Date.now()}`, { cache: "no-cache" });
     const posts = await res.json();
     const post = posts.find(p => String(p.id) === postId);
-    if (!post) { alert("該当する履歴データが見つかりません。"); return; }
+    if (!post) { 
+      alert(`該当データが見つかりません (${jsonFile})`);
+      return; 
+    }
 
     document.getElementById("originalTitle").value = post.title_original || "";
     document.getElementById("editableTitle").value = post.title_final || "";
