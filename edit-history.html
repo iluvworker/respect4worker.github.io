@@ -224,14 +224,15 @@ async function highlightTitleMirror() {
   }
 
   // 🔦 ハイライト処理
-  let highlighted = title;
-  for (const w of commonWords) {
-    const regex = new RegExp(w, "gi");
-    highlighted = highlighted.replace(regex, `<span class="dup-word">${w}</span>`);
-  }
-
-  titleMirror.innerHTML = highlighted;
+let highlighted = "";
+const words = title.split(/\s+/);
+for (const w of words) {
+  highlighted += commonWords.has(w.toLowerCase())
+    ? `<span class="dup-word">${w}</span> `
+    : `${w} `;
 }
+titleMirror.innerHTML = highlighted.trim();
+
 
 // 入力のたびに呼ぶ
 titleInput.addEventListener("input", highlightTitleMirror);
