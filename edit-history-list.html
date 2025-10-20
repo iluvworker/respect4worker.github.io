@@ -60,6 +60,28 @@
       color: #5fd0ff;
     }
 
+    /* ===== 投稿者エリア ===== */
+    .post-meta {
+      font-size: 13px;
+      color: #aaa;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .editor {
+      color: #b0cfff;
+      font-weight: 600;
+    }
+
+    .date {
+      color: #777;
+      font-size: 12px;
+    }
+
     /* ===== ボタンエリア ===== */
     .btn-group {
       display: flex;
@@ -112,14 +134,6 @@
       background: #1e1e1e;
       color: #eee;
       font-size: 15px;
-    }
-
-    label {
-      color: #b0cfff;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     #sortBtn {
@@ -179,9 +193,9 @@
   <main class="main-content">
     <h1 class="main-title">📦 掲載済み一覧（posted.json）</h1>
 
-    <!-- 🔍 検索・フィルタ・並び替え -->
+    <!-- 🔍 検索・並び替え -->
     <section class="section filter-bar">
-      <input type="text" id="searchInput" placeholder="🔍 タイトル・サイト名・タグで検索" />
+      <input type="text" id="searchInput" placeholder="🔍 タイトル・サイト名・タグ・編集者で検索" />
       <button id="sortBtn">⬇️ 降順</button>
     </section>
 
@@ -240,11 +254,21 @@
         const site = getSiteName(p.url);
         const card = document.createElement("div");
         card.className = "post-card";
+
+        const dateStr = p.posted_at
+          ? new Date(p.posted_at).toLocaleString("ja-JP")
+          : "(日時不明)";
+        const editorName = p.editor || "不明";
+
         card.innerHTML = `
           <img src="${p.thumb || 'https://placehold.co/600x400/222/fff?text=No+Image'}" class="post-thumb" alt="thumb">
           <div class="post-info">
             <div class="post-site">${site}</div>
             <a href="${p.url || '#'}" class="post-title" target="_blank">${p.title_final || "(タイトル未設定)"}</a>
+            <div class="post-meta">
+              <span class="editor">👤 ${editorName}</span>
+              <span class="date">🕓 ${dateStr}</span>
+            </div>
             <div class="btn-group">
               <button class="edit-btn" onclick="editPost('${p.id}')">📄 確認</button>
               <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
@@ -262,18 +286,11 @@
 
       try {
         const res = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("一覧取得失敗");
         const list = await res.json();
-
         const updated = list.filter(p => String(p.id) !== String(id));
-        if (updated.length === list.length) {
-          alert("⚠️ 該当IDが見つかりませんでした。");
-          return;
-        }
 
         const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
           method: "POST",
-          mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: `Delete id:${id} from ${source}`,
@@ -282,19 +299,9 @@
           })
         });
 
-        if (!save.ok) throw new Error(`削除失敗: ${save.status}`);
-
-        await new Promise(r => setTimeout(r, 1200));
-        const check = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-        const verify = await check.json();
-        const exists = verify.some(p => String(p.id) === String(id));
-
-        if (exists) {
-          alert("⚠️ 削除反映が遅延しています。数分後に再読み込みしてください。");
-        } else {
-          alert("✅ 削除されました。");
-          location.reload();
-        }
+        if (!save.ok) throw new Error("削除失敗");
+        alert("✅ 削除完了しました。");
+        location.reload();
       } catch (err) {
         console.error("削除エラー:", err);
         alert("⚠️ 削除中にエラーが発生しました。");
@@ -308,7 +315,6 @@
     function renderPagination(totalPages) {
       const container = document.getElementById("pagination");
       container.innerHTML = "";
-
       if (totalPages <= 1) return;
 
       const createBtn = (label, page, disabled = false, active = false) => {
@@ -346,17 +352,17 @@
       container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
     }
 
-    document.addEventListener("input", (e) => {
-      if (["searchInput"].includes(e.target.id)) {
-        currentPage = 1;
-        renderPosts();
-      }
-    });
-
     document.getElementById("sortBtn").addEventListener("click", () => {
       sortDesc = !sortDesc;
       document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
       renderPosts();
+    });
+
+    document.addEventListener("input", e => {
+      if (["searchInput"].includes(e.target.id)) {
+        currentPage = 1;
+        renderPosts();
+      }
     });
 
     loadPosts();
