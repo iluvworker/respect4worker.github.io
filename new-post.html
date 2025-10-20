@@ -154,7 +154,9 @@
         <button type="submit">投稿する</button>
       </form>
     </section>
-
+<p id="resultCount" style="color:#aaa;font-size:14px;margin:6px 0 16px 0;">
+  0件
+</p>
     <h1 class="main-title">📋 投稿一覧</h1>
     <section class="section" id="post-list">
       <table id="postTable">
@@ -182,28 +184,42 @@
     });
 
     async function loadPosts() {
-      try {
-        const res = await fetch("posts.json?ts=", { cache: "no-cache" });
-        const posts = await res.json();
-        const tbody = document.querySelector("#postTable tbody");
-        tbody.innerHTML = "";
+  try {
+    const res = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+    let posts = await res.json();
 
-        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        posts.forEach((p) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><img src="${p.thumb}" alt="thumb"></td>
-            <td class="post-info">
-              <a href="${p.url}" target="_blank">${p.title || "(タイトル未設定)"}</a>
-              <div class="post-meta">${p.site} ｜ ${p.editor || "-"} ｜ ${new Date(p.created_at).toLocaleString("ja-JP")}</div>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("一覧取得エラー:", err);
-      }
-    }
+    // 入れ子（[[...]]）をフラットに整形
+    while (Array.isArray(posts[0])) posts = posts.flat();
+
+    // 並び替え（新しい順）
+    posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // === 🧩 件数表示 ===
+    const resultCount = document.getElementById("resultCount");
+    resultCount.textContent = `📦 現在の投稿件数：${posts.length}件`;
+
+    // === 投稿リスト生成 ===
+    const tbody = document.querySelector("#postTable tbody");
+    tbody.innerHTML = "";
+
+    posts.forEach((p) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><img src="${p.thumb}" alt="thumb"></td>
+        <td class="post-info">
+          <a href="${p.url}" target="_blank">${p.title || "(タイトル未設定)"}</a>
+          <div class="post-meta">
+            ${p.site} ｜ ${p.editor || "-"} ｜ ${new Date(p.created_at).toLocaleString("ja-JP")}
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("一覧取得エラー:", err);
+    document.getElementById("resultCount").textContent = "⚠️ 投稿一覧の取得に失敗しました。";
+  }
+}
 // === 重複判定（posts.json と history.json）===
 async function isDupPostEverywhere(newPost) {
   const checkTarget = async (file) => {
