@@ -140,8 +140,10 @@
 
       <label>動画</label>
       <input type="text" id="video">
-      <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
-
+<!-- 置き換え -->
+<button id="openVideo" type="button" class="video-link" style="margin-top:6px;">
+  ▶ 動画を見る
+</button>
       <label id="labelTags">タグ（スペース区切り）</label>
       <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ 計8個">
       <div id="tagCount" style="color:#aaa;font-size:13px;margin-top:4px;">0個</div>
@@ -278,7 +280,50 @@ async function loadHistoryPost() {
     
 await loadHistoryPost();
 
+// 🎬 右側に“新しいウィンドウ”で動画を開く（全ブラウザ対応版）
+let videoWin = null;
 
+document.getElementById("openVideo").addEventListener("click", () => {
+  const url = document.getElementById("video").value.trim();
+  if (!url) return alert("⚠️ 動画URLがありません。");
+
+  const width  = Math.min(720, window.screen.availWidth * 0.6);
+  const height = Math.min(window.screen.availHeight - 60, 900);
+  const left   = window.screen.availWidth - width - 10;
+  const top    = Math.max(20, (window.screen.availHeight - height) / 2);
+
+  // ブラウザ・OSに依存しないように「明示的にpopup構成」
+  const features = [
+    `popup=yes`,
+    `width=${Math.round(width)}`,
+    `height=${Math.round(height)}`,
+    `left=${Math.round(left)}`,
+    `top=${Math.round(top)}`,
+    `resizable=yes`,
+    `scrollbars=yes`,
+    `noopener`,
+    `noreferrer`,
+    `menubar=no`,
+    `toolbar=no`,
+    `location=no`,
+    `status=no`
+  ].join(",");
+
+  try {
+    // ウィンドウが閉じているか存在しない場合は新規作成
+    if (!videoWin || videoWin.closed) {
+      videoWin = window.open(url, "videoPreviewWindow", features);
+    } else {
+      // 既存ウィンドウ再利用（多重ポップアップ防止）
+      videoWin.location.replace(url);
+      videoWin.focus();
+    }
+  } catch (err) {
+    console.warn("window.openエラー:", err);
+    window.open(url, "_blank", features);
+  }
+});
+    
 // ✅ 保存イベントを追加
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
