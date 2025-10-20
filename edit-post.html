@@ -683,13 +683,14 @@ document.getElementById("dupCheckBtn").addEventListener("click", async () => {
   }
 
  if (commonWords.size >= 5) {
-  const highlighted = Array.from(title).map(char =>
-    commonWords.has(char.toLowerCase())
-      ? `<span class="dup-word">${char}</span>`
-      : char
-  ).join("");
+  // 単語単位で比較してハイライト
+  const highlighted = title.split(/\s+/).map(word =>
+    commonWords.has(word.toLowerCase())
+      ? `<span class="dup-word">${word}</span>`
+      : word
+  ).join(" ");
   resultBox.innerHTML = `⚠️ 類似タイトルあり：<br>${highlighted}`;
-} else if (commonWords.size > 0) {
+}else if (commonWords.size > 0) {
   resultBox.innerHTML = `🟡 一部類似（${commonWords.size}語）：${Array.from(commonWords).join("、")}`;
 } else {
   resultBox.innerHTML = "✅ 類似タイトルは見つかりませんでした。";
