@@ -678,55 +678,6 @@ document.getElementById("openVideoWin").addEventListener("click", () => {
     videoWindow.focus();
   }
 });
-
-
-  const normalize = (t) =>
-    (t || "")
-      .toLowerCase()
-      .replace(/[【】「」『』［］\[\]（）()、。,\.]/g, " ")
-      .split(/\s+/)
-      .filter(w => w.length > 1);
-
-  const newWords = normalize(title);
-  if (newWords.length === 0) {
-    resultBox.textContent = "⚠️ タイトルが空です。";
-    return;
-  }
-
-  const files = ["history.json", "posted.json"];
-  const commonWords = new Set();
-
-  for (const file of files) {
-    try {
-      const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) continue;
-      let list = await res.json();
-      while (Array.isArray(list[0])) list = list.flat();
-
-      for (const p of list) {
-        const oldWords = normalize(p.title_final || p.title || "");
-        const overlap = newWords.filter(w => oldWords.includes(w));
-        overlap.forEach(w => commonWords.add(w));
-      }
-    } catch (err) {
-      console.error("類似タイトルチェックエラー:", err);
-    }
-  }
-
- if (commonWords.size >= 5) {
-  // 単語単位で比較してハイライト
-  const highlighted = title.split(/\s+/).map(word =>
-    commonWords.has(word.toLowerCase())
-      ? `<span class="dup-word">${word}</span>`
-      : word
-  ).join(" ");
-  resultBox.innerHTML = `⚠️ 類似タイトルあり：<br>${highlighted}`;
-}else if (commonWords.size > 0) {
-  resultBox.innerHTML = `🟡 一部類似（${commonWords.size}語）：${Array.from(commonWords).join("、")}`;
-} else {
-  resultBox.innerHTML = "✅ 類似タイトルは見つかりませんでした。";
-}
-  });
   </script>
 </body>
 </html>
