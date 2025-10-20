@@ -99,19 +99,25 @@ async function loadHistory(){
     const kwRaw = document.getElementById("searchInput").value.trim();
     const kws = kwRaw.split(/\s+/).map(normalize).filter(Boolean);
 
-    // 🔎 AND検索（タイトル/編集者/タグ/月/日付）
-    let filtered = historyData.filter(p=>{
-      const title = normalize(p.title_final || p.title_original || "");
-      const editor = normalize(p.editor || "船長");
-      const tags = normalize((p.tags||[]).join(","));
-      const month = normalize(p.month || "");
-      const date  = normalize(p.date  || "");
+// 🔎 AND検索（タイトル / 編集者 / タグ / 日付文字列）
+let filtered = historyData.filter(p=>{
+  const title  = normalize(p.title_final || p.title_original || "");
+  const editor = normalize(p.editor || "船長");
+  const tags   = normalize((p.tags||[]).join(","));
+  const dateStrs = [
+    p.updated_at ? new Date(p.updated_at).toLocaleDateString("ja-JP") : "",
+    p.posted_at  ? new Date(p.posted_at).toLocaleDateString("ja-JP")  : ""
+  ].map(normalize).join(" ");
 
-      return kws.every(k =>
-        title.includes(k) || editor.includes(k) || tags.includes(k) || month.includes(k) || date.includes(k)
-      );
-    });
-
+  return kws.every(k =>
+    title.includes(k) || editor.includes(k) || tags.includes(k) || dateStrs.includes(k)
+  );
+});
+// 件数を表示
+const countEl = document.getElementById("resultCount");
+if (countEl) {
+  countEl.textContent = `検索結果：${filtered.length}件中 ${pageData.length}件を表示中`;
+}
     // 並び替え（更新日時）
     filtered.sort((a,b)=> sortDesc
       ? new Date(b.updated_at||0) - new Date(a.updated_at||0)
