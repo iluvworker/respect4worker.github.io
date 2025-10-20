@@ -114,7 +114,14 @@
   padding: 2px 6px;
   border-radius: 4px;
 }
-    
+    /* 🔥 被りワードハイライト */
+.dup-word {
+  color: #ff5e5e;
+  background: rgba(255, 94, 94, 0.15);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
   </style>
 </head>
 
@@ -140,13 +147,7 @@
 <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
 <div id="titleCounter" class="counter"></div>
 <div id="titleMirror" style="margin-top:6px;color:#ccc;font-size:14px;"></div>
-      
-<!-- ↓ここを追加 -->
-<button type="button" id="dupCheckBtn" style="margin-top:8px;background:#444;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">
-  🔍 類似タイトルチェック
-</button>
-<div id="dupResult" style="margin-top:6px;font-size:13px;color:#aaa;"></div>
-<!-- ↑ここまで追加 -->
+    
       
       <label>サムネ①</label>
       <input type="url" id="thumbPick1" placeholder="右クリック→画像のアドレスをコピーしてここにペースト">
@@ -678,11 +679,6 @@ document.getElementById("openVideoWin").addEventListener("click", () => {
   }
 });
 
-    // === タイトル重複チェック ===
-document.getElementById("dupCheckBtn").addEventListener("click", async () => {
-  const title = document.getElementById("editableTitle").value.trim();
-  const resultBox = document.getElementById("dupResult");
-  resultBox.innerHTML = "⏳ チェック中...";
 
   const normalize = (t) =>
     (t || "")
