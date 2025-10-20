@@ -308,7 +308,18 @@ let filtered = postsData.filter(p => {
       `
     );
   });
-
+// ===== 件数カウント表示 =====
+const countInfo = document.getElementById("countInfo") || (() => {
+  const el = document.createElement("div");
+  el.id = "countInfo";
+  el.style.textAlign = "right";
+  el.style.color = "#aaa";
+  el.style.fontSize = "14px";
+  el.style.marginBottom = "12px";
+  document.querySelector(".filter-bar").insertAdjacentElement("afterend", el);
+  return el;
+})();
+countInfo.textContent = `🔍 ${filtered.length}件ヒット（全${postsData.length}件中）`;
   renderPagination(totalPages);
 }
 
