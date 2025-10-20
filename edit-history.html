@@ -233,6 +233,7 @@
         document.getElementById("videoLink").href = post.video || "#";
         document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
         document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+        document.getElementById("thumbLink").href = post.url || "#";  // ←追加
         document.getElementById("tags").value = (post.tags || []).join(" ");
         document.getElementById("notes").value = post.notes || "";
 
