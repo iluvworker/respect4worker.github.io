@@ -678,19 +678,18 @@ document.getElementById("dupCheckBtn").addEventListener("click", async () => {
     }
   }
 
-  if (commonWords.size >= 5) {
+ if (commonWords.size >= 5) {
   const highlighted = Array.from(title).map(char =>
     commonWords.has(char.toLowerCase())
       ? `<span class="dup-word">${char}</span>`
       : char
   ).join("");
   resultBox.innerHTML = `⚠️ 類似タイトルあり：<br>${highlighted}`;
+} else if (commonWords.size > 0) {
+  resultBox.innerHTML = `🟡 一部類似（${commonWords.size}語）：${Array.from(commonWords).join("、")}`;
+} else {
+  resultBox.innerHTML = "✅ 類似タイトルは見つかりませんでした。";
 }
-  } else if (commonWords.size > 0) {
-    resultBox.innerHTML = `🟡 一部類似（${commonWords.size}語）：${Array.from(commonWords).join("、")}`;
-  } else {
-    resultBox.innerHTML = "✅ 類似タイトルは見つかりませんでした。";
-  }
   });
   </script>
 </body>
