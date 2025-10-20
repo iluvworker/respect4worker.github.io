@@ -210,12 +210,14 @@
     overlay.appendChild(fullImg);
     document.body.appendChild(overlay);
     overlay.addEventListener("click", () => overlay.style.display = "none");
-    document.addEventListener("click", e => {
-      if (e.target.classList.contains("thumb-preview") && e.target.src) {
-        fullImg.src = e.target.src;
-        overlay.style.display = "flex";
-      }
-    });
+   document.addEventListener("click", e => {
+  const id = e.target.id;
+  // thumbPreview1 または thumbPreview2 のみ拡大対象
+  if ((id === "thumbPreview1" || id === "thumbPreview2") && e.target.src) {
+    fullImg.src = e.target.src;
+    overlay.style.display = "flex";
+  }
+});
 
     async function loadHistoryPost() {
       try {
