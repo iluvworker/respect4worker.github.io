@@ -229,14 +229,26 @@
   const grid = document.getElementById("postGrid");
   const keyword = document.getElementById("searchInput").value.toLowerCase();
 
-  let filtered = postsData.filter(p => {
-    const matchKeyword =
-      (p.title_final && p.title_final.toLowerCase().includes(keyword)) ||
-      (p.title_original && p.title_original.toLowerCase().includes(keyword)) ||
-      (p.tags && p.tags.join(",").toLowerCase().includes(keyword)) ||
-      (p.editor && p.editor.toLowerCase().includes(keyword));
-    return matchKeyword;
-  });
+let filtered = postsData.filter(p => {
+  const words = keyword.split(/\s+/).filter(Boolean);
+
+  // 検索対象文字列をまとめて作る
+  const haystack = [
+    p.title_final,
+    p.title_original,
+    p.tags?.join(" "),
+    p.editor,
+    p.notes,
+    p.url,
+    p.site,
+    p.posted_at ? new Date(p.posted_at).toLocaleDateString("ja-JP") : "",
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  // すべての単語を含む（AND検索）
+  return words.every(w => haystack.includes(w));
+});
 
   filtered.sort((a, b) =>
     sortDesc
