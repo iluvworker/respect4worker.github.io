@@ -336,7 +336,7 @@ countInfo.textContent = `🔍 ${filtered.length}件ヒット（全${postsData.le
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: `Delete id:${id} from posted.json`,
-        target: "posted.json", // ←ここ！?ts=抜き
+        target: "posted.json", // ✅これが正解
         content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
       })
     });
