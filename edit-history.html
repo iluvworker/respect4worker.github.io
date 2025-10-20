@@ -280,28 +280,29 @@ async function loadHistoryPost() {
     
 await loadHistoryPost();
 
-// 🎬 右側に“新しいウィンドウ”で動画を開く
+// 🎬 右側に“新しいウィンドウ”で動画を開く（全ブラウザ対応版）
 let videoWin = null;
 
 document.getElementById("openVideo").addEventListener("click", () => {
   const url = document.getElementById("video").value.trim();
   if (!url) return alert("⚠️ 動画URLがありません。");
 
-  const width  = 720;
-  const height = screen.availHeight - 60;
-  const left   = screen.availWidth - width;
-  const top    = 30;
+  const width  = Math.min(720, window.screen.availWidth * 0.6);
+  const height = Math.min(window.screen.availHeight - 60, 900);
+  const left   = window.screen.availWidth - width - 10;
+  const top    = Math.max(20, (window.screen.availHeight - height) / 2);
 
+  // ブラウザ・OSに依存しないように「明示的にpopup構成」
   const features = [
     `popup=yes`,
-    `width=${width}`,
-    `height=${height}`,
-    `left=${left}`,
-    `top=${top}`,
-    `noopener`,
-    `noreferrer`,
+    `width=${Math.round(width)}`,
+    `height=${Math.round(height)}`,
+    `left=${Math.round(left)}`,
+    `top=${Math.round(top)}`,
     `resizable=yes`,
     `scrollbars=yes`,
+    `noopener`,
+    `noreferrer`,
     `menubar=no`,
     `toolbar=no`,
     `location=no`,
@@ -309,22 +310,17 @@ document.getElementById("openVideo").addEventListener("click", () => {
   ].join(",");
 
   try {
+    // ウィンドウが閉じているか存在しない場合は新規作成
     if (!videoWin || videoWin.closed) {
-      // 🪟 新しいウィンドウを開く
-      videoWin = window.open(url, "videoWindow", features);
+      videoWin = window.open(url, "videoPreviewWindow", features);
     } else {
-      // 🪟 既存ウィンドウを再利用
+      // 既存ウィンドウ再利用（多重ポップアップ防止）
       videoWin.location.replace(url);
       videoWin.focus();
     }
-  } catch (e) {
-    // ⛑ 保険：同一オリジン制約でreplaceが弾かれたとき
-    if (videoWin) {
-      videoWin.location.href = url;
-      videoWin.focus();
-    } else {
-      window.open(url, "videoWindow", features);
-    }
+  } catch (err) {
+    console.warn("window.openエラー:", err);
+    window.open(url, "_blank", features);
   }
 });
     
