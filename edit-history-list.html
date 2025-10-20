@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📦 掲載済み一覧（posted.json）</title>
+  <title>📦 掲載済み一覧</title>
   <link rel="stylesheet" href="assets/style.css?v=8">
   <script src="assets/sidebar.js" defer></script>
 
@@ -191,7 +191,7 @@
 
 <body>
   <main class="main-content">
-    <h1 class="main-title">📦 掲載済み一覧（posted.json）</h1>
+    <h1 class="main-title">📦 掲載済み一覧</h1>
 
     <!-- 🔍 検索・並び替え -->
     <section class="section filter-bar">
@@ -293,7 +293,7 @@
   renderPagination(totalPages);
 }
 
-    async function deletePost(id, source = "posted.json") {
+    async function deletePost(id, source = "posted.json?ts=") {
       if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
 
       try {
