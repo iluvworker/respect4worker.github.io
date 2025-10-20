@@ -232,7 +232,14 @@
 let filtered = postsData.filter(p => {
   const words = keyword.split(/\s+/).filter(Boolean);
 
-  // 検索対象文字列をまとめて作る
+  // 投稿日時を両方の形式で生成（例：2025-10-20 / 2025年10月20日）
+  const dateISO = p.posted_at
+    ? new Date(p.posted_at).toISOString().split("T")[0] // 2025-10-20
+    : "";
+  const dateJP = p.posted_at
+    ? new Date(p.posted_at).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) // 2025年10月20日
+    : "";
+
   const haystack = [
     p.title_final,
     p.title_original,
@@ -241,15 +248,15 @@ let filtered = postsData.filter(p => {
     p.notes,
     p.url,
     p.site,
-    p.posted_at ? new Date(p.posted_at).toLocaleDateString("ja-JP") : "",
+    dateISO,
+    dateJP,
   ]
     .join(" ")
     .toLowerCase();
 
-  // すべての単語を含む（AND検索）
+  // AND検索：全単語を含む
   return words.every(w => haystack.includes(w));
 });
-
   filtered.sort((a, b) =>
     sortDesc
       ? new Date(b.posted_at || b.updated_at) - new Date(a.posted_at || a.updated_at)
