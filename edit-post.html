@@ -124,6 +124,11 @@ a#thumbLink[href="#"] {
   padding: 1px 4px;
   border-radius: 3px;
 }
+    .dup-word {
+  background: rgba(255, 94, 94, 0.2);
+  border-radius: 3px;
+  padding: 0 2px;
+}
 
   </style>
 </head>
@@ -674,12 +679,13 @@ document.getElementById("dupCheckBtn").addEventListener("click", async () => {
   }
 
   if (commonWords.size >= 5) {
-    const highlighted = title.split(/\s+/).map(word =>
-      commonWords.has(word.toLowerCase())
-        ? `<span style="color:#ff5e5e;font-weight:700;">${word}</span>`
-        : word
-    ).join(" ");
-    resultBox.innerHTML = `⚠️ 類似タイトルあり：<br>${highlighted}`;
+  const highlighted = Array.from(title).map(char =>
+    commonWords.has(char.toLowerCase())
+      ? `<span class="dup-word">${char}</span>`
+      : char
+  ).join("");
+  resultBox.innerHTML = `⚠️ 類似タイトルあり：<br>${highlighted}`;
+}
   } else if (commonWords.size > 0) {
     resultBox.innerHTML = `🟡 一部類似（${commonWords.size}語）：${Array.from(commonWords).join("、")}`;
   } else {
