@@ -140,6 +140,7 @@
 
       <label>動画</label>
       <input type="text" id="video">
+<!-- 置き換え -->
 <button id="openVideo" type="button" class="video-link" style="margin-top:6px;">
   ▶ 動画を見る
 </button>
@@ -279,27 +280,58 @@ async function loadHistoryPost() {
     
 await loadHistoryPost();
 
-    // 🎬「動画を見る」ボタンを右側ウィンドウで開く
-document.getElementById("openVideo").addEventListener("click", () => {
-  const videoUrl = document.getElementById("video").value.trim();
-  if (!videoUrl) {
+   // 🎬 右側に“新しいウィンドウ”で動画を開く
+let videoWin = null;
+
+function openVideoWindow(url) {
+  if (!url) {
     alert("⚠️ 動画URLが設定されていません。");
     return;
   }
 
-  // 🪟 新しいウィンドウを右に寄せて開く設定
-  const width = 720; // 横幅
-  const height = window.screen.height; // 全高
-  const left = window.screen.width - width; // 右寄せ
-  const top = 0;
+  // 右寄せのサイズ＆位置
+  const width  = Math.min(900, Math.floor(window.screen.availWidth * 0.45));
+  const height = window.screen.availHeight;
+  const left   = window.screen.availWidth - width;
+  const top    = 0;
 
-  window.open(
-    videoUrl,
-    "videoPreview",
-    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-  );
+  const features = [
+    "popup=yes",           // ウィンドウ化しやすく
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    "resizable=yes",
+    "scrollbars=yes",
+    "toolbar=no",
+    "menubar=no",
+    "location=no",
+    "status=no"
+  ].join(",");
+
+  // すでに開いてたら再利用（常に右窓をキープ）
+  if (!videoWin || videoWin.closed) {
+    // 先に空で開いてfeaturesを確実に適用 → その後URLを入れる
+    videoWin = window.open("about:blank", "videoPreview", features);
+  } else {
+    videoWin.focus();
+  }
+
+  if (videoWin) {
+    // URLを設定（replaceで履歴を汚さない）
+    try {
+      videoWin.location.replace(url);
+    } catch {
+      // 同一オリジン以外で稀にreplaceが弾かれたときの保険
+      videoWin.location.href = url;
+    }
+  }
+}
+
+document.getElementById("openVideo").addEventListener("click", () => {
+  const videoUrl = document.getElementById("video").value.trim();
+  openVideoWindow(videoUrl);
 });
-
 // ✅ 保存イベントを追加
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
