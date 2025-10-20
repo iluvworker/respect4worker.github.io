@@ -283,38 +283,38 @@ await loadHistoryPost();
    // 🎬 右側に“新しいウィンドウ”で動画を開く
 let videoWin = null;
 
-function openVideoWindow(url) {
-  if (!url) {
-    alert("⚠️ 動画URLが設定されていません。");
-    return;
-  }
+document.getElementById("openVideo").addEventListener("click", () => {
+  const url = document.getElementById("video").value.trim();
+  if (!url) return alert("⚠️ 動画URLがありません。");
 
-  // 右寄せのサイズ＆位置
-  const width  = Math.min(900, Math.floor(window.screen.availWidth * 0.45));
-  const height = window.screen.availHeight;
-  const left   = window.screen.availWidth - width;
-  const top    = 0;
+  const width  = 720;
+  const height = screen.availHeight - 60;
+  const left   = screen.availWidth - width;
+  const top    = 30;
 
   const features = [
-  `width=${width}`,
-  `height=${height}`,
-  `left=${left}`,
-  `top=${top}`,
-  "resizable=yes",
-  "scrollbars=yes",
-  "toolbar=0",     // ツールバーなし
-  "menubar=0",     // メニューバーなし
-  "location=0",    // URL欄なし
-  "status=0"       // ステータスバーなし
-].join(",");
+    `popup=yes`,
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    `noopener`,         // ← macOSでタブ化しにくくする重要指定
+    `noreferrer`,
+    `resizable=yes`,
+    `scrollbars=yes`,
+    `menubar=no`,
+    `toolbar=no`,
+    `location=no`,
+    `status=no`
+  ].join(",");
 
-  // すでに開いてたら再利用（常に右窓をキープ）
   if (!videoWin || videoWin.closed) {
-    // 先に空で開いてfeaturesを確実に適用 → その後URLを入れる
-    videoWin = window.open("about:blank", "videoPreview", features);
+    videoWin = window.open(url, "_blank", features);
   } else {
+    videoWin.location.href = url;
     videoWin.focus();
   }
+});
 
   if (videoWin) {
     // URLを設定（replaceで履歴を汚さない）
