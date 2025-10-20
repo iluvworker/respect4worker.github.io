@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📦 投稿履歴一覧（船長）</title>
+
+  <link rel="stylesheet" href="assets/style.css?v=4">
+  <script src="assets/sidebar.js" defer></script>
+
+  <style>
+    body { background: #121212; color: #fff; font-family: 'Noto Sans JP', sans-serif; margin: 0; }
+    .main-content { margin-left: 230px; padding: 30px; }
+    h1 { font-size: 20px; color: #47bcec; border-left: 5px solid #47bcec; padding-left: 10px; margin-bottom: 20px; }
+
+    input#searchBox {
+      width: 300px; padding: 8px 10px; border-radius: 6px;
+      border: none; background: #1e1e1e; color: #fff; margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%; border-collapse: collapse; background: #1b1b1b;
+      border-radius: 10px; overflow: hidden;
+    }
+    th, td {
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid #333;
+      font-size: 14px;
+    }
+    th { background: #222; color: #9cf; }
+    tr:hover { background: #2a2a2a; cursor: pointer; }
+
+    .tag { display: inline-block; margin-right: 5px; padding: 2px 6px; border-radius: 4px; background: #333; color: #9cf; font-size: 12px; }
+    .editor { color: #ccc; font-size: 13px; }
+    .posted_at { color: #999; font-size: 12px; }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <h1>📦 投稿履歴一覧（posted.json）</h1>
+    <input type="text" id="searchBox" placeholder="タイトル・タグ・編集者で検索...">
+
+    <table id="postedTable">
+      <thead>
+        <tr>
+          <th>タイトル</th>
+          <th>編集者</th>
+          <th>投稿日</th>
+          <th>タグ</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const tableBody = document.querySelector("#postedTable tbody");
+      const searchBox = document.getElementById("searchBox");
+
+      async function loadPosted() {
+        try {
+          const res = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
+          const posts = await res.json();
+
+          // 日付降順で並べ替え
+          posts.sort((a, b) => new Date(b.posted_at) - new Date(a.posted_at));
+
+          renderTable(posts);
+
+          searchBox.addEventListener("input", () => {
+            const q = searchBox.value.trim().toLowerCase();
+            const filtered = posts.filter(p =>
+              (p.title_final || "").toLowerCase().includes(q) ||
+              (p.editor || "").toLowerCase().includes(q) ||
+              (p.tags || []).some(t => t.toLowerCase().includes(q))
+            );
+            renderTable(filtered);
+          });
+        } catch (err) {
+          console.error("読み込みエラー:", err);
+          tableBody.innerHTML = `<tr><td colspan="4">⚠️ 投稿履歴を読み込めませんでした。</td></tr>`;
+        }
+      }
+
+      function renderTable(data) {
+        tableBody.innerHTML = "";
+        if (!data.length) {
+          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">（データなし）</td></tr>`;
+          return;
+        }
+
+        data.forEach(p => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${p.title_final || "(無題)"}<br><a href="${p.url || '#'}" target="_blank" style="color:#47bcec;font-size:12px;">商品ページへ</a></td>
+            <td class="editor">${p.editor || "不明"}</td>
+            <td class="posted_at">${new Date(p.posted_at).toLocaleString("ja-JP")}</td>
+            <td>${(p.tags || []).slice(0,4).map(t => `<span class="tag">${t}</span>`).join("")}</td>
+          `;
+          tr.addEventListener("click", () => {
+            if (p.id) window.location.href = `edit-history.html?id=${p.id}`;
+          });
+          tableBody.appendChild(tr);
+        });
+      }
+
+      await loadPosted();
+    });
+  </script>
+</body>
+</html>
