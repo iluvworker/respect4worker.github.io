@@ -3,111 +3,363 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📦 投稿履歴一覧（船長）</title>
-
-  <link rel="stylesheet" href="assets/style.css?v=4">
+  <title>📦 掲載済み一覧（posted.json）</title>
+  <link rel="stylesheet" href="assets/style.css?v=8">
   <script src="assets/sidebar.js" defer></script>
 
   <style>
-    body { background: #121212; color: #fff; font-family: 'Noto Sans JP', sans-serif; margin: 0; }
-    .main-content { margin-left: 230px; padding: 30px; }
-    h1 { font-size: 20px; color: #47bcec; border-left: 5px solid #47bcec; padding-left: 10px; margin-bottom: 20px; }
-
-    input#searchBox {
-      width: 300px; padding: 8px 10px; border-radius: 6px;
-      border: none; background: #1e1e1e; color: #fff; margin-bottom: 15px;
+    /* ===== カードレイアウト ===== */
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
     }
 
-    table {
-      width: 100%; border-collapse: collapse; background: #1b1b1b;
-      border-radius: 10px; overflow: hidden;
+    .post-card {
+      background: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
-    th, td {
-      padding: 10px 12px; text-align: left;
-      border-bottom: 1px solid #333;
+
+    .post-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .post-thumb {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .post-info {
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .post-site {
+      color: #47bcec;
       font-size: 14px;
+      font-weight: bold;
     }
-    th { background: #222; color: #9cf; }
-    tr:hover { background: #2a2a2a; cursor: pointer; }
 
-    .tag { display: inline-block; margin-right: 5px; padding: 2px 6px; border-radius: 4px; background: #333; color: #9cf; font-size: 12px; }
-    .editor { color: #ccc; font-size: 13px; }
-    .posted_at { color: #999; font-size: 12px; }
+    .post-title {
+      font-size: 16px;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .post-title:hover {
+      color: #5fd0ff;
+    }
+
+    /* ===== ボタンエリア ===== */
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .edit-btn, .delete-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .edit-btn {
+      background: #47bcec;
+      color: #111;
+    }
+
+    .edit-btn:hover {
+      background: #5fd0ff;
+    }
+
+    .delete-btn {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .delete-btn:hover {
+      background: #ff6b6b;
+    }
+
+    /* ===== フィルタエリア ===== */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #searchInput {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background: #1e1e1e;
+      color: #eee;
+      font-size: 15px;
+    }
+
+    label {
+      color: #b0cfff;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #sortBtn {
+      background: #333;
+      border: 1px solid #47bcec;
+      color: #47bcec;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #sortBtn:hover {
+      background: #47bcec;
+      color: #111;
+    }
+
+    /* ===== ページネーション ===== */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pagination button {
+      background: #1e1e1e;
+      border: 1px solid #47bcec;
+      color: #47bcec;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      min-width: 32px;
+      transition: all 0.2s ease;
+    }
+
+    .pagination button:hover {
+      background: #47bcec;
+      color: #111;
+    }
+
+    .pagination button.active {
+      background: #47bcec;
+      color: #111;
+      font-weight: bold;
+    }
+
+    .pagination span {
+      color: #666;
+      user-select: none;
+    }
   </style>
 </head>
 
 <body>
   <main class="main-content">
-    <h1>📦 投稿履歴一覧（posted.json）</h1>
-    <input type="text" id="searchBox" placeholder="タイトル・タグ・編集者で検索...">
+    <h1 class="main-title">📦 掲載済み一覧（posted.json）</h1>
 
-    <table id="postedTable">
-      <thead>
-        <tr>
-          <th>タイトル</th>
-          <th>編集者</th>
-          <th>投稿日</th>
-          <th>タグ</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <!-- 🔍 検索・フィルタ・並び替え -->
+    <section class="section filter-bar">
+      <input type="text" id="searchInput" placeholder="🔍 タイトル・サイト名・タグで検索" />
+      <button id="sortBtn">⬇️ 降順</button>
+    </section>
+
+    <!-- 🧱 カード一覧 -->
+    <section class="section">
+      <div id="postGrid" class="post-grid"></div>
+      <div id="pagination" class="pagination"></div>
+    </section>
   </main>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const tableBody = document.querySelector("#postedTable tbody");
-      const searchBox = document.getElementById("searchBox");
+    let postsData = [];
+    let sortDesc = true;
+    let currentPage = 1;
+    const perPage = 30;
 
-      async function loadPosted() {
-        try {
-          const res = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
-          const posts = await res.json();
+    async function loadPosts() {
+      const res = await fetch("./posted.json?ts=" + Date.now(), { cache: "no-cache" });
+      postsData = await res.json();
+      renderPosts();
+    }
 
-          // 日付降順で並べ替え
-          posts.sort((a, b) => new Date(b.posted_at) - new Date(a.posted_at));
+    function getSiteName(url) {
+      if (!url) return "-";
+      if (url.includes("dmm.co.jp")) return "FANZA";
+      if (url.includes("mgstage.com")) return "MGS";
+      return "不明";
+    }
 
-          renderTable(posts);
+    function renderPosts() {
+      const grid = document.getElementById("postGrid");
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
 
-          searchBox.addEventListener("input", () => {
-            const q = searchBox.value.trim().toLowerCase();
-            const filtered = posts.filter(p =>
-              (p.title_final || "").toLowerCase().includes(q) ||
-              (p.editor || "").toLowerCase().includes(q) ||
-              (p.tags || []).some(t => t.toLowerCase().includes(q))
-            );
-            renderTable(filtered);
-          });
-        } catch (err) {
-          console.error("読み込みエラー:", err);
-          tableBody.innerHTML = `<tr><td colspan="4">⚠️ 投稿履歴を読み込めませんでした。</td></tr>`;
-        }
-      }
+      let filtered = postsData.filter(p => {
+        const matchKeyword =
+          (p.title_final && p.title_final.toLowerCase().includes(keyword)) ||
+          (p.site && p.site.toLowerCase().includes(keyword)) ||
+          (p.tags && p.tags.join(",").toLowerCase().includes(keyword)) ||
+          (p.editor && p.editor.toLowerCase().includes(keyword));
+        return matchKeyword;
+      });
 
-      function renderTable(data) {
-        tableBody.innerHTML = "";
-        if (!data.length) {
-          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">（データなし）</td></tr>`;
+      filtered.sort((a, b) => sortDesc
+        ? new Date(b.posted_at || b.created_at) - new Date(a.posted_at || a.created_at)
+        : new Date(a.posted_at || a.created_at) - new Date(b.posted_at || b.created_at)
+      );
+
+      const totalPages = Math.ceil(filtered.length / perPage);
+      if (currentPage > totalPages) currentPage = totalPages || 1;
+
+      const start = (currentPage - 1) * perPage;
+      const pageData = filtered.slice(start, start + perPage);
+
+      grid.innerHTML = "";
+      pageData.forEach(p => {
+        const site = getSiteName(p.url);
+        const card = document.createElement("div");
+        card.className = "post-card";
+        card.innerHTML = `
+          <img src="${p.thumb || 'https://placehold.co/600x400/222/fff?text=No+Image'}" class="post-thumb" alt="thumb">
+          <div class="post-info">
+            <div class="post-site">${site}</div>
+            <a href="${p.url || '#'}" class="post-title" target="_blank">${p.title_final || "(タイトル未設定)"}</a>
+            <div class="btn-group">
+              <button class="edit-btn" onclick="editPost('${p.id}')">📄 確認</button>
+              <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      renderPagination(totalPages);
+    }
+
+    async function deletePost(id, source = "posted.json") {
+      if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
+
+      try {
+        const res = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("一覧取得失敗");
+        const list = await res.json();
+
+        const updated = list.filter(p => String(p.id) !== String(id));
+        if (updated.length === list.length) {
+          alert("⚠️ 該当IDが見つかりませんでした。");
           return;
         }
 
-        data.forEach(p => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${p.title_final || "(無題)"}<br><a href="${p.url || '#'}" target="_blank" style="color:#47bcec;font-size:12px;">商品ページへ</a></td>
-            <td class="editor">${p.editor || "不明"}</td>
-            <td class="posted_at">${new Date(p.posted_at).toLocaleString("ja-JP")}</td>
-            <td>${(p.tags || []).slice(0,4).map(t => `<span class="tag">${t}</span>`).join("")}</td>
-          `;
-          tr.addEventListener("click", () => {
-            if (p.id) window.location.href = `edit-history.html?id=${p.id}`;
-          });
-          tableBody.appendChild(tr);
+        const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: `Delete id:${id} from ${source}`,
+            target: source,
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+          })
         });
+
+        if (!save.ok) throw new Error(`削除失敗: ${save.status}`);
+
+        await new Promise(r => setTimeout(r, 1200));
+        const check = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
+        const verify = await check.json();
+        const exists = verify.some(p => String(p.id) === String(id));
+
+        if (exists) {
+          alert("⚠️ 削除反映が遅延しています。数分後に再読み込みしてください。");
+        } else {
+          alert("✅ 削除されました。");
+          location.reload();
+        }
+      } catch (err) {
+        console.error("削除エラー:", err);
+        alert("⚠️ 削除中にエラーが発生しました。");
+      }
+    }
+
+    function editPost(id) {
+      window.location.href = `edit-history.html?id=${id}`;
+    }
+
+    function renderPagination(totalPages) {
+      const container = document.getElementById("pagination");
+      container.innerHTML = "";
+
+      if (totalPages <= 1) return;
+
+      const createBtn = (label, page, disabled = false, active = false) => {
+        const btn = document.createElement("button");
+        btn.textContent = label;
+        if (disabled) btn.disabled = true;
+        if (active) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          currentPage = page;
+          renderPosts();
+        });
+        return btn;
+      };
+
+      container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+
+      const visibleRange = 2;
+      const startPage = Math.max(1, currentPage - visibleRange);
+      const endPage = Math.min(totalPages, currentPage + visibleRange);
+
+      if (startPage > 1) {
+        container.appendChild(createBtn("1", 1));
+        if (startPage > 2) container.appendChild(document.createElement("span")).textContent = "…";
       }
 
-      await loadPosted();
+      for (let i = startPage; i <= endPage; i++) {
+        container.appendChild(createBtn(i, i, false, i === currentPage));
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) container.appendChild(document.createElement("span")).textContent = "…";
+        container.appendChild(createBtn(totalPages, totalPages));
+      }
+
+      container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+    }
+
+    document.addEventListener("input", (e) => {
+      if (["searchInput"].includes(e.target.id)) {
+        currentPage = 1;
+        renderPosts();
+      }
     });
+
+    document.getElementById("sortBtn").addEventListener("click", () => {
+      sortDesc = !sortDesc;
+      document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
+      renderPosts();
+    });
+
+    loadPosts();
   </script>
 </body>
 </html>
