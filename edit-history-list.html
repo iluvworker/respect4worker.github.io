@@ -323,32 +323,32 @@ countInfo.textContent = `🔍 ${filtered.length}件ヒット（全${postsData.le
   renderPagination(totalPages);
 }
 
-    async function deletePost(id, source = "posted.json?ts=") {
-      if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
+  async function deletePost(id) {
+  if (!confirm("🗑 この投稿を完全に削除しますか？")) return;
 
-      try {
-        const res = await fetch(`${source}?t=${Date.now()}`, { cache: "no-store" });
-        const list = await res.json();
-        const updated = list.filter(p => String(p.id) !== String(id));
+  try {
+    const res = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
+    const list = await res.json();
+    const updated = list.filter(p => String(p.id) !== String(id));
 
-        const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: `Delete id:${id} from ${source}`,
-            target: source,
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
-          })
-        });
+    const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Delete id:${id} from posted.json`,
+        target: "posted.json", // ←ここ！?ts=抜き
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+      })
+    });
 
-        if (!save.ok) throw new Error("削除失敗");
-        alert("✅ 削除完了しました。");
-        location.reload();
-      } catch (err) {
-        console.error("削除エラー:", err);
-        alert("⚠️ 削除中にエラーが発生しました。");
-      }
-    }
+    if (!save.ok) throw new Error("削除失敗");
+    alert("✅ 削除完了しました。");
+    location.reload();
+  } catch (err) {
+    console.error("削除エラー:", err);
+    alert("⚠️ 削除中にエラーが発生しました。");
+  }
+}
 
 function editPost(id) {
   window.location.href = ./edit-history.html?id=${id}&type=posted;
