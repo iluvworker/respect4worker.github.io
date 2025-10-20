@@ -226,9 +226,7 @@
 // ✅ 投稿読み込みだけに専念
 async function loadHistoryPost() {
   try {
-const type = params.get("type") || "history"; // URLに ?type=history or ?type=posted
-const jsonFile = type === "posted" ? "posted.json" : "history.json";
-const res = await fetch(`${jsonFile}?t=${Date.now()}`, { cache: "no-cache" });
+const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
     const posts = await res.json();
     const post = posts.find(p => String(p.id) === postId);
     if (!post) { alert("該当する履歴データが見つかりません。"); return; }
@@ -330,7 +328,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     const notesLabel = notes ? notes.previousElementSibling : null;
 
     const createTagButtons = async (file) => {
-      const res = await fetch(`${file}?ts=${Date.now()}`);
+      t fetch(`${file}?ts=${Date.now()}`);
       if (!res.ok) return null;
       const tagGroups = await res.json();
       const container = document.createElement("div");
