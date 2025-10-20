@@ -153,6 +153,9 @@ a#thumbLink[href="#"] {
       <label>動画</label>
       <input type="video" id="video" readonly>
       <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
+      <button type="button" id="openVideoWin" style="background:#333;color:#47bcec;margin-top:8px;">
+  🎬 新しいウィンドウで開く
+</button>
 
       <label>タグ（スペース区切り）</label>
       <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ 計8個">
@@ -576,6 +579,45 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   } catch (e) {
     console.error("人気女優タグロード失敗:", e);
+  }
+});
+    // 🎬 新しいウィンドウで動画を開く（右側に配置）
+let videoWindow = null;
+
+document.getElementById("openVideoWin").addEventListener("click", () => {
+  const url = document.getElementById("video").value.trim();
+  if (!url) return alert("⚠️ 動画URLがありません。");
+
+  const width  = 720;
+  const height = screen.availHeight - 60;
+  const left   = screen.availWidth - width;
+  const top    = 30;
+
+  const features = [
+    "popup=yes",
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    "noopener",
+    "noreferrer",
+    "resizable=yes",
+    "scrollbars=yes",
+    "menubar=no",
+    "toolbar=no",
+    "location=no",
+    "status=no"
+  ].join(",");
+
+  if (!videoWindow || videoWindow.closed) {
+    videoWindow = window.open(url, "_blank", features);
+  } else {
+    try {
+      videoWindow.location.replace(url);
+    } catch {
+      videoWindow.location.href = url;
+    }
+    videoWindow.focus();
   }
 });
   </script>
