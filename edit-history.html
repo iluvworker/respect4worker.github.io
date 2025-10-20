@@ -226,21 +226,23 @@
 // ✅ 投稿読み込みだけに専念
 async function loadHistoryPost() {
   try {
-    // 🟦 URLパラメータから type を取得（history か posted）
     const params = new URLSearchParams(window.location.search);
     const postId = params.get("id");
-    const type = params.get("type") || "history";  // ← デフォルトは history
-    const jsonFile = type === "posted" ? "posted.json" : "history.json"; // ← ここで分岐！
+    const type = params.get("type") || "history";
+    const jsonFile = type === "posted" ? "posted.json" : "history.json";
 
-    // 🟩 分岐した結果をここで読み込む
-    const res = await fetch(`${jsonFile}?t=${Date.now()}`, { cache: "no-cache" });
-    const posts = await res.json();
-    const post = posts.find(p => String(p.id) === String(postId));
-    if (!post) { 
-      alert(`⚠️ ${jsonFile} に該当するデータが見つかりません。`);
+    const res = await fetch(`${jsonFile}?ts=${Date.now()}`, { cache: "no-store" });
+    let posts = await res.json();
+    while (Array.isArray(posts[0])) posts = posts.flat();
+
+    const post = posts.find(p => String(p.id ?? "") === String(postId ?? ""));
+    if (!post) {
+      alert(`⚠️ ${jsonFile} に該当するデータが見つかりません。\nID: ${postId}`);
+      console.log("postsサンプル", posts.slice(0, 3));
       return;
     }
 
+    // ここから下は今の代入処理でOK
     document.getElementById("originalTitle").value = post.title_original || "";
     document.getElementById("editableTitle").value = post.title_final || "";
     document.getElementById("thumbOriginal").value = post.thumb_original || "";
