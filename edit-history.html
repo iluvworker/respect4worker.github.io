@@ -340,9 +340,9 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     const notesLabel = notes ? notes.previousElementSibling : null;
 
     const createTagButtons = async (file) => {
-      t fetch(`${file}?ts=${Date.now()}`);
-      if (!res.ok) return null;
-      const tagGroups = await res.json();
+  const res = await fetch(`${file}?ts=${Date.now()}`);
+  if (!res.ok) return null;
+  const tagGroups = await res.json();
       const container = document.createElement("div");
       container.style.margin = "14px 0";
 
