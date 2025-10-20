@@ -220,25 +220,35 @@
     document.getElementById("resultCount").textContent = "⚠️ 投稿一覧の取得に失敗しました。";
   }
 }
-// === 重複判定（posts.json と history.json）===
+// === 重複判定（posts.json, history.json, posted.json 全部）===
 async function isDupPostEverywhere(newPost) {
-  const checkTarget = async (file) => {
+  const files = ["posts.json", "history.json", "posted.json"];
+
+  for (const file of files) {
     try {
       const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) return false;
-      const list = await res.json();
-      return list.some(p =>
-        (p.url   || "") === (newPost.url   || "") &&
-        (p.title || "") === (newPost.title || "") &&
-        (p.video || "") === (newPost.video || "")
+      if (!res.ok) continue;
+
+      let list = await res.json();
+      while (Array.isArray(list[0])) list = list.flat();
+
+      const dup = list.some(p =>
+        (p.url   || "").trim() === (newPost.url   || "").trim() ||
+        (p.video || "").trim() === (newPost.video || "").trim() ||
+        (p.title || "").trim() === (newPost.title || "").trim()
       );
+
+      if (dup) {
+        console.warn(`⚠️ 重複検出: ${file}`);
+        return true;
+      }
     } catch (e) {
       console.error(`重複チェック失敗 (${file}):`, e);
-      return false;
     }
-  };
-  return (await checkTarget("posts.json?ts=")) || (await checkTarget("history.json?ts="));
+  }
+  return false;
 }
+  
     document.querySelector("#postForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const site = siteDisplay.textContent;

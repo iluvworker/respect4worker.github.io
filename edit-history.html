@@ -129,8 +129,9 @@
       <input type="text" id="url" placeholder="動画や商品ページのURL" />
 
       <label>タイトル（50〜60文字）</label>
-      <input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
-      <div id="titleCounter" class="counter"></div>
+<input type="text" id="editableTitle" placeholder="詐欺タイトル注意！完全オリジナルで！！" maxlength="100" />
+<div id="titleCounter" class="counter"></div>
+<div id="titleMirror" style="margin-top:6px;color:#ccc;font-size:14px;"></div>
 
       <label>サムネ①</label>
       <input type="url" id="thumbPick1" placeholder="右クリック→画像のアドレスをコピーしてここにペースト">
@@ -181,6 +182,61 @@
         counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
       }
     };
+
+    const titleMirror = document.getElementById("titleMirror");
+
+// normalize関数を共通化（チェックでもミラーでも使える）
+const normalize = (t) =>
+  (t || "")
+    .toLowerCase()
+    .replace(/[【】「」『』［］\[\]（）()、。,\.]/g, " ")
+    .split(/\s+/)
+    .filter(w => w.length > 1);
+
+// リアルタイムハイライト用
+async function highlightTitleMirror() {
+  const title = titleInput.value.trim();
+  if (!title) {
+    titleMirror.innerHTML = "";
+    return;
+  }
+
+  // 重複ワードを探す
+  const files = ["history.json", "posted.json"];
+  const commonWords = new Set();
+  const newWords = normalize(title);
+
+  for (const file of files) {
+    try {
+      const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) continue;
+      let list = await res.json();
+      while (Array.isArray(list[0])) list = list.flat();
+
+      for (const p of list) {
+        const oldWords = normalize(p.title_final || p.title || "");
+        const overlap = newWords.filter(w => oldWords.includes(w));
+        overlap.forEach(w => commonWords.add(w));
+      }
+    } catch (err) {
+      console.error("mirrorチェックエラー:", err);
+    }
+  }
+
+  // 🔦 ハイライト処理
+let highlighted = "";
+const words = title.split(/\s+/);
+for (const w of words) {
+  highlighted += commonWords.has(w.toLowerCase())
+    ? `<span class="dup-word">${w}</span> `
+    : `${w} `;
+}
+titleMirror.innerHTML = highlighted.trim();
+}
+
+// 入力のたびに呼ぶ
+titleInput.addEventListener("input", highlightTitleMirror);
+    
     titleInput.addEventListener("input", updateCounter);
 
     const splitTags = (v) => (v || "").trim().split(/[\s\u3000]+/).filter(Boolean);
@@ -278,7 +334,17 @@ async function loadHistoryPost() {
 }
     
 await loadHistoryPost();
+titleInput.addEventListener("input", () => {
+  updateCounter();
+  highlightTitleMirror();
+});
 
+// ロード直後にも初期化
+requestAnimationFrame(() => {
+  updateCounter();
+  highlightTitleMirror();
+});
+    
 // 🎬 右側に“新しいウィンドウ”で動画を開く（全ブラウザ対応版）
 let videoWin = null;
 
