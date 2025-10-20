@@ -46,6 +46,9 @@
       <input type="text" id="searchInput" placeholder="🔍 タイトル・編集者・タグ・月・日付 で検索（スペース区切りAND）" />
       <button id="sortBtn">⬇️ 更新日 降順</button>
     </section>
+    <p id="resultCount" style="color:#aaa;font-size:14px;margin:6px 0 16px 0;">
+  検索結果：0件
+</p>
 
     <!-- 🧱 履歴カード一覧 -->
     <section class="section">
@@ -94,59 +97,73 @@ async function loadHistory(){
   }
 }
 
-  function renderHistory(){
-    const grid = document.getElementById("postGrid");
-    const kwRaw = document.getElementById("searchInput").value.trim();
-    const kws = kwRaw.split(/\s+/).map(normalize).filter(Boolean);
+function renderHistory(){
+  const grid = document.getElementById("postGrid");
+  const kwRaw = document.getElementById("searchInput").value.trim();
+  const kws = kwRaw.split(/\s+/).map(normalize).filter(Boolean);
 
-    // 🔎 AND検索（タイトル/編集者/タグ/月/日付）
-    let filtered = historyData.filter(p=>{
-      const title = normalize(p.title_final || p.title_original || "");
-      const editor = normalize(p.editor || "船長");
-      const tags = normalize((p.tags||[]).join(","));
-      const month = normalize(p.month || "");
-      const date  = normalize(p.date  || "");
+  // 🔎 AND検索（タイトル / 編集者 / タグ / 日付文字列）
+  let filtered = historyData.filter(p=>{
+    const title  = normalize(p.title_final || p.title_original || "");
+    const editor = normalize(p.editor || "船長");
+    const tags   = normalize((p.tags||[]).join(","));
 
-      return kws.every(k =>
-        title.includes(k) || editor.includes(k) || tags.includes(k) || month.includes(k) || date.includes(k)
-      );
-    });
+    // 日付を「10月」「2025」「10/20」どれでも拾えるように
+    const dates = [p.updated_at, p.posted_at]
+      .filter(Boolean)
+      .map(d => {
+        const date = new Date(d);
+        return normalize(
+          `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日 ${date.getMonth()+1}/${date.getDate()}`
+        );
+      })
+      .join(" ");
 
-    // 並び替え（更新日時）
-    filtered.sort((a,b)=> sortDesc
-      ? new Date(b.updated_at||0) - new Date(a.updated_at||0)
-      : new Date(a.updated_at||0) - new Date(b.updated_at||0)
+    return kws.every(k =>
+      title.includes(k) || editor.includes(k) || tags.includes(k) || dates.includes(k)
     );
+  });
 
-    // ページング
-    const totalPages = Math.ceil(filtered.length / perPage);
-    if (currentPage > totalPages) currentPage = totalPages || 1;
-    const start = (currentPage-1)*perPage;
-    const pageData = filtered.slice(start, start+perPage);
+  // 並び替え（更新日時）
+  filtered.sort((a,b)=> sortDesc
+    ? new Date(b.updated_at||0) - new Date(a.updated_at||0)
+    : new Date(a.updated_at||0) - new Date(b.updated_at||0)
+  );
 
-    // 描画
-    grid.innerHTML = "";
-    pageData.forEach(p=>{
-      const card = document.createElement("div");
-      card.className = "post-card";
-      const thumb = nz(p.thumb_pick1) || nz(p.thumb_original) || "no-thumb.jpg";
-      card.innerHTML = `
-        <img src="${thumb}" class="post-thumb" alt="thumb">
-        <div class="post-info">
-          <div class="post-site">${nz(p.editor) || "船長"}</div>
-          <div class="post-title">${nz(p.title_final) || "(タイトル未設定)"}</div>
-          <div class="post-site">${nz(p.month)} ／ ${nz(p.date)}</div>
-          <div class="btn-area">
-            <button class="edit-btn"  onclick="editPost('${p.id}')">✏ 編集</button>
-            <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
-          </div>
+  // ページング
+  const totalPages = Math.ceil(filtered.length / perPage);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
+  const start = (currentPage-1)*perPage;
+  const pageData = filtered.slice(start, start+perPage);
+
+  // 件数を表示（ここが正しい位置）
+  const countEl = document.getElementById("resultCount");
+  if (countEl) {
+    countEl.textContent = `検索結果：${filtered.length}件`;}
+
+  // 描画
+  grid.innerHTML = "";
+  pageData.forEach(p=>{
+    const card = document.createElement("div");
+    card.className = "post-card";
+    const thumb = nz(p.thumb_pick1) || nz(p.thumb_original) || "no-thumb.jpg";
+    card.innerHTML = `
+      <img src="${thumb}" class="post-thumb" alt="thumb">
+      <div class="post-info">
+        <div class="post-site">${nz(p.editor) || "船長"}</div>
+        <div class="post-title">${nz(p.title_final) || "(タイトル未設定)"}</div>
+        <div class="post-site">${nz(p.month)} ／ ${nz(p.date)}</div>
+        <div class="btn-area">
+          <button class="edit-btn"  onclick="editPost('${p.id}')">✏ 編集</button>
+          <button class="delete-btn" onclick="deletePost('${p.id}')">🗑 削除</button>
         </div>
-      `;
-      grid.appendChild(card);
-    });
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 
-    renderPagination(totalPages);
-  }
+  renderPagination(totalPages);
+}
 
   function renderPagination(totalPages){
     const container = document.getElementById("pagination");
@@ -181,10 +198,10 @@ async function loadHistory(){
     container.appendChild(mk("⏭", currentPage+1, currentPage===totalPages));
   }
 
-  // ✏ 履歴由来として edit-post を開く（type=history）
-// ✏ 履歴編集ページに遷移
+  // ✏ 履歴由来として edit-history を開く（type=history）
+// ✏ 履歴編集ページに遷移（history.json を参照）
 function editPost(id){
-  window.location.href = `history-edit.html?id=${id}`;
+  window.location.href = `edit-history.html?id=${id}&type=history`;
 }
 
   // 🗑 削除（history.json から対象IDを除外して保存）

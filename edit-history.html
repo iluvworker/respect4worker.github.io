@@ -85,10 +85,6 @@
       font-size: 13px;
     }
 
-    .video-link:hover {
-      text-decoration: underline;
-    }
-
     .counter {
       font-size: 12px;
       margin-top: 4px;
@@ -116,7 +112,6 @@
 </head>
 
 <body>
-
   <main class="main-content">
     <h1 class="main-title">📜 編集履歴エディタ（船長）</h1>
 
@@ -147,60 +142,33 @@
       <input type="text" id="video">
       <a id="videoLink" class="video-link" href="#" target="_blank">▶ 動画を開く</a>
 
-      <label>タグ（スペース区切り）</label>
+      <label id="labelTags">タグ（スペース区切り）</label>
       <input type="text" id="tags" placeholder="女優属性,シチュエーション,プレイ 計8個">
       <div id="tagCount" style="color:#aaa;font-size:13px;margin-top:4px;">0個</div>
 
       <label>内容メモ／補足（任意）</label>
       <textarea id="notes" placeholder="補足や備考を入力..."></textarea>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:16px;">
+  <input type="checkbox" id="isPosted" style="transform:scale(1.3);" />
+  掲載済み
+</label>
 
       <button type="submit">💾 履歴を上書き保存</button>
     </form>
   </main>
 
   <script>
-    function encodeToBase64(str) {
-      return btoa(unescape(encodeURIComponent(str)));
-    }
-
+  document.addEventListener("DOMContentLoaded", async () => {
+    const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
     const params = new URLSearchParams(window.location.search);
     const postId = params.get("id");
 
-    async function loadHistoryPost() {
-      try {
-        const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
-        const posts = await res.json();
-        const post = posts.find(p => String(p.id) === postId);
-        if (!post) {
-          alert("該当する履歴データが見つかりません。");
-          return;
-        }
-
-        document.getElementById("originalTitle").value = post.title_original || "";
-        document.getElementById("editableTitle").value = post.title_final || "";
-        document.getElementById("thumbOriginal").value = post.thumb_original || "";
-        document.getElementById("thumbPreview").src = post.thumb_original || "";
-        document.getElementById("url").value = post.url || "";
-        document.getElementById("video").value = post.video || "";
-        document.getElementById("videoLink").href = post.video || "#";
-        document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
-        document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
-        document.getElementById("tags").value = (post.tags || []).join(" ");
-        document.getElementById("notes").value = post.notes || "";
-        updateCounter();
-      } catch (err) {
-        console.error("ロードエラー:", err);
-        alert("履歴の読み込みに失敗しました。");
-      }
-    }
-
-    document.getElementById("thumbOriginal").addEventListener("input", e => {
-      document.getElementById("thumbPreview").src = e.target.value.trim() || "";
-    });
-
+    const tagInput = document.getElementById("tags");
+    const tagCount = document.getElementById("tagCount");
     const titleInput = document.getElementById("editableTitle");
     const counter = document.getElementById("titleCounter");
-    function updateCounter() {
+
+    const updateCounter = () => {
       const len = titleInput.value.length;
       counter.classList.remove("ok", "warn");
       if (len >= 50 && len <= 60) {
@@ -210,59 +178,244 @@
         counter.classList.add("warn");
         counter.textContent = `⚠️ ${len}文字（50〜60文字推奨）`;
       }
-    }
+    };
     titleInput.addEventListener("input", updateCounter);
 
-    const tagInput = document.getElementById("tags");
-    tagInput.addEventListener("input", () => {
-      const tags = tagInput.value.trim().split(/\s+/).filter(Boolean);
-      document.getElementById("tagCount").textContent = `タグ数：${tags.length}個`;
-    });
+    const splitTags = (v) => (v || "").trim().split(/[\s\u3000]+/).filter(Boolean);
+    const updateTagCount = () => tagCount.textContent = `タグ数：${splitTags(tagInput.value).length}個`;
+    tagInput.addEventListener("input", updateTagCount);
 
-    document.getElementById("editForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const res = await fetch("history.json?t=" + Date.now());
-      const list = await res.json();
-      const index = list.findIndex(p => String(p.id) === postId);
-      if (index === -1) {
-        alert("該当データが見つかりません。");
+    const makePreview = (inputId, previewId) => {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const preview = document.createElement("img");
+      preview.id = previewId;
+      preview.className = "thumb-preview";
+      preview.style.cursor = "zoom-in";
+      preview.style.maxWidth = "200px";
+      preview.style.marginTop = "6px";
+      input.insertAdjacentElement("afterend", preview);
+      preview.src = (input.value || "").trim() || "";
+      input.addEventListener("input", e => preview.src = e.target.value.trim() || "");
+    };
+    makePreview("thumbPick1", "thumbPreview1");
+    makePreview("thumbPick2", "thumbPreview2");
+
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+      position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+      background: "rgba(0,0,0,0.8)", display: "none",
+      justifyContent: "center", alignItems: "center", zIndex: 9999, cursor: "zoom-out"
+    });
+    const fullImg = document.createElement("img");
+    Object.assign(fullImg.style, {
+      maxWidth: "95%", maxHeight: "95%", borderRadius: "10px", boxShadow: "0 0 10px #000"
+    });
+    overlay.appendChild(fullImg);
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", () => overlay.style.display = "none");
+   document.addEventListener("click", e => {
+  const id = e.target.id;
+  // thumbPreview1 または thumbPreview2 のみ拡大対象
+  if ((id === "thumbPreview1" || id === "thumbPreview2") && e.target.src) {
+    fullImg.src = e.target.src;
+    overlay.style.display = "flex";
+  }
+});
+
+// ✅ 投稿読み込みだけに専念
+async function loadHistoryPost() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
+    const type = params.get("type") || "auto"; // ← autoモードにして両方検索
+
+    const files = type === "posted" ? ["posted.json"] :
+                  type === "history" ? ["history.json"] :
+                  ["history.json", "posted.json"]; // ← 両方見る
+
+    let post = null;
+    for (const file of files) {
+      const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
+      let list = await res.json();
+      while (Array.isArray(list[0])) list = list.flat();
+      const found = list.find(p => String(p.id ?? "") === String(postId ?? ""));
+      if (found) {
+        post = found;
+        break;
+      }
+    }
+
+    if (!post) {
+      alert(`⚠️ history.json / posted.json のどちらにも該当データが見つかりません。\nID: ${postId}`);
+      return;
+    }
+
+    // --- 以下代入処理はそのまま ---
+    document.getElementById("originalTitle").value = post.title_original || "";
+    document.getElementById("editableTitle").value = post.title_final || "";
+    document.getElementById("thumbOriginal").value = post.thumb_original || "";
+    document.getElementById("thumbPreview").src = post.thumb_original || "";
+    document.getElementById("url").value = post.url || "";
+    document.getElementById("video").value = post.video || "";
+    document.getElementById("videoLink").href = post.video || "#";
+    document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
+    document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+    document.getElementById("thumbLink").href = post.url || "#";
+    document.getElementById("tags").value = (post.tags || []).join(" ");
+    document.getElementById("notes").value = post.notes || "";
+
+    document.getElementById("tags").dispatchEvent(new Event("input"));
+    document.getElementById("thumbPick1").dispatchEvent(new Event("input"));
+    document.getElementById("thumbPick2").dispatchEvent(new Event("input"));
+    updateCounter();
+    updateTagCount();
+  } catch (err) {
+    console.error("ロードエラー:", err);
+    alert("履歴の読み込みに失敗しました。");
+  }
+}
+    
+await loadHistoryPost();
+
+
+// ✅ 保存イベントを追加
+document.getElementById("editForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const isPosted = document.getElementById("isPosted").checked;
+  const user = JSON.parse(localStorage.getItem("loginUser"));
+  const editorName = user?.name ?? "船長";
+
+  if (isPosted) {
+    try {
+      // 1️⃣ history.json 読み込み
+      const hr = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
+      const hist = hr.ok ? await hr.json() : [];
+      const targetPost = hist.find(p => String(p.id) === String(postId));
+      if (!targetPost) {
+        alert("該当する履歴が見つかりません。");
         return;
       }
 
-      list[index] = {
-        ...list[index],
-        title_original: document.getElementById("originalTitle").value,
-        title_final: document.getElementById("editableTitle").value,
-        thumb_original: document.getElementById("thumbOriginal").value,
-        thumb_pick1: document.getElementById("thumbPick1").value,
-        thumb_pick2: document.getElementById("thumbPick2").value,
-        url: document.getElementById("url").value,
-        video: document.getElementById("video").value,
-        tags: tagInput.value.split(" ").map(t => t.trim()).filter(Boolean),
-        notes: document.getElementById("notes").value,
-        updated_at: new Date().toISOString()
-      };
+      // 2️⃣ posted.json 読み込み
+      const pr = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
+      const posted = pr.ok ? await pr.json() : [];
 
-      const saveRes = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      // 3️⃣ 編集者は上書き禁止
+      const existingEditor = targetPost.editor || editorName;
+      const finalPost = { ...targetPost, editor: existingEditor, status: "posted", posted_at: new Date().toISOString() };
+
+      // 4️⃣ posted.json に追記
+      posted.push(finalPost);
+      await fetch("https://github-writer.eda-ksuke.workers.dev", {
         method: "POST",
-        mode: "cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: "Update post in history (船長)",
-          target: "history.json?ts=",
-          content: encodeToBase64(JSON.stringify(list, null, 2))
+          message: `Move post ${postId} to posted.json`,
+          target: "posted.json",
+          content: encodeToBase64(JSON.stringify(posted, null, 2))
         })
       });
 
-      if (saveRes.ok) {
-        alert("✅ 編集履歴を上書き保存しました！");
-        window.location.href = "history.html";
-      } else {
-        alert("⚠️ 保存失敗: " + saveRes.status);
-      }
-    });
+      // 5️⃣ history.json から削除
+      const updatedHist = hist.filter(p => String(p.id) !== String(postId));
+      await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Remove post ${postId} from history.json (moved to posted.json)`,
+          target: "history.json",
+          content: encodeToBase64(JSON.stringify(updatedHist, null, 2))
+        })
+      });
 
-    loadHistoryPost();
+      alert("✅ 掲載済みに移動しました（posted.json へ）");
+      window.location.href = "edit-history-list.html"; // ← 投稿履歴ページ
+      return;
+    } catch (err) {
+      console.error("掲載済み処理エラー:", err);
+      alert("⚠️ 掲載済み処理に失敗しました。");
+      return;
+    }
+  } else {
+    alert("💾 掲載チェックなし：履歴の上書き保存のみを行いました。");
+  }
+});
+
+    // ========= タグボタン群 =========
+    const labelTags = document.getElementById("labelTags");
+    const notes = document.getElementById("notes");
+    const notesLabel = notes ? notes.previousElementSibling : null;
+
+    const createTagButtons = async (file) => {
+  const res = await fetch(`${file}?ts=${Date.now()}`);
+  if (!res.ok) return null;
+  const tagGroups = await res.json();
+      const container = document.createElement("div");
+      container.style.margin = "14px 0";
+
+      for (const [group, tags] of Object.entries(tagGroups)) {
+        if (group.startsWith("-")) {
+          const hr = document.createElement("hr");
+          hr.style.border = "none";
+          hr.style.borderTop = "1px solid rgba(80,80,80,0.8)";
+          hr.style.margin = "16px 0";
+          container.appendChild(hr);
+          continue;
+        }
+
+        const title = document.createElement("h4");
+        title.textContent = group;
+        Object.assign(title.style, { color:"#47bcec", fontSize:"13px", margin:"6px 0 3px 0" });
+        container.appendChild(title);
+
+        const wrap = document.createElement("div");
+        Object.assign(wrap.style, { display:"flex", flexWrap:"wrap", columnGap:"5px", rowGap:"3px" });
+
+        tags.forEach(tag => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = tag;
+          Object.assign(btn.style, {
+            background:"#2b2b2b", color:"#b0cfff", border:"1px solid #444",
+            borderRadius:"5px", fontSize:"12px", padding:"3px 9px",
+            cursor:"pointer", margin:"1px 4px 1px 0", lineHeight:"1.3",
+            transition:"all 0.2s ease"
+          });
+          btn.addEventListener("mouseenter", () => (btn.style.background = "#3b3b3b"));
+          btn.addEventListener("mouseleave", () => (btn.style.background = "#2b2b2b"));
+          btn.addEventListener("click", () => {
+            const cur = (tagInput.value || "").trim().split(/[\s\u3000]+/).filter(Boolean);
+            if (!cur.includes(tag)) {
+              tagInput.value = [...cur, tag].join(" ");
+              tagInput.dispatchEvent(new Event("input"));
+            }
+          });
+          wrap.appendChild(btn);
+        });
+        container.appendChild(wrap);
+      }
+      return container;
+    };
+
+    const blockAttr = await createTagButtons("tag-manager.json");
+    if (blockAttr && labelTags) labelTags.insertAdjacentElement("afterend", blockAttr);
+
+    if (blockAttr && tagInput) {
+      blockAttr.insertAdjacentElement("afterend", tagInput);
+      tagInput.insertAdjacentElement("afterend", tagCount);
+    }
+
+    const blockCeleb = await createTagButtons("tag-manager2.json");
+    if (blockCeleb && tagCount) tagCount.insertAdjacentElement("afterend", blockCeleb);
+
+    if (blockCeleb && notes) {
+      if (notesLabel) blockCeleb.insertAdjacentElement("afterend", notesLabel);
+      (notesLabel || blockCeleb).insertAdjacentElement("afterend", notes);
+    }
+    updateTagCount();
+  });
   </script>
 </body>
 </html>

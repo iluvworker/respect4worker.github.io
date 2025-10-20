@@ -6,7 +6,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
   try {
     // ✅ ここが重要。GitHub Pagesではルート相対パスにしないと404になる
-    const res = await fetch("users.json");
+    const res = await fetch("users.json?ts=");
 
     if (!res.ok) throw new Error("ユーザー情報を読み込めません。");
     const users = await res.json();
@@ -21,7 +21,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       if (user.role === "admin") {
         window.location.href = "admin.html";
       } else {
-        window.location.href = "worker.html";
+        window.location.href = "crew-dashboard.html";
       }
     } else {
       alert("IDまたはパスワードが違います。");
