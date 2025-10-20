@@ -226,16 +226,19 @@
 // ✅ 投稿読み込みだけに専念
 async function loadHistoryPost() {
   try {
-    // 🔍 URLパラメータから type を確認（デフォルトは history）
-    const type = new URLSearchParams(window.location.search).get("type") || "history";
-    const jsonFile = type === "posted" ? "posted.json" : "history.json";
+    // 🟦 URLパラメータから type を取得（history か posted）
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
+    const type = params.get("type") || "history";  // ← デフォルトは history
+    const jsonFile = type === "posted" ? "posted.json" : "history.json"; // ← ここで分岐！
 
+    // 🟩 分岐した結果をここで読み込む
     const res = await fetch(`${jsonFile}?t=${Date.now()}`, { cache: "no-cache" });
     const posts = await res.json();
-    const post = posts.find(p => String(p.id) === postId);
+    const post = posts.find(p => String(p.id) === String(postId));
     if (!post) { 
-      alert(`該当データが見つかりません (${jsonFile})`);
-      return; 
+      alert(`⚠️ ${jsonFile} に該当するデータが見つかりません。`);
+      return;
     }
 
     document.getElementById("originalTitle").value = post.title_original || "";
