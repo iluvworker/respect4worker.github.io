@@ -280,7 +280,7 @@ async function loadHistoryPost() {
     
 await loadHistoryPost();
 
-   // 🎬 右側に“新しいウィンドウ”で動画を開く
+// 🎬 右側に“新しいウィンドウ”で動画を開く
 let videoWin = null;
 
 document.getElementById("openVideo").addEventListener("click", () => {
@@ -298,7 +298,7 @@ document.getElementById("openVideo").addEventListener("click", () => {
     `height=${height}`,
     `left=${left}`,
     `top=${top}`,
-    `noopener`,         // ← macOSでタブ化しにくくする重要指定
+    `noopener`,
     `noreferrer`,
     `resizable=yes`,
     `scrollbars=yes`,
@@ -308,29 +308,26 @@ document.getElementById("openVideo").addEventListener("click", () => {
     `status=no`
   ].join(",");
 
-  if (!videoWin || videoWin.closed) {
-    videoWin = window.open(url, "_blank", features);
-  } else {
-    videoWin.location.href = url;
-    videoWin.focus();
-  }
-});
-
-  if (videoWin) {
-    // URLを設定（replaceで履歴を汚さない）
-    try {
+  try {
+    if (!videoWin || videoWin.closed) {
+      // 🪟 新しいウィンドウを開く
+      videoWin = window.open(url, "videoWindow", features);
+    } else {
+      // 🪟 既存ウィンドウを再利用
       videoWin.location.replace(url);
-    } catch {
-      // 同一オリジン以外で稀にreplaceが弾かれたときの保険
+      videoWin.focus();
+    }
+  } catch (e) {
+    // ⛑ 保険：同一オリジン制約でreplaceが弾かれたとき
+    if (videoWin) {
       videoWin.location.href = url;
+      videoWin.focus();
+    } else {
+      window.open(url, "videoWindow", features);
     }
   }
-}
-
-document.getElementById("openVideo").addEventListener("click", () => {
-  const videoUrl = document.getElementById("video").value.trim();
-  openVideoWindow(videoUrl);
 });
+    
 // ✅ 保存イベントを追加
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
