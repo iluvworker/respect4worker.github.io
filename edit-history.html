@@ -228,21 +228,30 @@ async function loadHistoryPost() {
   try {
     const params = new URLSearchParams(window.location.search);
     const postId = params.get("id");
-    const type = params.get("type") || "history";
-    const jsonFile = type === "posted" ? "posted.json" : "history.json";
+    const type = params.get("type") || "auto"; // ← autoモードにして両方検索
 
-    const res = await fetch(`${jsonFile}?ts=${Date.now()}`, { cache: "no-store" });
-    let posts = await res.json();
-    while (Array.isArray(posts[0])) posts = posts.flat();
+    const files = type === "posted" ? ["posted.json"] :
+                  type === "history" ? ["history.json"] :
+                  ["history.json", "posted.json"]; // ← 両方見る
 
-    const post = posts.find(p => String(p.id ?? "") === String(postId ?? ""));
+    let post = null;
+    for (const file of files) {
+      const res = await fetch(`${file}?ts=${Date.now()}`, { cache: "no-store" });
+      let list = await res.json();
+      while (Array.isArray(list[0])) list = list.flat();
+      const found = list.find(p => String(p.id ?? "") === String(postId ?? ""));
+      if (found) {
+        post = found;
+        break;
+      }
+    }
+
     if (!post) {
-      alert(`⚠️ ${jsonFile} に該当するデータが見つかりません。\nID: ${postId}`);
-      console.log("postsサンプル", posts.slice(0, 3));
+      alert(`⚠️ history.json / posted.json のどちらにも該当データが見つかりません。\nID: ${postId}`);
       return;
     }
 
-    // ここから下は今の代入処理でOK
+    // --- 以下代入処理はそのまま ---
     document.getElementById("originalTitle").value = post.title_original || "";
     document.getElementById("editableTitle").value = post.title_final || "";
     document.getElementById("thumbOriginal").value = post.thumb_original || "";
