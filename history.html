@@ -136,8 +136,7 @@ function renderHistory(){
   // 件数を表示（ここが正しい位置）
   const countEl = document.getElementById("resultCount");
   if (countEl) {
-    countEl.textContent = `検索結果：${filtered.length}件中 ${pageData.length}件を表示中`;
-  }
+    countEl.textContent = `検索結果：${filtered.length}件`;
 
   // 描画
   grid.innerHTML = "";
