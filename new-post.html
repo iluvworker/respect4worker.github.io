@@ -248,9 +248,7 @@ async function isDupPostEverywhere(newPost) {
   }
   return false;
 }
-  };
-  return (await checkTarget("posts.json?ts=")) || (await checkTarget("history.json?ts="));
-}
+  
     document.querySelector("#postForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const site = siteDisplay.textContent;
