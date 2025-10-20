@@ -226,7 +226,7 @@
 // ✅ 投稿読み込みだけに専念
 async function loadHistoryPost() {
   try {
-const res = await fetch("posted.json?t=" + Date.now(), { cache: "no-cache" });
+const res = await fetch("history.json?t=" + Date.now(), { cache: "no-cache" });
     const posts = await res.json();
     const post = posts.find(p => String(p.id) === postId);
     if (!post) { alert("該当する履歴データが見つかりません。"); return; }
