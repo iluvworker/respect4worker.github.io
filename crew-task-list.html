@@ -83,6 +83,7 @@
 
     <section class="section">
       <div id="postGrid" class="post-grid"></div>
+      <div id="pagination" class="pagination"></div> <!-- ←追加 -->
     </section>
   </main>
 
@@ -153,6 +154,94 @@
 
     document.getElementById("searchInput").addEventListener("input", renderPosts);
     loadPosts();
+    let currentPage = 1;
+const perPage = 30;
+
+function renderPosts() {
+  const grid = document.getElementById("postGrid");
+  const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered = postsData.filter(p => {
+    const matchKeyword =
+      (p.title && p.title.toLowerCase().includes(keyword)) ||
+      (p.site && p.site.toLowerCase().includes(keyword)) ||
+      (p.tags && p.tags.join(",").toLowerCase().includes(keyword));
+    const isUnedited = !p.status || p.status !== "edited";
+    return matchKeyword && isUnedited;
+  });
+
+  filtered.sort((a, b) =>
+    sortDesc
+      ? new Date(b.created_at) - new Date(a.created_at)
+      : new Date(a.created_at) - new Date(b.created_at)
+  );
+
+  const totalPages = Math.ceil(filtered.length / perPage);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
+
+  const start = (currentPage - 1) * perPage;
+  const pageData = filtered.slice(start, start + perPage);
+
+  grid.innerHTML = "";
+  pageData.forEach(p => {
+    const site = getSiteName(p.url);
+    const card = document.createElement("div");
+    card.className = "post-card";
+    card.innerHTML = `
+      <img src="${p.thumb}" class="post-thumb" alt="thumb">
+      <div class="post-info">
+        <div class="post-site">${site}</div>
+        <a href="${p.url}" class="post-title" target="_blank">${p.title || "(タイトル未設定)"}</a>
+        <div class="btn-group">
+          <button class="edit-btn" onclick="editPost('${p.id}')">✏ 編集</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const container = document.getElementById("pagination");
+  container.innerHTML = "";
+  if (totalPages <= 1) return;
+
+  const createBtn = (label, page, disabled = false, active = false) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    if (disabled) btn.disabled = true;
+    if (active) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      currentPage = page;
+      renderPosts();
+    });
+    return btn;
+  };
+
+  container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+
+  const visibleRange = 2;
+  const startPage = Math.max(1, currentPage - visibleRange);
+  const endPage = Math.min(totalPages, currentPage + visibleRange);
+
+  if (startPage > 1) {
+    container.appendChild(createBtn("1", 1));
+    if (startPage > 2) container.appendChild(document.createTextNode("…"));
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    container.appendChild(createBtn(i, i, false, i === currentPage));
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) container.appendChild(document.createTextNode("…"));
+    container.appendChild(createBtn(totalPages, totalPages));
+  }
+
+  container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+}
   </script>
 </body>
 </html>
