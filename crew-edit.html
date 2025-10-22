@@ -56,6 +56,25 @@
     }
     .info-box a:hover { text-decoration: underline; }
 
+    .info-box a {
+  color: #47bcec;
+  text-decoration: none;
+  font-weight: 600;
+}
+.info-box a:hover {
+  text-decoration: underline;
+}
+.thumb-preview {
+  width: 180px;
+  border-radius: 6px;
+  margin-top: 10px;
+  display: block;
+  transition: opacity 0.2s ease;
+}
+.thumb-preview:hover {
+  opacity: 0.8;
+}
+
     .thumb-preview {
       width: 180px;
       border-radius: 6px;
@@ -109,18 +128,22 @@
 
     <form id="editForm">
       <label>商品タイトル</label>
-      <div id="displayTitle" class="info-box"></div>
+<div id="displayTitle" class="info-box"></div>
 
-      <label>パッケージ</label>
-      <a id="thumbLink" href="#" target="_blank">
-        <img id="thumbPreview" class="thumb-preview" src="" alt="thumb preview">
-      </a>
+<label>パッケージ</label>
+<a id="thumbLink" href="#" target="_blank">
+  <img id="thumbPreview" class="thumb-preview" src="" alt="パッケージ画像">
+</a>
 
-      <label>商品ページ</label>
-      <div id="displayUrl" class="info-box"></div>
+<label>商品ページ</label>
+<div id="displayUrl" class="info-box">
+  <a id="productLink" href="#" target="_blank">商品ページを開く</a>
+</div>
 
-      <label>動画</label>
-      <div id="displayVideo" class="info-box"></div>
+<label>動画</label>
+<div id="displayVideo" class="info-box">
+  <a id="videoLink" href="#" target="_blank">▶ 動画を開く</a>
+</div>
 
       <label>タイトル（50〜60文字）</label>
       <input type="text" id="editableTitle" maxlength="100" placeholder="詐欺タイトル注意！" />
@@ -147,28 +170,46 @@
     const postId = params.get("id");
 
     async function loadPost() {
-      try {
-        const res = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
-        const posts = await res.json();
-        const post = posts.find(p => String(p.id) === String(postId));
-        if (!post) {
-          alert("該当する投稿が見つかりません。");
-          return;
-        }
-
-        document.getElementById("displayTitle").textContent = post.title || "(タイトルなし)";
-        document.getElementById("thumbPreview").src = post.thumb || "";
-        document.getElementById("thumbLink").href = post.thumb || "#";
-        document.getElementById("displayUrl").innerHTML =
-          post.url ? `<a href="${post.url}" target="_blank">${post.url}</a>` : "-";
-        document.getElementById("displayVideo").innerHTML =
-          post.video ? `<a href="${post.video}" target="_blank">▶ 動画を開く</a>` : "-";
-
-      } catch (e) {
-        console.error(e);
-        alert("データを読み込めませんでした。");
-      }
+  try {
+    const res = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+    const posts = await res.json();
+    const post = posts.find(p => String(p.id) === String(postId));
+    if (!post) {
+      alert("該当する投稿が見つかりません。");
+      return;
     }
+
+    // 🧩 表示部分（編集不可）
+    document.getElementById("displayTitle").textContent = post.title || "(タイトルなし)";
+
+    document.getElementById("thumbPreview").src = post.thumb || "";
+    document.getElementById("thumbLink").href = post.thumb || "#";
+
+    // 商品ページリンク
+    const productLink = document.getElementById("productLink");
+    if (post.url) {
+      productLink.href = post.url;
+      productLink.textContent = "🔗 商品ページを開く";
+    } else {
+      productLink.textContent = "-";
+      productLink.removeAttribute("href");
+    }
+
+    // 動画リンク
+    const videoLink = document.getElementById("videoLink");
+    if (post.video) {
+      videoLink.href = post.video;
+      videoLink.textContent = "▶ 動画を開く";
+    } else {
+      videoLink.textContent = "-";
+      videoLink.removeAttribute("href");
+    }
+
+  } catch (e) {
+    console.error(e);
+    alert("データを読み込めませんでした。");
+  }
+}
 
     // タイトル文字数カウンタ
     const titleInput = document.getElementById("editableTitle");
