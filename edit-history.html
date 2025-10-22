@@ -415,19 +415,19 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 
     // 2) フォーム内容で上書き（どちらの分岐でも共通）
     const updated = {
-      ...hist[idx],
-      title_original: document.getElementById("originalTitle").value.trim(),
-      title_final:    document.getElementById("editableTitle").value.trim(),
-      thumb_original: document.getElementById("thumbOriginal").value.trim(),
-      thumb_pick1:    document.getElementById("thumbPick1").value.trim(),
-      thumb_pick2:    document.getElementById("thumbPick2").value.trim(),
-      url:            document.getElementById("url").value.trim(),
-      video:          document.getElementById("video").value.trim(),
-      tags:           (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
-      notes:          document.getElementById("notes").value.trim(),
-      editor,
-      updated_at:     new Date().toISOString()
-    };
+  ...hist[idx],
+  title_original: document.getElementById("originalTitle").value.trim(),
+  title_final:    document.getElementById("editableTitle").value.trim(),
+  thumb_original: document.getElementById("thumbOriginal").value.trim(),
+  thumb_pick1:    document.getElementById("thumbPick1").value.trim(),
+  thumb_pick2:    document.getElementById("thumbPick2").value.trim(),
+  url:            document.getElementById("url").value.trim(),
+  video:          document.getElementById("video").value.trim(),
+  tags:           (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
+  notes:          document.getElementById("notes").value.trim(),
+  updated_by:     editor, // ← ここが新設（現在ログイン中の人）
+  updated_at:     new Date().toISOString()
+};
 
     if (!isPosted) {
       // ─────────────────────────────
