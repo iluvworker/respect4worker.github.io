@@ -201,11 +201,10 @@ async function loadCrewHistory() {
     }
   }
 
-  // ✅ 自分の功績を抽出
-  const myList = allList.filter(p => {
-  const who = (p.updated_by || p.editor || p.posted_by || "").trim();
-  // 部分一致OKにする
-  return who.includes(currentUser);
+  // ✅ 現在ログイン中のユーザー名を固定基準に抽出
+const myList = allList.filter(p => {
+  const editor = (p.editor || "").trim();
+  return editor === currentUser;
 });
 
   if (!myList.length) {
