@@ -187,6 +187,107 @@
     });
 
     loadPost();
+    // ===============================
+// 💾 クルー保存処理（履歴移動＋一覧へ戻る）
+// ===============================
+document.getElementById("editForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const editableTitle = document.getElementById("editableTitle").value.trim();
+  const thumbPick1 = document.getElementById("thumbPick1").value.trim();
+  const thumbPick2 = document.getElementById("thumbPick2").value.trim();
+  const tagsRaw = document.getElementById("tags").value.trim();
+  const notes = document.getElementById("notes").value.trim();
+
+  // --- 簡易バリデーション ---
+  const errors = [];
+  if (!editableTitle) errors.push("タイトルが未入力です。");
+  if (editableTitle.length < 50 || editableTitle.length > 60)
+    errors.push(`タイトルは50〜60文字（現在 ${editableTitle.length}文字）です。`);
+  if (!thumbPick1 || !thumbPick2) errors.push("サムネ2枚は必須です。");
+  const tagList = tagsRaw.split(/\s+/).filter(Boolean);
+  if (tagList.length < 8) errors.push(`タグは最低8個必要です（現在 ${tagList.length}個）。`);
+
+  if (errors.length > 0) {
+    alert("保存できません。\n" + errors.join("\n"));
+    return;
+  }
+
+  try {
+    // --- 投稿データ読み込み ---
+    const res = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+    const posts = await res.json();
+    const post = posts.find(p => String(p.id) === String(postId));
+    if (!post) {
+      alert("該当する投稿が見つかりません。");
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem("loginUser"));
+    const editor = user ? user.name : "クルー";
+
+    // --- 編集済みデータを構築 ---
+    const editedPost = {
+      id: postId,
+      title_original: post.title,
+      url: post.url,
+      video: post.video,
+      title_final: editableTitle,
+      thumb_original: post.thumb,
+      thumb_pick1: thumbPick1,
+      thumb_pick2: thumbPick2,
+      tags: tagList,
+      notes,
+      editor,
+      updated_at: new Date().toISOString(),
+      status: "edited"
+    };
+
+    // --- history.jsonに追記 ---
+    let historyList = [];
+    try {
+      const hr = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
+      if (hr.ok) historyList = await hr.json();
+    } catch (_) {}
+    historyList.push(editedPost);
+
+    const saveHistory = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Add edited post (crew)",
+        target: "history.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(historyList, null, 2))))
+      })
+    });
+
+    if (!saveHistory.ok) throw new Error("履歴保存に失敗");
+
+    // --- posts.jsonから削除 ---
+    const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+    const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Remove id:${postId} (moved to history by crew)`,
+        target: "posts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedPosts, null, 2))))
+      })
+    });
+
+    if (!savePosts.ok) console.warn("posts.jsonの削除反映に失敗:", savePosts.status);
+
+    // --- 完了メッセージ＋リダイレクト ---
+    alert("✅ 保存しました。投稿は履歴へ移動し、依頼案件一覧に戻ります。");
+    window.location.href = "crew-task-list.html";
+
+  } catch (err) {
+    console.error("保存エラー:", err);
+    alert("⚠️ 保存中にエラーが発生しました。");
+  }
+});
   </script>
 </body>
 </html>
