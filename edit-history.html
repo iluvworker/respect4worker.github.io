@@ -388,9 +388,7 @@ document.getElementById("openVideo").addEventListener("click", () => {
   }
 });
     
-// ✅ 保存イベントを追加
-const toBase64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
-    
+// ✅ 保存イベントを追加    
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
