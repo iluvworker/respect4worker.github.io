@@ -185,11 +185,10 @@ const currentUser = (user?.name || user?.username || user?.id || "").trim();
   // ✅ ページタイトル更新
   document.querySelector(".main-title").textContent = `📜 ${currentUser} の功績一覧`;
 
-  // ✅ history.json と posted.json 両方読む
-  const base = location.pathname.includes("respect4worker.github.io")
-  ? "/respect4worker.github.io/"
-  : "./";
+  // ✅ 今のページと同じディレクトリにある posted.json を探す
+const base = location.pathname.substring(0, location.pathname.lastIndexOf("/") + 1);
 const sources = [`${base}history.json`, `${base}posted.json`];
+  
   let allList = [];
 
   for (const src of sources) {
