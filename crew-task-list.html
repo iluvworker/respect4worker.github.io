@@ -81,10 +81,11 @@
       <button id="sortBtn">⬇️ 降順</button>
     </section>
 
-    <section class="section">
-      <div id="postGrid" class="post-grid"></div>
-      <div id="pagination" class="pagination"></div> <!-- ←追加 -->
-    </section>
+   <section class="section">
+  <div id="pagination-top" class="pagination"></div>   <!-- 上部 -->
+  <div id="postGrid" class="post-grid"></div>
+  <div id="pagination-bottom" class="pagination"></div> <!-- 下部 -->
+</section>
   </main>
 
   <script>
@@ -204,43 +205,48 @@ function renderPosts() {
 }
 
 function renderPagination(totalPages) {
-  const container = document.getElementById("pagination");
-  container.innerHTML = "";
-  if (totalPages <= 1) return;
+  const containers = [
+    document.getElementById("pagination-top"),
+    document.getElementById("pagination-bottom")
+  ];
+  containers.forEach(container => {
+    container.innerHTML = "";
+    if (totalPages <= 1) return;
 
-  const createBtn = (label, page, disabled = false, active = false) => {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    if (disabled) btn.disabled = true;
-    if (active) btn.classList.add("active");
-    btn.addEventListener("click", () => {
-      currentPage = page;
-      renderPosts();
-    });
-    return btn;
-  };
+    const createBtn = (label, page, disabled = false, active = false) => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      if (disabled) btn.disabled = true;
+      if (active) btn.classList.add("active");
+      btn.addEventListener("click", () => {
+        currentPage = page;
+        renderPosts();
+      });
+      return btn;
+    };
 
-  container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+    container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
 
-  const visibleRange = 2;
-  const startPage = Math.max(1, currentPage - visibleRange);
-  const endPage = Math.min(totalPages, currentPage + visibleRange);
+    const visibleRange = 2;
+    const startPage = Math.max(1, currentPage - visibleRange);
+    const endPage = Math.min(totalPages, currentPage + visibleRange);
 
-  if (startPage > 1) {
-    container.appendChild(createBtn("1", 1));
-    if (startPage > 2) container.appendChild(document.createTextNode("…"));
-  }
+    if (startPage > 1) {
+      container.appendChild(createBtn("1", 1));
+      if (startPage > 2) container.appendChild(document.createTextNode("…"));
+    }
 
-  for (let i = startPage; i <= endPage; i++) {
-    container.appendChild(createBtn(i, i, false, i === currentPage));
-  }
+    for (let i = startPage; i <= endPage; i++) {
+      container.appendChild(createBtn(i, i, false, i === currentPage));
+    }
 
-  if (endPage < totalPages) {
-    if (endPage < totalPages - 1) container.appendChild(document.createTextNode("…"));
-    container.appendChild(createBtn(totalPages, totalPages));
-  }
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) container.appendChild(document.createTextNode("…"));
+      container.appendChild(createBtn(totalPages, totalPages));
+    }
 
-  container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+    container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+  });
 }
   </script>
 </body>
