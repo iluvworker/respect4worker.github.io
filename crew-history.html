@@ -186,7 +186,10 @@ const currentUser = (user?.name || user?.username || user?.id || "").trim();
   document.querySelector(".main-title").textContent = `📜 ${currentUser} の功績一覧`;
 
   // ✅ history.json と posted.json 両方読む
-  const sources = ["history.json", "posted.json"];
+  const sources = [
+  "./history.json",
+  "./posted.json"
+];
   let allList = [];
 
   for (const src of sources) {
