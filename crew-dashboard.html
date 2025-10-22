@@ -1,57 +1,24 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ワーカーページ</title>
-<link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏠 クルーダッシュボード</title>
+  <link rel="stylesheet" href="assets/style.css?v=4">
+  <script src="assets/sidebar.js" defer></script>
+  <style>
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      margin-left: 230px;
+      transition: margin-left 0.3s ease;
+    }
+  </style>
 </head>
 <body>
-<h1>ワーカーページ</h1>
-<div id="posts"></div>
-<script>
-async function loadPosts() {
-  const res = await fetch('posts.json');
-  const posts = await res.json();
-  const container = document.getElementById('posts');
-  container.innerHTML = '';
-
-  posts.forEach((p, idx) => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `
-      <p><strong>ID:</strong> ${p.id}</p>
-      <p><strong>URL:</strong> <a href="${p.url}" target="_blank">${p.url}</a></p>
-      <img src="${p.thumb}" width="200"><br>
-      <label>タイトル：<input type="text" id="title-${idx}" value="${p.title || ''}"></label><br>
-      <label>タグ（,区切り）：<input type="text" id="tags-${idx}" value="${p.tags.join(',')}"></label><br>
-      <label>説明文：<textarea id="desc-${idx}">${p.desc || ''}</textarea></label><br>
-      <label>状態：
-        <select id="status-${idx}">
-          <option value="draft" ${p.status==='draft'?'selected':''}>draft</option>
-          <option value="editing" ${p.status==='editing'?'selected':''}>editing</option>
-          <option value="done" ${p.status==='done'?'selected':''}>done</option>
-        </select>
-      </label><br>
-      <button onclick="saveEdit(${idx})">保存（ローカル）</button>
-      <hr>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function saveEdit(idx){
-  const title = document.getElementById(`title-${idx}`).value;
-  const tags = document.getElementById(`tags-${idx}`).value.split(',');
-  const desc = document.getElementById(`desc-${idx}`).value;
-  const status = document.getElementById(`status-${idx}`).value;
-  let posts = JSON.parse(localStorage.getItem('editedPosts') || '[]');
-  posts[idx] = { title, tags, desc, status };
-  localStorage.setItem('editedPosts', JSON.stringify(posts));
-  alert('ローカルに保存しました。GitHub反映は管理者経由で実行。');
-}
-
-loadPosts();
-</script>
+  <main class="main-content">
+    <h1>🚀 クルーダッシュボード</h1>
+    <p>ここに自分の進捗とか件数を表示予定だよ。</p>
+  </main>
 </body>
 </html>
