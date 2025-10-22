@@ -203,8 +203,9 @@ async function loadCrewHistory() {
 
   // ✅ 現在ログイン中のユーザー名を固定基準に抽出
 const myList = allList.filter(p => {
-  const editor = (p.editor || "").trim();
-  return editor === currentUser;
+  const whoId = (p.editor_id || "").trim();
+  const whoName = (p.editor || "").trim();
+  return whoId === user.id || whoName === user.name;
 });
 
   if (!myList.length) {
