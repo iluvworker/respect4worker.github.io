@@ -174,26 +174,25 @@ function renderHistory(){
 function editPost(id){
   window.location.href = `edit-history.html?id=${id}&type=history`;
 }
-// ==============================
-// 🚀 クルー功績ページ用 完全版
-// ==============================
+// ✅ クルー功績ページ用：絶対URLで安全にfetch
 async function loadCrewHistory() {
   const user = JSON.parse(localStorage.getItem("loginUser"));
-console.log("🧩 loginUser:", user);
-const currentUser = (user?.name || user?.username || user?.id || "").trim();
+  console.log("🧩 loginUser:", user);
+  const currentUser = (user?.name || user?.username || user?.id || "").trim();
 
   // ✅ ページタイトル更新
   document.querySelector(".main-title").textContent = `📜 ${currentUser} の功績一覧`;
 
-  // ✅ 今のページと同じディレクトリにある posted.json を探す
-const base = location.pathname.substring(0, location.pathname.lastIndexOf("/") + 1);
-const sources = [`${base}history.json`, `${base}posted.json`];
-  
+  // ✅ ベースURLを完全指定（これで404回避）
+  const base = `${location.origin}/respect4worker.github.io/`;
+  const sources = [`${base}history.json`, `${base}posted.json`];
+
   let allList = [];
 
   for (const src of sources) {
     try {
       const res = await fetch(src + "?t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error(res.statusText);
       let data = await res.json();
       while (Array.isArray(data[0])) data = data.flat();
       allList.push(...data);
@@ -202,15 +201,17 @@ const sources = [`${base}history.json`, `${base}posted.json`];
     }
   }
 
-  // ✅ 自分の功績を抽出（部分一致対応版）
-const myList = allList.filter(p => {
-  const who = (p.updated_by || p.editor || p.posted_by || "").trim();
-  return who === currentUser || who === `${currentUser}（クルー）`;
-});
-if (!myList.length) {
-  console.warn("⚠️ 該当する功績が見つかりません:", currentUser);
-}
-  // ✅ データを反映して再描画
+  // ✅ 自分の功績を抽出
+  const myList = allList.filter(p => {
+    const who = (p.updated_by || p.editor || p.posted_by || "").trim();
+    return who === currentUser || who === `${currentUser}（クルー）`;
+  });
+
+  if (!myList.length) {
+    console.warn("⚠️ 該当する功績が見つかりません:", currentUser);
+  }
+
+  // ✅ データ反映
   historyData = myList;
   renderHistory();
 }
