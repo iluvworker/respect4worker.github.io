@@ -459,9 +459,9 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 
     const finalPost = {
   ...updated,
-  status:   "posted",
+  status:    "posted",
   posted_at: new Date().toISOString(),
-  editor:   updated.editor || "船長"
+  editor:    updated.editor || hist[idx].editor || "船長"
 };
 
     posted.push(finalPost);
