@@ -71,32 +71,6 @@
     return (text||"").toString().toLowerCase().normalize("NFKC").replace(/\s+/g,"");
   }
 
-async function loadHistory(){
-  try {
-    const res = await fetch("history.json?t=" + Date.now(), { cache: "no-store" });
-    let list = await res.json();
-
-    // 🔥 多重配列をフラット化
-    while (Array.isArray(list[0])) {
-      list = list.flat();
-    }
-
-    // 🧹 タイトルベースで重複削除（最後に現れたものを採用）
-    const uniqueMap = new Map();
-    for (const item of list) {
-      if (!item) continue;
-      const key = item.title_original || item.title_final || "(無題)";
-      uniqueMap.set(key, item);
-    }
-
-    historyData = Array.from(uniqueMap.values());
-    renderHistory();
-  } catch (err) {
-    console.error("history.json?ts=の読み込みに失敗:", err);
-    alert("⚠️ 履歴データの読み込みに失敗しました。");
-  }
-}
-
 function renderHistory(){
   const grid = document.getElementById("postGrid");
   const kwRaw = document.getElementById("searchInput").value.trim();
@@ -200,50 +174,61 @@ function renderHistory(){
 function editPost(id){
   window.location.href = `edit-history.html?id=${id}&type=history`;
 }
+// ✅ クルー功績ページ用：絶対URLで安全にfetch
 async function loadCrewHistory() {
   const user = JSON.parse(localStorage.getItem("loginUser"));
-  const currentUser = user?.name || "未ログイン";
+  console.log("🧩 loginUser:", user);
+  const currentUser = (user?.name || user?.username || user?.id || "").trim();
 
   // ✅ ページタイトル更新
   document.querySelector(".main-title").textContent = `📜 ${currentUser} の功績一覧`;
 
-  const sources = ["history.json", "posted.json"];
-  let list = [];
+  // ✅ ベースURLを完全指定（これで404回避）
+  const base = `${location.origin}/respect4worker.github.io/`;
+  const sources = [`${base}history.json`, `${base}posted.json`];
+
+  let allList = [];
 
   for (const src of sources) {
-    const res = await fetch(src + "?t=" + Date.now(), { cache: "no-store" });
-    let data = await res.json();
-    while (Array.isArray(data[0])) data = data.flat();
-    list.push(...data);
+    try {
+      const res = await fetch(src + "?t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error(res.statusText);
+      let data = await res.json();
+      while (Array.isArray(data[0])) data = data.flat();
+      allList.push(...data);
+    } catch (e) {
+      console.warn(src + " の取得に失敗:", e);
+    }
   }
 
-  // 🎯 自分の履歴だけ抽出
-  const myList = list.filter(p =>
-    (p.updated_by || p.editor || "").trim() === currentUser
-  );
+  // ✅ 現在ログイン中のユーザー名を固定基準に抽出
+const myList = allList.filter(p => {
+  const whoId = (p.editor_id || "").trim();
+  const whoName = (p.editor || "").trim();
+  return whoId === user.id || whoName === user.name;
+});
 
+  if (!myList.length) {
+    console.warn("⚠️ 該当する功績が見つかりません:", currentUser);
+  }
+
+  // ✅ データ反映
   historyData = myList;
   renderHistory();
 }
 
-// 編集ボタン
-function editPost(id, type = "history") {
-  window.location.href = `crew-edit.html?id=${id}&type=${type}`;
-}
+// 🧭 イベントバインド
+document.getElementById("searchInput").addEventListener("input", () => {
+  currentPage = 1;
+  renderHistory();
+});
+document.getElementById("sortBtn").addEventListener("click", () => {
+  sortDesc = !sortDesc;
+  document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 更新日 降順" : "⬆️ 更新日 昇順";
+  renderHistory();
+});
 
-// 削除ボタンは完全に削除
-
-  // UIイベント
-  document.getElementById("searchInput").addEventListener("input", ()=>{
-    currentPage = 1;
-    renderHistory();
-  });
-  document.getElementById("sortBtn").addEventListener("click", ()=>{
-    sortDesc = !sortDesc;
-    document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 更新日 降順" : "⬆️ 更新日 昇順";
-    renderHistory();
-  });
-
+// 🔥 実行
 loadCrewHistory();
 </script>
 </body>

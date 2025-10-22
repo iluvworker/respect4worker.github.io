@@ -280,6 +280,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
       tags: tagList,
       notes,
       editor,
+        editor_id, // ← これを追加！
       updated_at: new Date().toISOString(),
       status: "edited"
     };
