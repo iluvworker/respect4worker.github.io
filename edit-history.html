@@ -162,8 +162,7 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", async () => {
-    const encodeToBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
-    const params = new URLSearchParams(window.location.search);
+const toBase64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));    const params = new URLSearchParams(window.location.search);
     const postId = params.get("id");
 
     const tagInput = document.getElementById("tags");
@@ -390,8 +389,8 @@ document.getElementById("openVideo").addEventListener("click", () => {
 });
     
 // ✅ 保存イベントを追加
-const toBase64 = (s) => btoa(unescape(encodeURIComponent(s)));
-
+const toBase64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+    
 document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
