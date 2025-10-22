@@ -179,7 +179,8 @@ function editPost(id){
 // ==============================
 async function loadCrewHistory() {
   const user = JSON.parse(localStorage.getItem("loginUser"));
-  const currentUser = user?.name?.trim() || "未ログイン";
+console.log("🧩 loginUser:", user);
+const currentUser = (user?.name || user?.username || user?.id || "").trim();
 
   // ✅ ページタイトル更新
   document.querySelector(".main-title").textContent = `📜 ${currentUser} の功績一覧`;
