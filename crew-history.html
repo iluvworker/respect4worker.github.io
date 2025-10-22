@@ -200,11 +200,11 @@ const currentUser = (user?.name || user?.username || user?.id || "").trim();
     }
   }
 
-  // ✅ 自分の功績を抽出（editor, updated_by, posted_by いずれか一致）
-  const myList = allList.filter(p => {
-    const who = (p.updated_by || p.editor || p.posted_by || "").trim();
-    return who === currentUser;
-  });
+  // ✅ 自分の功績を抽出（部分一致対応版）
+const myList = allList.filter(p => {
+  const who = (p.updated_by || p.editor || p.posted_by || "").trim();
+  return who === currentUser || who === `${currentUser}（クルー）`;
+});
 if (!myList.length) {
   console.warn("⚠️ 該当する功績が見つかりません:", currentUser);
 }
