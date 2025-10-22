@@ -375,29 +375,59 @@ let filtered = postsData.filter(p => {
   });
 }
 
-      container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+      function renderPagination(totalPages) {
+  // 上下のページネーション両方を取得
+  const paginations = [
+    document.getElementById("pagination-top"),
+    document.getElementById("pagination-bottom")
+  ];
 
-      const visibleRange = 2;
-      const startPage = Math.max(1, currentPage - visibleRange);
-      const endPage = Math.min(totalPages, currentPage + visibleRange);
+  paginations.forEach(container => {
+    if (!container) return;
+    container.innerHTML = "";
 
-      if (startPage > 1) {
-        container.appendChild(createBtn("1", 1));
-        if (startPage > 2) container.appendChild(document.createElement("span")).textContent = "…";
-      }
+    if (totalPages <= 1) return;
 
-      for (let i = startPage; i <= endPage; i++) {
-        container.appendChild(createBtn(i, i, false, i === currentPage));
-      }
+    const createBtn = (label, page, disabled = false, active = false) => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      if (disabled) btn.disabled = true;
+      if (active) btn.classList.add("active");
+      btn.addEventListener("click", () => {
+        currentPage = page;
+        renderPosts();
+      });
+      return btn;
+    };
 
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) container.appendChild(document.createElement("span")).textContent = "…";
-        container.appendChild(createBtn(totalPages, totalPages));
-      }
+    // 前へ
+    container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
 
-      container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+    const visibleRange = 2;
+    const startPage = Math.max(1, currentPage - visibleRange);
+    const endPage = Math.min(totalPages, currentPage + visibleRange);
+
+    // 省略記号（…）
+    if (startPage > 1) {
+      container.appendChild(createBtn("1", 1));
+      if (startPage > 2) container.appendChild(document.createTextNode("…"));
     }
 
+    // 中央のページ番号
+    for (let i = startPage; i <= endPage; i++) {
+      container.appendChild(createBtn(i, i, false, i === currentPage));
+    }
+
+    // 末尾ページと省略記号
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) container.appendChild(document.createTextNode("…"));
+      container.appendChild(createBtn(totalPages, totalPages));
+    }
+
+    // 次へ
+    container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+  });
+}
     document.addEventListener("input", (e) => {
       if (["searchInput", "uneditOnly"].includes(e.target.id)) {
         currentPage = 1;
