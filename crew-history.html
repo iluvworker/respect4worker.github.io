@@ -217,10 +217,11 @@ async function loadCrewHistory() {
     list.push(...data);
   }
 
-  // 🎯 自分の履歴だけ抽出
-  const myList = list.filter(p =>
-(p.updated_by || p.editor || p.posted_by || "").trim() === currentUser  );
-
+  // 🎯 修正版フィルタ（editorでもposted_byでも拾う）
+const myList = list.filter(p => {
+  const editor = (p.updated_by || p.editor || p.posted_by || "").trim();
+  return editor === currentUser;
+});
   historyData = myList;
   renderHistory();
 }
