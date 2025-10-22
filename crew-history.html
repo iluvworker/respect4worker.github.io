@@ -219,8 +219,7 @@ async function loadCrewHistory() {
 
   // 🎯 自分の履歴だけ抽出
   const myList = list.filter(p =>
-    (p.updated_by || p.editor || "").trim() === currentUser
-  );
+(p.updated_by || p.editor || p.posted_by || "").trim() === currentUser  );
 
   historyData = myList;
   renderHistory();
