@@ -82,9 +82,9 @@
     </section>
 
    <section class="section">
-  <div id="pagination-top" class="pagination"></div>   <!-- 上部 -->
+  <div id="pagination-top" class="pagination"></div>
   <div id="postGrid" class="post-grid"></div>
-  <div id="pagination-bottom" class="pagination"></div> <!-- 下部 -->
+  <div id="pagination-bottom" class="pagination"></div>
 </section>
   </main>
 
@@ -256,6 +256,41 @@ function renderPagination(totalPages) {
     // 次へ
     container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
   });
+}
+    .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  background: #1e1e1e;
+  border: 1px solid #47bcec;
+  color: #47bcec;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  min-width: 32px;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover {
+  background: #47bcec;
+  color: #111;
+}
+
+.pagination button.active {
+  background: #47bcec;
+  color: #111;
+  font-weight: bold;
+}
+
+.pagination span {
+  color: #666;
+  user-select: none;
 }
   </script>
 </body>
