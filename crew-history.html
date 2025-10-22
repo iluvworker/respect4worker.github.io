@@ -200,50 +200,54 @@ function renderHistory(){
 function editPost(id){
   window.location.href = `edit-history.html?id=${id}&type=history`;
 }
+// ==============================
+// 🚀 クルー功績ページ用 完全版
+// ==============================
 async function loadCrewHistory() {
   const user = JSON.parse(localStorage.getItem("loginUser"));
-  const currentUser = user?.name || "未ログイン";
+  const currentUser = user?.name?.trim() || "未ログイン";
 
   // ✅ ページタイトル更新
   document.querySelector(".main-title").textContent = `📜 ${currentUser} の功績一覧`;
 
+  // ✅ history.json と posted.json 両方読む
   const sources = ["history.json", "posted.json"];
-  let list = [];
+  let allList = [];
 
   for (const src of sources) {
-    const res = await fetch(src + "?t=" + Date.now(), { cache: "no-store" });
-    let data = await res.json();
-    while (Array.isArray(data[0])) data = data.flat();
-    list.push(...data);
+    try {
+      const res = await fetch(src + "?t=" + Date.now(), { cache: "no-store" });
+      let data = await res.json();
+      while (Array.isArray(data[0])) data = data.flat();
+      allList.push(...data);
+    } catch (e) {
+      console.warn(src + " の取得に失敗:", e);
+    }
   }
 
-  // 🎯 修正版フィルタ（editorでもposted_byでも拾う）
-const myList = list.filter(p => {
-  const editor = (p.updated_by || p.editor || p.posted_by || "").trim();
-  return editor === currentUser;
-});
+  // ✅ 自分の功績を抽出（editor, updated_by, posted_by いずれか一致）
+  const myList = allList.filter(p => {
+    const who = (p.updated_by || p.editor || p.posted_by || "").trim();
+    return who === currentUser;
+  });
+
+  // ✅ データを反映して再描画
   historyData = myList;
   renderHistory();
 }
 
-// 編集ボタン
-function editPost(id, type = "history") {
-  window.location.href = `crew-edit.html?id=${id}&type=${type}`;
-}
+// 🧭 イベントバインド
+document.getElementById("searchInput").addEventListener("input", () => {
+  currentPage = 1;
+  renderHistory();
+});
+document.getElementById("sortBtn").addEventListener("click", () => {
+  sortDesc = !sortDesc;
+  document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 更新日 降順" : "⬆️ 更新日 昇順";
+  renderHistory();
+});
 
-// 削除ボタンは完全に削除
-
-  // UIイベント
-  document.getElementById("searchInput").addEventListener("input", ()=>{
-    currentPage = 1;
-    renderHistory();
-  });
-  document.getElementById("sortBtn").addEventListener("click", ()=>{
-    sortDesc = !sortDesc;
-    document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 更新日 降順" : "⬆️ 更新日 昇順";
-    renderHistory();
-  });
-
+// 🔥 実行
 loadCrewHistory();
 </script>
 </body>
