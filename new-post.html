@@ -282,27 +282,42 @@ if (await isDupPostEverywhere({
       };
 
       try {
-        const res = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: "Add new post via Cloudflare Worker",
-            content: encodeToBase64(JSON.stringify(newPost, null, 2))
-          })
-        });
+  // 💾 まず既存データを取得
+  let postList = [];
+  try {
+    const res = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+    if (res.ok) postList = await res.json();
 
-        if (res.ok) {
-          alert("✅ 投稿を一時保存しました（船長）");
-          loadPosts();
-          e.target.reset();
-        } else {
-          alert("⚠️ 投稿失敗: " + res.status);
-        }
-      } catch (err) {
-        console.error("送信エラー:", err);
-        alert("⚠️ 送信中にエラーが発生しました。");
-      }
+    // [[ ]] の入れ子を解消
+    while (Array.isArray(postList[0])) postList = postList.flat();
+  } catch (err) {
+    console.warn("⚠️ posts.json の読み込み失敗:", err);
+  }
+
+  // 🧩 新しい投稿を追加
+  postList.push(newPost);
+
+  // 🪄 GitHub保存
+  const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "Add new post (append)",
+      target: "posts.json",
+      content: encodeToBase64(JSON.stringify(postList, null, 2))
+    })
+  });
+
+  if (!save.ok) throw new Error("保存失敗: " + save.status);
+
+  alert("✅ 投稿を追加しました（過去データは保持されています）");
+  loadPosts();
+  e.target.reset();
+} catch (err) {
+  console.error("送信エラー:", err);
+  alert("⚠️ 投稿処理中にエラーが発生しました。");
+}
     });
 
 
