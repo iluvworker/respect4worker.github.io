@@ -485,6 +485,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     await saveToGithub("history.json", newHist, `Remove ${postId} from history.json`);
 
     alert("✅ 掲載済みに移動しました！（履歴とは独立）");
+    document.getElementById("isPosted").checked = false;
     location.href = "edit-history-list.html";
   } catch (err) {
     console.error("保存エラー:", err);
