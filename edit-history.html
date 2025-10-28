@@ -406,8 +406,22 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   const user     = JSON.parse(localStorage.getItem("loginUser"));
   const editor   = user?.name ?? "船長";
 
+  // 👇 内部共通関数：GitHub保存
+  async function saveToGithub(target, data, message) {
+    return await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        target,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
+      })
+    });
+  }
+
   try {
-    // 1) 現在の history を取得
+    // 1️⃣ 現在の history を取得
     const hr   = await fetch("history.json?ts=" + Date.now(), { cache: "no-store" });
     let   hist = hr.ok ? await hr.json() : [];
     while (Array.isArray(hist[0])) hist = hist.flat();
@@ -418,90 +432,66 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
       return;
     }
 
-    // 2) フォーム内容で上書き（どちらの分岐でも共通）
+    // 2️⃣ 更新データを作成
     const updated = {
-  ...hist[idx],
-  title_original: document.getElementById("originalTitle").value.trim(),
-  title_final:    document.getElementById("editableTitle").value.trim(),
-  thumb_original: document.getElementById("thumbOriginal").value.trim(),
-  thumb_pick1:    document.getElementById("thumbPick1").value.trim(),
-  thumb_pick2:    document.getElementById("thumbPick2").value.trim(),
-  url:            document.getElementById("url").value.trim(),
-  video:          document.getElementById("video").value.trim(),
-  tags:           (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
-  notes:          document.getElementById("notes").value.trim(),
-  updated_by:     editor, // ← ここが新設（現在ログイン中の人）
-  updated_at:     new Date().toISOString()
-};
+      ...hist[idx],
+      title_original: document.getElementById("originalTitle").value.trim(),
+      title_final:    document.getElementById("editableTitle").value.trim(),
+      thumb_original: document.getElementById("thumbOriginal").value.trim(),
+      thumb_pick1:    document.getElementById("thumbPick1").value.trim(),
+      thumb_pick2:    document.getElementById("thumbPick2").value.trim(),
+      url:            document.getElementById("url").value.trim(),
+      video:          document.getElementById("video").value.trim(),
+      tags:           (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
+      notes:          document.getElementById("notes").value.trim(),
+      updated_by:     editor,
+      updated_at:     new Date().toISOString()
+    };
 
+    // 3️⃣ 掲載チェックなし → history.json のみ更新
     if (!isPosted) {
-      // ─────────────────────────────
-      // 💾 チェックなし：history.json を上書きして post-list.html へ
-      // ─────────────────────────────
       const newHist = hist.map(p => String(p.id) === String(postId) ? updated : p);
-
-      await fetch("https://github-writer.eda-ksuke.workers.dev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Update post ${postId} in history.json (no publish)`,
-          target:  "history.json",        // ← クエリは付けない
-          content: toBase64(JSON.stringify(newHist, null, 2))
-        })
-      });
-
+      await saveToGithub("history.json", newHist, `Update ${postId} in history.json`);
       alert("💾 履歴を上書き保存しました（掲載済みには移動しません）");
       location.href = "post-list.html";
       return;
     }
 
-    // ─────────────────────────────
-    // ✅ チェックあり：posted.json に移動して edit-history-list.html へ
-    // ─────────────────────────────
-    const pr     = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
-    let   posted = pr.ok ? await pr.json() : [];
-    while (Array.isArray(posted[0])) posted = posted.flat();
+    // 4️⃣ 掲載チェックあり → 安全に posted.json へ移動
+    let postedList = [];
+    try {
+      const pr = await fetch("posted.json?ts=" + Date.now(), { cache: "no-store" });
+      if (pr.ok) postedList = await pr.json();
+      while (Array.isArray(postedList[0])) postedList = postedList.flat();
+    } catch {
+      console.warn("posted.json の読み込みに失敗 → 新規作成します");
+    }
 
-    const finalPost = {
-  ...updated,
-  status:    "posted",
-  posted_at: new Date().toISOString(),
-  editor:    updated.editor || hist[idx].editor || "船長"
-};
+    // ✅ ディープコピーして独立化（ここが肝）
+    const copied = JSON.parse(JSON.stringify({
+      ...updated,
+      status: "posted",
+      posted_at: new Date().toISOString(),
+      editor: updated.editor || hist[idx].editor || "船長"
+    }));
 
-    posted.push(finalPost);
+    postedList.push(copied);
 
-    // posted.json に追記
-    await fetch("https://github-writer.eda-ksuke.workers.dev", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: `Move post ${postId} to posted.json`,
-        target:  "posted.json",
-        content: toBase64(JSON.stringify(posted, null, 2))
-      })
-    });
+    // 🪄 先に posted.json を保存
+    await saveToGithub("posted.json", postedList, `Move ${postId} → posted.json`);
 
-    // history.json から削除
+    // 🧹 その後に history.json から削除（同じ参照を切る）
     const newHist = hist.filter(p => String(p.id) !== String(postId));
-    await fetch("https://github-writer.eda-ksuke.workers.dev", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: `Remove post ${postId} from history.json (moved to posted.json)`,
-        target:  "history.json",
-        content: toBase64(JSON.stringify(newHist, null, 2))
-      })
-    });
+    await saveToGithub("history.json", newHist, `Remove ${postId} from history.json`);
 
-    alert("✅ 掲載済みに移動しました（posted.json へ）");
+    alert("✅ 掲載済みに移動しました！（履歴とは独立）");
+    document.getElementById("isPosted").checked = false;
     location.href = "edit-history-list.html";
   } catch (err) {
     console.error("保存エラー:", err);
     alert("⚠️ 保存処理に失敗しました。");
   }
 });
-
     // ========= タグボタン群 =========
     const labelTags = document.getElementById("labelTags");
     const notes = document.getElementById("notes");
