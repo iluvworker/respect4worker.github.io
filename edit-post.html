@@ -170,6 +170,18 @@
       <textarea id="notes" placeholder="補足や備考を入力...
 基本的に空っぽで。"></textarea>
 
+      <button type="button" id="saveDraftBtn" style="
+  background:#888;
+  color:#111;
+  border:none;
+  border-radius:6px;
+  padding:10px 22px;
+  cursor:pointer;
+  font-size:15px;
+  font-weight:600;
+  margin-top:20px;
+  margin-right:10px;
+">📝 下書き保存</button>
       <button type="submit">💾 保存する</button>
     </form>
   </main>
@@ -202,40 +214,96 @@ const list = await res.json();
 async function loadPost() {
   console.log("🧩 開始: loadPost()");
   const params = new URLSearchParams(window.location.search);
-  const postId = params.get("id");
-  const type = params.get("type");
-  const sourceFile = type === "history" ? "history.json" : "posts.json";
+const postId = params.get("id");
+const type = params.get("type");
 
-  try {
-    const res = await fetch(`${sourceFile}?ts=${Date.now()}`, { cache: "no-store" });
-    const posts = await res.json();
-    const post = posts.find(p => String(p.id) === String(postId));
+let sourceFile = "posts.json";
 
-    console.log("🧩 postId:", postId);
-    console.log("🧩 post:", post);
+if (type === "history") {
+  sourceFile = "history.json";
+}
 
-    if (!post) {
-      alert("該当する投稿が見つかりません。");
-      return;
-    }
+if (type === "draft") {
+  sourceFile = "drafts.json";
+}
 
-    // 🟦 history用補完
-    if (type === "history") {
-      post.thumb = post.thumb_pick1 || post.thumb_original || post.thumb || "";
-      post.url = post.url || "";
-      post.video = post.video || post.url || "";
-      post.tags = post.tags || [];
-      post.notes = post.notes || "";
-    }
+try {
+  const res = await fetch(`${sourceFile}?ts=${Date.now()}`, { cache: "no-store" });
+  const posts = await res.json();
 
-    // 🟩 フォーム反映
-    document.getElementById("originalTitle").value = post.title || "";
-    document.getElementById("thumbOriginal").value = post.thumb || "";
-    document.getElementById("url").value = post.url || "";
-    document.getElementById("video").value = post.video || "";
-    document.getElementById("videoLink").href = post.video || "#";
-    document.getElementById("thumbPreview").src = post.thumb || "";
-    document.getElementById("thumbLink").href = post.url || "#";
+  let post = posts.find(p => String(p.id) === String(postId));
+  if (!post) {
+    alert("該当する投稿が見つかりません。");
+    return;
+  }
+
+  // draft専用の補完
+  if (type === "draft") {
+    // 下書きは title_original・title（＝final）が両方 JSON に入っているのでそのまま使う
+    post.title_original = post.title_original || "";
+    post.title = post.title || ""; // ← final は post.title に保存してある
+    post.thumb = post.thumb || "";
+    post.thumb_pick1 = post.thumb_pick1 || "";
+    post.thumb_pick2 = post.thumb_pick2 || "";
+}
+
+  // history専用の補完
+  if (type === "history") {
+    post.thumb = post.thumb_pick1 || post.thumb_original || post.thumb || "";
+    post.url = post.url || "";
+    post.video = post.video || post.url || "";
+    post.tags = post.tags || [];
+    post.notes = post.notes || "";
+  }
+
+  // ← この後にフォーム反映（現在のコードそのまま）
+// ===============================
+// 🟦 タイトルの正しい読み込み処理
+// ===============================
+let originalTitleValue = "";
+let finalTitleValue = "";
+
+// 商品タイトル
+if (type === "draft") {
+    originalTitleValue = post.title_original || "";
+} else if (type === "history") {
+    originalTitleValue = post.title_original || "";
+} else {
+    // posts.json（新規投稿）
+    originalTitleValue = post.title || "";
+}
+
+// 編集タイトル（50〜60文字）
+if (type === "draft") {
+    finalTitleValue = post.title || ""; // draft の title は final
+} else if (type === "history") {
+    finalTitleValue = post.title_final || "";
+} else {
+    finalTitleValue = "";
+}
+
+// フォームへ反映
+document.getElementById("originalTitle").value = originalTitleValue;
+document.getElementById("editableTitle").value = finalTitleValue;
+
+
+// ===============================
+// 🟧 ここから下は既存コードそのまま
+// ===============================
+document.getElementById("thumbOriginal").value = post.thumb || "";
+document.getElementById("url").value = post.url || "";
+document.getElementById("video").value = post.video || "";
+document.getElementById("videoLink").href = post.video || "#";
+document.getElementById("thumbPreview").src = post.thumb || "";
+document.getElementById("thumbLink").href = post.url || "#";
+
+document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
+document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+document.getElementById("tags").value = (post.tags || []).join(" ");
+document.getElementById("notes").value = post.notes || "";
+  
+
+// ▲▲ ここまで追加 ▲▲
 
     updateCounter();
     updateTagCount();
@@ -416,7 +484,27 @@ titleInput.addEventListener("input", highlightTitleMirror);
       updated_at: new Date().toISOString(),
       status: "edited"
     };
+// 🗑 drafts.json から該当IDを削除（存在すれば）
+try {
+  const dr = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+  if (dr.ok) {
+    const drafts = await dr.json();
+    const updatedDrafts = drafts.filter(p => String(p.id) !== String(postId));
 
+    await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Remove draft id:${postId}`,
+        target: "drafts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedDrafts, null, 2))))
+      })
+    });
+  }
+} catch(e){
+  console.warn("drafts削除時エラー:", e);
+}
     try {
       // 1) history.json を読み出して追記
       let historyList = [];
@@ -432,7 +520,7 @@ titleInput.addEventListener("input", highlightTitleMirror);
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: "Add edited post to history.json?ts=",
-          target: "history.json?ts=",
+          target: "history.json",
           content: encodeToBase64(JSON.stringify(historyList, null, 2))
         })
       });
@@ -442,30 +530,44 @@ titleInput.addEventListener("input", highlightTitleMirror);
         return;
       }
 
-      // 2) posts.json から対象IDを削除（＝移動）
-      try {
-        const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
-        const posts = pr.ok ? await pr.json() : [];
- const flatPosts = Array.isArray(posts[0]) ? posts.flat() : posts;
- const updatedPosts = flatPosts.filter(p => String(p.id) !== String(postId));
+// 2) posts.json から対象IDを削除（＝移動）
+try {
 
-        const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: `Remove id:${postId} from posts.json?ts= (moved to history.json?ts=)`,
-            target: "posts.json?ts=",
-            content: encodeToBase64(JSON.stringify(updatedPosts, null, 2))
-          })
-        });
+  // ✔ 必ず raw.githubusercontent.com を使いキャッシュを突破
+  const pr = await fetch("posts.json?cb=" + Date.now(), {
+  cache: "no-store"
+});
 
-        if (!savePosts.ok) {
-          console.warn("posts.json?ts= の削除反映に失敗:", savePosts.status);
-        }
-      } catch (e2) {
-        console.warn("posts.json?ts= 更新エラー:", e2);
-      }
+  let posts = pr.ok ? await pr.json() : [];
+
+  // flatten 保険
+  while (Array.isArray(posts[0])) posts = posts.flat();
+
+  // ✔ 削除処理
+  const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+
+  // ✔ GitHub の “本体 posts.json” を必ず上書き
+  const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: `Remove id:${postId}`,
+      target: "posts.json",
+      content: btoa(unescape(encodeURIComponent(
+        JSON.stringify(updatedPosts, null, 2)
+      )))
+    })
+  });
+
+  if (!savePosts.ok) {
+    alert("⚠️ posts.json の更新に失敗: " + savePosts.status);
+    return;
+  }
+
+} catch (e) {
+  console.error("posts.json 更新エラー:", e);
+}
 
       alert("✅ 保存しました。投稿は履歴へ移動し、一覧から削除しました。");
       window.location.href = "post-list.html";
@@ -678,6 +780,66 @@ document.getElementById("openVideoWin").addEventListener("click", () => {
     videoWindow.focus();
   }
 });
+   
+    // ==========================
+// 📝 下書き保存処理
+// ==========================
+document.getElementById("saveDraftBtn").addEventListener("click", async () => {
+
+  const id = postId;  // 編集中IDをそのまま使用
+
+  const draftData = {
+    id,
+    title: document.getElementById("editableTitle").value.trim(),
+    title_original: document.getElementById("originalTitle").value.trim(),
+    url: document.getElementById("url").value.trim(),
+    thumb: document.getElementById("thumbOriginal").value.trim(),
+    thumb_pick1: document.getElementById("thumbPick1").value.trim(),
+    thumb_pick2: document.getElementById("thumbPick2").value.trim(),
+    video: document.getElementById("video").value.trim(),
+    tags: (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
+    notes: document.getElementById("notes").value.trim(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    status: "draft"
+  };
+
+  try {
+    // drafts.json を読み込む
+    let list = [];
+    try {
+      const r = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+      if (r.ok) list = await r.json();
+    } catch (_) {}
+
+    // 既存IDは置換、なければ追加
+    const idx = list.findIndex(p => String(p.id) === String(id));
+    if (idx >= 0) list[idx] = draftData;
+    else list.push(draftData);
+
+    // GitHub に書き込み
+    const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Save draft id:${id}`,
+        target: "drafts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))))
+      })
+    });
+
+    if (!save.ok) throw new Error("書き込み失敗");
+
+    alert("📝 下書きとして保存しました！");
+    window.location.href = "post-list.html";  // ← ここで投稿一覧へリダイレクト
+
+  } catch (err) {
+    console.error("下書き保存エラー:", err);
+    alert("⚠️ 下書き保存に失敗しました");
+  }
+});
+    
   </script>
 </body>
 </html>

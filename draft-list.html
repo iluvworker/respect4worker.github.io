@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📝 下書き一覧</title>
+  <link rel="stylesheet" href="assets/style.css?v=8">
+  <script src="assets/sidebar.js" defer></script>
+
+  <style>
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .post-card {
+      background: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .post-card:hover { transform: translateY(-3px); }
+
+    .post-thumb {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .post-info {
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .post-site {
+      color: #47bcec;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .post-title {
+      font-size: 16px;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .post-title:hover { color: #5fd0ff; }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .edit-btn, .delete-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .edit-btn {
+      background: #47bcec;
+      color: #111;
+    }
+
+    .delete-btn {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #searchInput {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background: #1e1e1e;
+      color: #eee;
+      font-size: 15px;
+    }
+
+    #sortBtn {
+      background: #333;
+      border: 1px solid #47bcec;
+      color: #47bcec;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pagination button {
+      background: #1e1e1e;
+      border: 1px solid #47bcec;
+      color: #47bcec;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      min-width: 32px;
+    }
+
+    .pagination button.active {
+      background: #47bcec;
+      color: #111;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <h1 class="main-title">📝 下書き一覧</h1>
+
+    <section class="section filter-bar">
+      <input type="text" id="searchInput" placeholder="🔍 タイトル・サイト名・タグで検索" />
+      <div id="countDisplay" style="color:#b0cfff;font-size:14px;margin-top:-10px;margin-bottom:15px;">
+  件数：0件
+</div>
+      <button id="sortBtn">⬇️ 降順</button>
+    </section>
+
+    <section class="section">
+      <div id="pagination-top" class="pagination"></div>
+      <div id="postGrid" class="post-grid"></div>
+      <div id="pagination-bottom" class="pagination"></div>
+    </section>
+  </main>
+
+  <script>
+    let postsData = [];
+    let sortDesc = true;
+    let currentPage = 1;
+    const perPage = 30;
+
+    async function loadPosts() {
+      const res = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+      postsData = await res.json();
+      renderPosts();
+    }
+
+    function getSiteName(url) {
+      if (!url) return "-";
+      if (url.includes("dmm.co.jp")) return "FANZA";
+      if (url.includes("mgstage.com")) return "MGS";
+      return "不明";
+    }
+
+    function renderPosts() {
+  const grid = document.getElementById("postGrid");
+  const keyword = (document.getElementById("searchInput").value || "").toLowerCase();
+
+  // 🔥 検索が空なら全件表示
+  let filtered = postsData;
+
+  // 🔥 検索した時だけフィルタ適用
+  if (keyword) {
+    filtered = postsData.filter(p =>
+      (p.title && p.title.toLowerCase().includes(keyword)) ||
+      (p.tags && p.tags.join(",").toLowerCase().includes(keyword))
+    );
+  }
+
+  updateCountDisplay(filtered);
+
+  filtered.sort((a, b) =>
+    sortDesc
+      ? new Date(b.created_at) - new Date(a.created_at)
+      : new Date(a.created_at) - new Date(b.created_at)
+  );
+
+  const totalPages = Math.ceil(filtered.length / perPage);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
+
+  const start = (currentPage - 1) * perPage;
+  const pageData = filtered.slice(start, start + perPage);
+
+  grid.innerHTML = "";
+  pageData.forEach(p => {
+    const site = getSiteName(p.url);
+    const card = document.createElement("div");
+    card.className = "post-card";
+
+    card.innerHTML = `
+      <img src="${p.thumb || ""}" class="post-thumb">
+      <div class="post-info">
+        <div class="post-site">${site}</div>
+        <div class="post-title">${p.title || "(タイトルなし)"}</div>
+        <div class="btn-group">
+          <button class="edit-btn" onclick="editDraft('${p.id}')">✏ 編集</button>
+          <button class="delete-btn" onclick="deleteDraft('${p.id}')">🗑 削除</button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  renderPagination(totalPages);
+}
+
+    function renderPagination(totalPages) {
+      const paginations = [
+        document.getElementById("pagination-top"),
+        document.getElementById("pagination-bottom")
+      ];
+
+      paginations.forEach(container => {
+        container.innerHTML = "";
+        if (totalPages <= 1) return;
+
+        const createBtn = (label, page, disabled = false, active = false) => {
+          const btn = document.createElement("button");
+          btn.textContent = label;
+          if (disabled) btn.disabled = true;
+          if (active) btn.classList.add("active");
+          btn.addEventListener("click", () => {
+            currentPage = page;
+            renderPosts();
+          });
+          return btn;
+        };
+
+        container.appendChild(createBtn("⏮", currentPage - 1, currentPage === 1));
+
+        const visibleRange = 2;
+        const startPage = Math.max(1, currentPage - visibleRange);
+        const endPage = Math.min(totalPages, currentPage + visibleRange);
+
+        if (startPage > 1) {
+          container.appendChild(createBtn("1", 1));
+          if (startPage > 2) container.appendChild(document.createTextNode("…"));
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          container.appendChild(createBtn(i, i, false, i === currentPage));
+        }
+
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) container.appendChild(document.createTextNode("…"));
+          container.appendChild(createBtn(totalPages, totalPages));
+        }
+
+        container.appendChild(createBtn("⏭", currentPage + 1, currentPage === totalPages));
+      });
+    }
+
+    async function deleteDraft(id) {
+      if (!confirm("🗑 下書きを削除しますか？")) return;
+
+      const res = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+      const list = await res.json();
+      const updated = list.filter(p => String(p.id) !== String(id));
+
+      const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Delete draft id:${id}`,
+          target: "drafts.json",
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))))
+        })
+      });
+
+      if (!save.ok) {
+        alert("削除に失敗しました");
+        return;
+      }
+
+      alert("削除しました");
+      loadPosts();
+    }
+
+    function editDraft(id) {
+      window.location.href = `edit-post.html?id=${id}&type=draft`;
+    }
+
+    document.addEventListener("input", (e) => {
+      if (["searchInput"].includes(e.target.id)) {
+        currentPage = 1;
+        renderPosts();
+      }
+    });
+
+    document.getElementById("sortBtn").addEventListener("click", () => {
+      sortDesc = !sortDesc;
+      document.getElementById("sortBtn").textContent = sortDesc ? "⬇️ 降順" : "⬆️ 昇順";
+      renderPosts();
+    });
+
+    loadPosts();
+    
+    function updateCountDisplay(list) {
+  const countDisplay = document.getElementById("countDisplay");
+  countDisplay.textContent = `件数：${list.length}件`;
+}
+  </script>
+</body>
+</html>
