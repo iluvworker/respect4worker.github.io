@@ -247,7 +247,7 @@ if (type === "history") {
     }
 
     // 🟩 フォーム反映
-    document.getElementById("originalTitle").value = post.title || "";
+    document.getElementById("originalTitle").value = post.title_original || "";
     document.getElementById("thumbOriginal").value = post.thumb || "";
     document.getElementById("url").value = post.url || "";
     document.getElementById("video").value = post.video || "";
@@ -258,7 +258,7 @@ if (type === "history") {
 
 // 編集用タイトル（editableTitle）
 document.getElementById("editableTitle").value =
-  post.title_final || post.title || post.title_original || "";
+  post.title_final || post.title_original || "";
 
 // サムネ①②
 document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
