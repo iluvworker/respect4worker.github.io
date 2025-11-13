@@ -498,40 +498,35 @@ try {
       }
 
       // 2) posts.json から対象IDを削除（＝移動）
-      try {
-        const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
-        // posts.json 読み込み
-const pr = await fetch("posts.json", { cache: "no-store" });
-let posts = pr.ok ? await pr.json() : [];
+try {
+  const pr = await fetch("posts.json", { cache: "no-store" });
+  let posts = pr.ok ? await pr.json() : [];
 
-// 配列が二重配列だったら平坦化
-while (Array.isArray(posts[0])) {
-  posts = posts.flat();
+  // flatten
+  while (Array.isArray(posts[0])) posts = posts.flat();
+
+  // ID削除
+  const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+
+  const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: `Remove id:${postId} from posts.json`,
+      target: "posts.json",
+      content: encodeToBase64(JSON.stringify(updatedPosts, null, 2))
+    })
+  });
+
+  if (!savePosts.ok) {
+    alert("⚠️ posts.json の更新に失敗しました: " + savePosts.status);
+    return;
+  }
+
+} catch (e2) {
+  console.warn("posts.json 更新エラー:", e2);
 }
-
-// ID削除
-const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
-        
-        const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: `Remove id:${postId} from posts.json?ts= (moved to history.json?ts=)`,
-            target: "posts.json",
-            content: encodeToBase64(JSON.stringify(updatedPosts, null, 2))
-          })
-        });
-
-        if (!savePosts.ok) {
-          if (!savePosts.ok) {
-  alert("⚠️ posts.json の更新に失敗しました: " + savePosts.status);
-  return;
-}
-        }
-      } catch (e2) {
-        console.warn("posts.json?ts= 更新エラー:", e2);
-      }
 
       alert("✅ 保存しました。投稿は履歴へ移動し、一覧から削除しました。");
       window.location.href = "post-list.html";
