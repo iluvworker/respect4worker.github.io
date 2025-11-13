@@ -170,6 +170,18 @@
       <textarea id="notes" placeholder="補足や備考を入力...
 基本的に空っぽで。"></textarea>
 
+      <button type="button" id="saveDraftBtn" style="
+  background:#888;
+  color:#111;
+  border:none;
+  border-radius:6px;
+  padding:10px 22px;
+  cursor:pointer;
+  font-size:15px;
+  font-weight:600;
+  margin-top:20px;
+  margin-right:10px;
+">📝 下書き保存</button>
       <button type="submit">💾 保存する</button>
     </form>
   </main>
@@ -416,7 +428,27 @@ titleInput.addEventListener("input", highlightTitleMirror);
       updated_at: new Date().toISOString(),
       status: "edited"
     };
+// 🗑 drafts.json から該当IDを削除（存在すれば）
+try {
+  const dr = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+  if (dr.ok) {
+    const drafts = await dr.json();
+    const updatedDrafts = drafts.filter(p => String(p.id) !== String(postId));
 
+    await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Remove draft id:${postId}`,
+        target: "drafts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedDrafts, null, 2))))
+      })
+    });
+  }
+} catch(e){
+  console.warn("drafts削除時エラー:", e);
+}
     try {
       // 1) history.json を読み出して追記
       let historyList = [];
@@ -676,6 +708,50 @@ document.getElementById("openVideoWin").addEventListener("click", () => {
       videoWindow.location.href = url;
     }
     videoWindow.focus();
+  }
+});
+    document.getElementById("saveDraftBtn").addEventListener("click", async () => {
+  const draft = {
+    id: postId,
+    title: document.getElementById("editableTitle").value.trim(),
+    title_original: document.getElementById("originalTitle").value.trim(),
+    url: document.getElementById("url").value.trim(),
+    thumb: document.getElementById("thumbOriginal").value.trim(),
+    thumb_pick1: document.getElementById("thumbPick1").value.trim(),
+    thumb_pick2: document.getElementById("thumbPick2").value.trim(),
+    video: document.getElementById("video").value.trim(),
+    tags: (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
+    notes: document.getElementById("notes").value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    // 🟦 現在の drafts.json を取得
+    const res = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+    let list = res.ok ? await res.json() : [];
+
+    // 🟩 既存 ID を削除して上書き
+    list = list.filter(p => String(p.id) !== String(postId));
+    list.push(draft);
+
+    // 🟥 GitHub 書き込み
+    const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Save draft id:${postId}`,
+        target: "drafts.json",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))))
+      })
+    });
+
+    if (!save.ok) throw new Error("書き込み失敗:" + save.status);
+
+    alert("📝 下書きを保存しました！");
+  } catch (err) {
+    console.error("draft save error:", err);
+    alert("⚠️ 下書き保存に失敗しました");
   }
 });
   </script>
