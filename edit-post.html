@@ -804,6 +804,31 @@ document.getElementById("saveDraftBtn").addEventListener("click", async () => {
     status: "draft"
   };
 
+  // 🗑 posts.json から該当IDを削除（draft保存時も必要）
+try {
+  const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+  let posts = pr.ok ? await pr.json() : [];
+
+  // flatten 保険
+  while (Array.isArray(posts[0])) posts = posts.flat();
+
+  // ID削除
+  const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+
+  await fetch("https://github-writer.eda-ksuke.workers.dev", {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: `Remove id:${postId} (draft save)`,
+      target: "posts.json",
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedPosts, null, 2))))
+    })
+  });
+} catch (e) {
+  console.warn("posts.json 更新エラー（draft）:", e);
+}
+
   try {
     // drafts.json を読み込む
     let list = [];
