@@ -532,6 +532,8 @@ try {
 
       // 2) posts.json から対象IDを削除（＝移動）
 try {
+  // 2) posts.json から対象IDを削除（＝移動）
+try {
   const pr = await fetch("posts.json", { cache: "no-store" });
   let posts = pr.ok ? await pr.json() : [];
 
