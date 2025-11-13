@@ -501,7 +501,7 @@ try {
       try {
         const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
         // posts.json 読み込み
-const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+const pr = await fetch("posts.json", { cache: "no-store" });
 let posts = pr.ok ? await pr.json() : [];
 
 // 配列が二重配列だったら平坦化
