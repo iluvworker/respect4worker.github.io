@@ -214,10 +214,16 @@ const list = await res.json();
 async function loadPost() {
   console.log("🧩 開始: loadPost()");
   const params = new URLSearchParams(window.location.search);
-  const postId = params.get("id");
-  const type = params.get("type");
-  const sourceFile = type === "history" ? "history.json" : "posts.json";
+const postId = params.get("id");
+const type = params.get("type");
 
+let sourceFile = "posts.json"; // デフォルト posts.json
+
+if (type === "history") {
+  sourceFile = "history.json";
+} else if (type === "draft") {
+  sourceFile = "drafts.json";
+}
   try {
     const res = await fetch(`${sourceFile}?ts=${Date.now()}`, { cache: "no-store" });
     const posts = await res.json();
