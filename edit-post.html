@@ -254,6 +254,23 @@ if (type === "history") {
     document.getElementById("videoLink").href = post.video || "#";
     document.getElementById("thumbPreview").src = post.thumb || "";
     document.getElementById("thumbLink").href = post.url || "#";
+    // ▼▼ ここから追加 ▼▼
+
+// 編集用タイトル（editableTitle）
+document.getElementById("editableTitle").value =
+  post.title_final || post.title || post.title_original || "";
+
+// サムネ①②
+document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
+document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
+
+// タグ（スペース結合）
+document.getElementById("tags").value = (post.tags || []).join(" ");
+
+// メモ
+document.getElementById("notes").value = post.notes || "";
+
+// ▲▲ ここまで追加 ▲▲
 
     updateCounter();
     updateTagCount();
