@@ -174,49 +174,52 @@
     }
 
     function renderPosts() {
-      const grid = document.getElementById("postGrid");
-      const keyword = document.getElementById("searchInput").value.toLowerCase();
+  const grid = document.getElementById("postGrid");
+  const keyword = document.getElementById("searchInput").value.toLowerCase();
 
-      let filtered = postsData.filter(p =>
-        (p.title && p.title.toLowerCase().includes(keyword)) ||
-        (p.tags && p.tags.join(",").toLowerCase().includes(keyword))
-      );
+  let filtered = postsData.filter(p =>
+    (p.title && p.title.toLowerCase().includes(keyword)) ||
+    (p.tags && p.tags.join(",").toLowerCase().includes(keyword))
+  );
 
-      filtered.sort((a, b) =>
-        sortDesc
-          ? new Date(b.created_at) - new Date(a.created_at)
-          : new Date(a.created_at) - new Date(b.created_at)
-      );
+  // 🔹 件数表示を更新
+  updateCountDisplay(filtered);
 
-      const totalPages = Math.ceil(filtered.length / perPage);
-      if (currentPage > totalPages) currentPage = totalPages || 1;
+  filtered.sort((a, b) =>
+    sortDesc
+      ? new Date(b.created_at) - new Date(a.created_at)
+      : new Date(a.created_at) - new Date(b.created_at)
+  );
 
-      const start = (currentPage - 1) * perPage;
-      const pageData = filtered.slice(start, start + perPage);
+  const totalPages = Math.ceil(filtered.length / perPage);
+  if (currentPage > totalPages) currentPage = totalPages || 1;
 
-      grid.innerHTML = "";
-      pageData.forEach(p => {
-        const site = getSiteName(p.url);
-        const card = document.createElement("div");
-        card.className = "post-card";
+  const start = (currentPage - 1) * perPage;
+  const pageData = filtered.slice(start, start + perPage);
 
-        card.innerHTML = `
-          <img src="${p.thumb || ""}" class="post-thumb">
-          <div class="post-info">
-            <div class="post-site">${site}</div>
-            <div class="post-title">${p.title || "(タイトルなし)"}</div>
-            <div class="btn-group">
-              <button class="edit-btn" onclick="editDraft('${p.id}')">✏ 編集</button>
-              <button class="delete-btn" onclick="deleteDraft('${p.id}')">🗑 削除</button>
-            </div>
-          </div>
-        `;
+  grid.innerHTML = "";
+  pageData.forEach(p => {
+    const site = getSiteName(p.url);
+    const card = document.createElement("div");
+    card.className = "post-card";
 
-        grid.appendChild(card);
-      });
+    card.innerHTML = `
+      <img src="${p.thumb || ""}" class="post-thumb">
+      <div class="post-info">
+        <div class="post-site">${site}</div>
+        <div class="post-title">${p.title || "(タイトルなし)"}</div>
+        <div class="btn-group">
+          <button class="edit-btn" onclick="editDraft('${p.id}')">✏ 編集</button>
+          <button class="delete-btn" onclick="deleteDraft('${p.id}')">🗑 削除</button>
+        </div>
+      </div>
+    `;
 
-      renderPagination(totalPages);
-    }
+    grid.appendChild(card);
+  });
+
+  renderPagination(totalPages);
+}
 
     function renderPagination(totalPages) {
       const paginations = [
