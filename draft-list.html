@@ -161,7 +161,7 @@
     const perPage = 30;
 
     async function loadPosts() {
-      const res = await fetch("./drafts.json?ts=" + Date.now(), { cache: "no-store" });
+      const res = await fetch("./drafts.json" + Date.now(), { cache: "no-store" });
       postsData = await res.json();
       renderPosts();
     }
@@ -270,7 +270,7 @@
     async function deleteDraft(id) {
       if (!confirm("🗑 下書きを削除しますか？")) return;
 
-      const res = await fetch("./drafts.json?ts=" + Date.now(), { cache: "no-store" });
+      const res = await fetch("./drafts.json" + Date.now(), { cache: "no-store" });
       const list = await res.json();
       const updated = list.filter(p => String(p.id) !== String(id));
 
