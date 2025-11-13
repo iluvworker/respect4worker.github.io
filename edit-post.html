@@ -239,12 +239,13 @@ try {
 
   // draft専用の補完
   if (type === "draft") {
+    // 下書きは title_original・title（＝final）が両方 JSON に入っているのでそのまま使う
     post.title_original = post.title_original || "";
-    post.title_final = post.title || "";
+    post.title = post.title || ""; // ← final は post.title に保存してある
     post.thumb = post.thumb || "";
     post.thumb_pick1 = post.thumb_pick1 || "";
     post.thumb_pick2 = post.thumb_pick2 || "";
-  }
+}
 
   // history専用の補完
   if (type === "history") {
@@ -256,30 +257,51 @@ try {
   }
 
   // ← この後にフォーム反映（現在のコードそのまま）
+// ===============================
+// 🟦 タイトルの正しい読み込み処理
+// ===============================
+let originalTitleValue = "";
+let finalTitleValue = "";
 
-    // 🟩 フォーム反映
-    document.getElementById("originalTitle").value = post.title || "";
-    document.getElementById("thumbOriginal").value = post.thumb || "";
-    document.getElementById("url").value = post.url || "";
-    document.getElementById("video").value = post.video || "";
-    document.getElementById("videoLink").href = post.video || "#";
-    document.getElementById("thumbPreview").src = post.thumb || "";
-    document.getElementById("thumbLink").href = post.url || "#";
-    // ▼▼ ここから追加 ▼▼
+// 商品タイトル
+if (type === "draft") {
+    originalTitleValue = post.title_original || "";
+} else if (type === "history") {
+    originalTitleValue = post.title_original || "";
+} else {
+    // posts.json（新規投稿）
+    originalTitleValue = post.title || "";
+}
 
-// 編集用タイトル（editableTitle）
-document.getElementById("editableTitle").value =
-  post.title_final || post.title_original || "";
+// 編集タイトル（50〜60文字）
+if (type === "draft") {
+    finalTitleValue = post.title || ""; // draft の title は final
+} else if (type === "history") {
+    finalTitleValue = post.title_final || "";
+} else {
+    finalTitleValue = "";
+}
 
-// サムネ①②
+// フォームへ反映
+document.getElementById("originalTitle").value = originalTitleValue;
+document.getElementById("editableTitle").value = finalTitleValue;
+
+
+// ===============================
+// 🟧 ここから下は既存コードそのまま
+// ===============================
+document.getElementById("thumbOriginal").value = post.thumb || "";
+document.getElementById("url").value = post.url || "";
+document.getElementById("video").value = post.video || "";
+document.getElementById("videoLink").href = post.video || "#";
+document.getElementById("thumbPreview").src = post.thumb || "";
+document.getElementById("thumbLink").href = post.url || "#";
+
 document.getElementById("thumbPick1").value = post.thumb_pick1 || "";
 document.getElementById("thumbPick2").value = post.thumb_pick2 || "";
-
-// タグ（スペース結合）
 document.getElementById("tags").value = (post.tags || []).join(" ");
-
-// メモ
 document.getElementById("notes").value = post.notes || "";
+  
 
 // ▲▲ ここまで追加 ▲▲
 
