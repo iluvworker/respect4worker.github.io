@@ -500,10 +500,18 @@ try {
       // 2) posts.json から対象IDを削除（＝移動）
       try {
         const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
-        const posts = pr.ok ? await pr.json() : [];
- const flatPosts = Array.isArray(posts[0]) ? posts.flat() : posts;
- const updatedPosts = flatPosts.filter(p => String(p.id) !== String(postId));
+        // posts.json 読み込み
+const pr = await fetch("posts.json?ts=" + Date.now(), { cache: "no-store" });
+let posts = pr.ok ? await pr.json() : [];
 
+// 配列が二重配列だったら平坦化
+while (Array.isArray(posts[0])) {
+  posts = posts.flat();
+}
+
+// ID削除
+const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
+        
         const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
           method: "POST",
           mode: "cors",
@@ -516,7 +524,10 @@ try {
         });
 
         if (!savePosts.ok) {
-          console.warn("posts.json?ts= の削除反映に失敗:", savePosts.status);
+          if (!savePosts.ok) {
+  alert("⚠️ posts.json の更新に失敗しました: " + savePosts.status);
+  return;
+}
         }
       } catch (e2) {
         console.warn("posts.json?ts= 更新エラー:", e2);
