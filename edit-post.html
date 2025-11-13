@@ -222,7 +222,12 @@ let sourceFile = "posts.json"; // デフォルト posts.json
 if (type === "history") {
   sourceFile = "history.json";
 } else if (type === "draft") {
-  sourceFile = "drafts.json";
+  // draft は title が "editableTitle" 相当
+  post.title_original = post.title_original || post.title || "";
+  post.title_final = post.title || "";
+
+  // サムネも統一
+  post.thumb = post.thumb_original || post.thumb || "";
 }
   try {
     const res = await fetch(`${sourceFile}?ts=${Date.now()}`, { cache: "no-store" });
