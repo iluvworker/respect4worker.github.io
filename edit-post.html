@@ -710,9 +710,16 @@ document.getElementById("openVideoWin").addEventListener("click", () => {
     videoWindow.focus();
   }
 });
-    document.getElementById("saveDraftBtn").addEventListener("click", async () => {
-  const draft = {
-    id: postId,
+   
+    // ==========================
+// 📝 下書き保存処理
+// ==========================
+document.getElementById("saveDraftBtn").addEventListener("click", async () => {
+
+  const id = postId;  // 編集中IDをそのまま使用
+
+  const draftData = {
+    id,
     title: document.getElementById("editableTitle").value.trim(),
     title_original: document.getElementById("originalTitle").value.trim(),
     url: document.getElementById("url").value.trim(),
@@ -722,38 +729,47 @@ document.getElementById("openVideoWin").addEventListener("click", () => {
     video: document.getElementById("video").value.trim(),
     tags: (document.getElementById("tags").value || "").trim().split(/\s+/).filter(Boolean),
     notes: document.getElementById("notes").value.trim(),
-    updated_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    status: "draft"
   };
 
   try {
-    // 🟦 現在の drafts.json を取得
-    const res = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
-    let list = res.ok ? await res.json() : [];
+    // drafts.json を読み込む
+    let list = [];
+    try {
+      const r = await fetch("drafts.json?ts=" + Date.now(), { cache: "no-store" });
+      if (r.ok) list = await r.json();
+    } catch (_) {}
 
-    // 🟩 既存 ID を削除して上書き
-    list = list.filter(p => String(p.id) !== String(postId));
-    list.push(draft);
+    // 既存IDは置換、なければ追加
+    const idx = list.findIndex(p => String(p.id) === String(id));
+    if (idx >= 0) list[idx] = draftData;
+    else list.push(draftData);
 
-    // 🟥 GitHub 書き込み
+    // GitHub に書き込み
     const save = await fetch("https://github-writer.eda-ksuke.workers.dev", {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: `Save draft id:${postId}`,
+        message: `Save draft id:${id}`,
         target: "drafts.json",
         content: btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))))
       })
     });
 
-    if (!save.ok) throw new Error("書き込み失敗:" + save.status);
+    if (!save.ok) throw new Error("書き込み失敗");
 
-    alert("📝 下書きを保存しました！");
+    alert("📝 下書きとして保存しました！");
+    window.location.href = "post-list.html";  // ← ここで投稿一覧へリダイレクト
+
   } catch (err) {
-    console.error("draft save error:", err);
+    console.error("下書き保存エラー:", err);
     alert("⚠️ 下書き保存に失敗しました");
   }
 });
+    
   </script>
 </body>
 </html>
