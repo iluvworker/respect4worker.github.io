@@ -530,37 +530,44 @@ try {
         return;
       }
 
-      // 2) posts.json から対象IDを削除（＝移動）
 // 2) posts.json から対象IDを削除（＝移動）
 try {
-  const pr = await fetch("posts.json?raw=" + Date.now(), { cache: "no-store" });
+
+  // ✔ 必ず raw.githubusercontent.com を使いキャッシュを突破
+  const pr = await fetch(
+    "https://raw.githubusercontent.com/respect4worker/respect4worker.github.io/main/posts.json?cb=" + Date.now(),
+    { cache: "no-store" }
+  );
+
   let posts = pr.ok ? await pr.json() : [];
 
-  // flatten（保険）
+  // flatten 保険
   while (Array.isArray(posts[0])) posts = posts.flat();
 
-  // 削除
+  // ✔ 削除処理
   const updatedPosts = posts.filter(p => String(p.id) !== String(postId));
 
-  // GitHub の posts.json を確実に更新
+  // ✔ GitHub の “本体 posts.json” を必ず上書き
   const savePosts = await fetch("https://github-writer.eda-ksuke.workers.dev", {
     method: "POST",
     mode: "cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       message: `Remove id:${postId}`,
-      target: "posts.json",   // ← ts を入れない！これ超重要
-      content: encodeToBase64(JSON.stringify(updatedPosts, null, 2))
+      target: "posts.json",
+      content: btoa(unescape(encodeURIComponent(
+        JSON.stringify(updatedPosts, null, 2)
+      )))
     })
   });
 
   if (!savePosts.ok) {
-    alert("⚠️ posts.json の更新に失敗しました: " + savePosts.status);
+    alert("⚠️ posts.json の更新に失敗: " + savePosts.status);
     return;
   }
 
-} catch (err) {
-  console.error("posts.json 更新エラー:", err);
+} catch (e) {
+  console.error("posts.json 更新エラー:", e);
 }
 
       alert("✅ 保存しました。投稿は履歴へ移動し、一覧から削除しました。");
