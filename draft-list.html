@@ -175,14 +175,19 @@
 
     function renderPosts() {
   const grid = document.getElementById("postGrid");
-  const keyword = document.getElementById("searchInput").value.toLowerCase();
+  const keyword = (document.getElementById("searchInput").value || "").toLowerCase();
 
-  let filtered = postsData.filter(p =>
-    (p.title && p.title.toLowerCase().includes(keyword)) ||
-    (p.tags && p.tags.join(",").toLowerCase().includes(keyword))
-  );
+  // 🔥 検索が空なら全件表示
+  let filtered = postsData;
 
-  // 🔹 件数表示を更新
+  // 🔥 検索した時だけフィルタ適用
+  if (keyword) {
+    filtered = postsData.filter(p =>
+      (p.title && p.title.toLowerCase().includes(keyword)) ||
+      (p.tags && p.tags.join(",").toLowerCase().includes(keyword))
+    );
+  }
+
   updateCountDisplay(filtered);
 
   filtered.sort((a, b) =>
