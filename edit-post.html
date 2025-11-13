@@ -534,10 +534,9 @@ try {
 try {
 
   // ✔ 必ず raw.githubusercontent.com を使いキャッシュを突破
-  const pr = await fetch(
-    "https://raw.githubusercontent.com/respect4worker/respect4worker.github.io/main/posts.json?cb=" + Date.now(),
-    { cache: "no-store" }
-  );
+  const pr = await fetch("posts.json?cb=" + Date.now(), {
+  cache: "no-store"
+});
 
   let posts = pr.ok ? await pr.json() : [];
 
