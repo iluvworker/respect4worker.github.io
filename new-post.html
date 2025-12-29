@@ -251,6 +251,19 @@ async function isDupPostEverywhere(newPost) {
   
     document.querySelector("#postForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+
+        const videoInput = document.getElementById("video");
+  const rawVideo = videoInput.value.trim();
+
+  try {
+    const u = new URL(rawVideo);
+    u.searchParams.set("promo", "48097"); // 既存があっても上書き
+    videoInput.value = u.toString();      // フォームの値を差し替え
+  } catch {
+    alert("⚠️ 動画URLが正しくありません。");
+    return;
+  }
+      
       const site = siteDisplay.textContent;
       if (site === "未判定") {
         alert("⚠️ 販売サイトが判定できません。URLを確認してください。");
